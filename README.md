@@ -1,23 +1,50 @@
-ColdBot – Automated Cold Calling Voice Agent
+🧠 ColdBotX — Voice-Driven Lead Collection Agent
 
-ColdBot is a Python-based voice assistant created for our Final Year Project (FYP) to automate **cold calling** tasks.  
-It listens to spoken input, extracts user details (name, gender, email, phone), and stores them in an Excel file for follow-up.
+ColdBotX is an intelligent voice-based conversational agent that collects user information such as name, email, and phone number through speech or text input. It uses speech recognition and text-to-speech technologies to interact naturally with users and stores the collected data for further automation (e.g., CRM integration, Twilio voice call flows, and booking systems).
 
-Features
- Speech Recognition: Captures details through voice input.  
- Text-to-Speech: Speaks prompts and confirmations.  
- Excel Integration: Automatically creates `user_records.xlsx` and appends new entries with styled headers.  
- Data Cleaning: Normalizes email addresses and phone numbers (e.g., “at sign” → “@”, spoken numbers → digits).  
- Fallback Input: If speech fails, you can type responses.
+🚀 Current Features
+
+🎙️ Speech-to-Text (STT) for user responses
+
+🔊 Text-to-Speech (TTS) for agent prompts
+
+✉️ Email and phone normalization (handles “at sign,” “dot,” etc.)
+
+💾 Data storage (currently Excel, to be migrated to Postgres)
+
+🧩 Fallback to typed input when voice fails
+
+⚙️ Planned Enhancements
+
+Integration with Twilio for real phone calls
+
+Database migration to PostgreSQL
+
+REST API endpoints for external systems
+
+Orchestration via n8n or microservices
+
+Booking and CRM connection
+
+Setup Instructions
+
+Clone the repo:
+
+git clone https://github.com/aisha1234567890w/ColdBotX-Agent.git
+ColdBotX-Agent
 
 
-Requirements
+Create a virtual environment:
 
-Install Python
-- Install [Python 3.9+](https://www.python.org/downloads/).  
-- During installation, tick **“Add Python to PATH.”**
+python -m venv .venv
+.venv\Scripts\activate
 
-Install Dependencies
-Open a terminal (Command Prompt, PowerShell, or Git Bash) and run:
-```bash
-pip install pyttsx3 SpeechRecognition openpyxl pyaudio
+
+Install dependencies:
+
+pip install -r requirements.txt
+
+
+Run the voice agent:
+
+python agents/voice_agent.py
