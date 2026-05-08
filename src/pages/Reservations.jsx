@@ -212,7 +212,7 @@ export default function Reservations() {
           <motion.h1 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-5xl md:text-7xl font-black text-white mb-6 tracking-tight"
+            className="text-4xl sm:text-5xl md:text-7xl font-black text-white mb-6 tracking-tight"
           >
             Reserve Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">Experience</span>
           </motion.h1>
@@ -220,16 +220,16 @@ export default function Reservations() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="text-xl md:text-2xl text-indigo-200 font-medium max-w-2xl mx-auto"
+            className="text-lg md:text-2xl text-indigo-200 font-medium max-w-2xl mx-auto px-4"
           >
-            Secure your spot at the heart of fusion dining. We look forward to hosting you.
+            Secure your spot at the heart of fusion dining.
           </motion.p>
         </div>
       </section>
 
-      <div className="max-w-5xl mx-auto px-6 py-16 relative z-20">
+      <div className="max-w-5xl mx-auto px-4 md:px-6 py-12 md:py-16 relative z-20">
         {/* Method Selector */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-12">
           {[
             { id: 'call', label: 'Call AI Agent', icon: '📞', desc: 'Instant Voice Booking', color: 'indigo' },
             { id: 'chat', label: 'Live AI Chat', icon: '💬', desc: 'Interactive Chatbot', color: 'purple' },
@@ -239,21 +239,21 @@ export default function Reservations() {
             <button
               key={item.id}
               onClick={() => setMethod(item.id)}
-              className={`p-6 rounded-3xl border-2 transition-all duration-500 text-left group flex flex-col items-start ${
+              className={`p-4 md:p-6 rounded-2xl md:rounded-3xl border-2 transition-all duration-500 text-left group flex flex-col items-start ${
                 method === item.id 
-                  ? 'border-indigo-500 bg-white dark:bg-gray-800 shadow-2xl scale-105' 
+                  ? 'border-indigo-500 bg-white dark:bg-gray-800 shadow-2xl scale-[1.02] md:scale-105' 
                   : 'border-white dark:border-gray-800 bg-white/60 dark:bg-gray-800/60 backdrop-blur-md hover:border-indigo-200'
               }`}
             >
-              <div className={`text-3xl mb-4 transform transition-transform group-hover:scale-110 duration-300`}>
+              <div className="text-2xl md:text-3xl mb-2 md:mb-4 transform transition-transform group-hover:scale-110 duration-300">
                 {item.icon}
               </div>
-              <div className="font-black text-lg text-gray-900 dark:text-white mb-1 leading-tight">{item.label}</div>
-              <div className="text-[10px] text-gray-500 dark:text-gray-400 font-bold uppercase tracking-widest">{item.desc}</div>
+              <div className="font-black text-sm md:text-lg text-gray-900 dark:text-white mb-1 leading-tight">{item.label}</div>
+              <div className="text-[8px] md:text-[10px] text-gray-500 dark:text-gray-400 font-bold uppercase tracking-widest">{item.desc}</div>
               {method === item.id && (
                 <motion.div 
                   layoutId="active-indicator"
-                  className="w-8 h-1 bg-indigo-500 rounded-full mt-4"
+                  className="w-6 md:w-8 h-1 bg-indigo-500 rounded-full mt-3 md:mt-4"
                 />
               )}
             </button>
@@ -265,7 +265,7 @@ export default function Reservations() {
           key={method}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white dark:bg-gray-900 rounded-[2.5rem] shadow-2xl p-8 md:p-16 border border-gray-100 dark:border-gray-800"
+          className="bg-white dark:bg-gray-900 rounded-[2rem] md:rounded-[2.5rem] shadow-2xl p-6 md:p-16 border border-gray-100 dark:border-gray-800"
         >
           {method === 'call' && (
             <div className="text-center py-10 space-y-8">

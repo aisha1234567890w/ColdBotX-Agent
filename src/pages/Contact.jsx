@@ -31,7 +31,7 @@ export default function Contact() {
                     <motion.h1 
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="text-5xl md:text-7xl font-black text-white mb-6 tracking-tight"
+                        className="text-4xl sm:text-5xl md:text-7xl font-black text-white mb-6 tracking-tight"
                     >
                         Get In <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-red-400">Touch</span>
                     </motion.h1>
@@ -39,22 +39,22 @@ export default function Contact() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.1 }}
-                        className="text-xl md:text-2xl text-orange-100 font-medium max-w-2xl mx-auto"
+                        className="text-lg md:text-2xl text-orange-100 font-medium max-w-2xl mx-auto px-4"
                     >
-                        We're here to help with reservations, feedback, or any inquiries. We'd love to hear from you.
+                        We're here to help with reservations, feedback, or any inquiries.
                     </motion.p>
                 </div>
             </section>
 
-            <div className="max-w-7xl mx-auto px-6 py-16 relative z-20">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="max-w-7xl mx-auto px-4 md:px-6 py-12 md:py-16 relative z-20">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
                     {/* Contact Info Cards */}
                     <motion.div
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
-                        className="lg:col-span-1 space-y-6"
+                        className="lg:col-span-1"
                     >
-                        <div className="bg-white dark:bg-gray-900 rounded-[2rem] shadow-xl p-8 border border-gray-100 dark:border-gray-800 h-full flex flex-col justify-between">
+                        <div className="bg-white dark:bg-gray-900 rounded-[2rem] shadow-xl p-6 md:p-8 border border-gray-100 dark:border-gray-800 h-full flex flex-col justify-between">
                             <div>
                                 <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-8">Visit Aifur</h2>
                                 
@@ -105,9 +105,9 @@ export default function Contact() {
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="lg:col-span-2 space-y-8"
+                        className="lg:col-span-2 space-y-6 md:space-y-8"
                     >
-                        <div className="bg-white dark:bg-gray-900 rounded-[2rem] shadow-2xl p-8 md:p-12 border border-gray-100 dark:border-gray-800">
+                        <div className="bg-white dark:bg-gray-900 rounded-[2rem] shadow-2xl p-6 md:p-12 border border-gray-100 dark:border-gray-800">
                             {status === 'success' ? (
                                 <motion.div 
                                     initial={{ opacity: 0, scale: 0.9 }}

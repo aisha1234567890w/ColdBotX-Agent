@@ -51,8 +51,8 @@ export default function Menu() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 pt-12 pb-24 transition-colors duration-200">
       <div className="max-w-7xl mx-auto px-6">
-        <div className="text-center mb-16">
-          <h1 className="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 mb-4">
+        <div className="text-center mb-12 md:mb-16">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 mb-4 px-2">
             Our Culinary Canvas
           </h1>
           <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
@@ -61,16 +61,16 @@ export default function Menu() {
           </p>
         </div>
 
-        {/* Tab Navigation */}
-        <div className="flex justify-center gap-4 mb-12">
+        {/* Tab Navigation - Scrollable on Mobile */}
+        <div className="flex justify-start md:justify-center gap-3 md:gap-4 mb-12 overflow-x-auto pb-4 px-2 scrollbar-hide no-scrollbar">
           {['swedish', 'pakistani', 'fusion', 'deals'].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`px-8 py-3 rounded-full font-bold transition-all duration-300 ${
+              className={`px-6 md:px-8 py-2.5 md:py-3 rounded-full font-bold whitespace-nowrap transition-all duration-300 ${
                 activeTab === tab 
                   ? 'bg-indigo-600 text-white shadow-xl scale-105' 
-                  : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                  : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-100 dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700'
               }`}
             >
               {tab.charAt(0).toUpperCase() + tab.slice(1)}
