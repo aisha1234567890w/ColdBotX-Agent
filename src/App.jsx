@@ -14,6 +14,15 @@ import ProtectedRoute from './components/ProtectedRoute';
 import { supabase } from './utils/supabaseClient';
 import { useEffect } from 'react';
 
+import DashboardLayout from "./components/dashboard/DashboardLayout";
+import Overview from "./pages/dashboard/Overview";
+import DashboardReservations from "./pages/dashboard/Reservations";
+import TableManagement from "./pages/dashboard/Tables";
+import MenuManager from "./pages/dashboard/MenuManager";
+import Analytics from "./pages/dashboard/Analytics";
+import AiLogs from "./pages/dashboard/AiLogs";
+import './dashboard.css';
+
 function App() {
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -40,28 +49,46 @@ function App() {
 
   return (
     <Router>
-      <Navbar />
       <Routes>
-        <Route path="/" element={<Landing />} />
-        <Route path="/menu" element={<Menu />} />
-        <Route path="/reservations" element={<Reservations />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/contact" element={<Contact />} />
-        <Route path="/signup" element={<Signup />} />
-        <Route path="/login" element={<Login />} />
-
-        {/* Redirect old routes to Home or Dashboard */}
-        <Route path="/onboarding" element={<Navigate to="/" replace />} />
-        <Route path="/course" element={<Navigate to="/menu" replace />} />
-        <Route path="/catalog" element={<Navigate to="/menu" replace />} />
-        <Route path="/quiz" element={<Navigate to="/" replace />} />
-
-        <Route element={<ProtectedRoute />}>
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/profile" element={<Profile />} />
+        {/* Operations Dashboard - No Public Navbar/Footer */}
+        <Route path="/dashboard" element={<DashboardLayout />}>
+          <Route index element={<Overview />} />
+          <Route path="reservations" element={<DashboardReservations />} />
+          <Route path="tables" element={<TableManagement />} />
+          <Route path="menu" element={<MenuManager />} />
+          <Route path="analytics" element={<Analytics />} />
+          <Route path="ai-logs" element={<AiLogs />} />
+          <Route path="customers" element={<div className="p-8">Customer CRM Module (Coming Soon)</div>} />
+          <Route path="settings" element={<div className="p-8">Dashboard Settings (Coming Soon)</div>} />
         </Route>
+
+        {/* Public Website Routes */}
+        <Route
+          path="*"
+          element={
+            <>
+              <Navbar />
+              <Routes>
+                <Route path="/" element={<Landing />} />
+                <Route path="/menu" element={<Menu />} />
+                <Route path="/reservations" element={<Reservations />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="/signup" element={<Signup />} />
+                <Route path="/login" element={<Login />} />
+                
+                <Route element={<ProtectedRoute />}>
+                  <Route path="/profile" element={<Profile />} />
+                  <Route path="/user-dashboard" element={<Dashboard />} />
+                </Route>
+
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+              <Footer />
+            </>
+          }
+        />
       </Routes>
-      <Footer />
     </Router>
   );
 }
