@@ -69,8 +69,8 @@ export default function Menu() {
               onClick={() => setActiveTab(tab)}
               className={`px-4 md:px-8 py-3 md:py-3 rounded-2xl md:rounded-full font-bold transition-all duration-300 text-sm md:text-base ${
                 activeTab === tab 
-                  ? 'bg-indigo-600 text-white shadow-xl scale-[1.02] md:scale-105' 
-                  : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-100 dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 shadow-sm'
+                  ? 'bg-red-600 text-white shadow-xl scale-[1.02] md:scale-105' 
+                  : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-2 border-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 shadow-sm'
               }`}
             >
               {tab.charAt(0).toUpperCase() + tab.slice(1)}
