@@ -53,7 +53,7 @@ export default function Menu() {
       <div className="max-w-7xl mx-auto px-6">
         <div className="text-center mb-12 md:mb-16">
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 mb-4 px-2">
-            Our Culinary Canvas
+            Aifur Culinary Menu
           </h1>
           <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
             From the serene fjords of Sweden to the vibrant streets of Pakistan, 
