@@ -14,6 +14,8 @@ if (SUPABASE_URL && SUPABASE_ANON_KEY) {
     auth: {
       onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
       getSessionFromUrl: async () => ({ data: { session: null }, error: null }),
+      signInWithPassword: async () => ({ data: { user: { email: 'manager@aifur.pk' }, session: {} }, error: null }),
+      signUp: async () => ({ data: { user: { email: 'user@example.com' }, session: {} }, error: null }),
       signOut: async () => {},
     }
   };
