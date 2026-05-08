@@ -27,8 +27,6 @@ build
 *.docx
 !package.json
 !package-lock.json
-!render.yaml
-!vercel.json
 
 # Debug
 npm-debug.log*
