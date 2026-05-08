@@ -61,16 +61,16 @@ export default function Menu() {
           </p>
         </div>
 
-        {/* Tab Navigation - Scrollable on Mobile */}
-        <div className="flex justify-start md:justify-center gap-3 md:gap-4 mb-12 overflow-x-auto pb-4 px-2 scrollbar-hide no-scrollbar">
+        {/* Tab Navigation - 2x2 Grid on Mobile, Row on Desktop */}
+        <div className="grid grid-cols-2 md:flex md:justify-center gap-3 md:gap-4 mb-12 px-2">
           {['swedish', 'pakistani', 'fusion', 'deals'].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`px-6 md:px-8 py-2.5 md:py-3 rounded-full font-bold whitespace-nowrap transition-all duration-300 ${
+              className={`px-4 md:px-8 py-3 md:py-3 rounded-2xl md:rounded-full font-bold transition-all duration-300 text-sm md:text-base ${
                 activeTab === tab 
-                  ? 'bg-indigo-600 text-white shadow-xl scale-105' 
-                  : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-100 dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700'
+                  ? 'bg-indigo-600 text-white shadow-xl scale-[1.02] md:scale-105' 
+                  : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-100 dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 shadow-sm'
               }`}
             >
               {tab.charAt(0).toUpperCase() + tab.slice(1)}

@@ -31,7 +31,7 @@ export default function RestaurantHero() {
           <div className="inline-block px-4 py-1 rounded-full bg-indigo-500/20 border border-indigo-500/30 text-indigo-400 text-sm font-bold mb-6 animate-fade-in">
             A Unique Fusion Experience
           </div>
-          <h1 className="text-4xl sm:text-5xl md:text-7xl font-extrabold text-white leading-[1.1] mb-6 animate-fade-in">
+          <h1 className="text-3xl sm:text-5xl md:text-7xl font-extrabold text-white leading-[1.1] mb-6 animate-fade-in">
             Where <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">Sweden</span> Meets <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-red-400">Pakistan</span>.
           </h1>
           <p className="text-lg md:text-xl text-gray-300 mb-8 md:mb-10 animate-fade-in delay-100">
