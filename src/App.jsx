@@ -50,16 +50,18 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* Operations Dashboard - No Public Navbar/Footer */}
-        <Route path="/dashboard" element={<DashboardLayout />}>
-          <Route index element={<Overview />} />
-          <Route path="reservations" element={<DashboardReservations />} />
-          <Route path="tables" element={<TableManagement />} />
-          <Route path="menu" element={<MenuManager />} />
-          <Route path="analytics" element={<Analytics />} />
-          <Route path="ai-logs" element={<AiLogs />} />
-          <Route path="customers" element={<div className="p-8">Customer CRM Module (Coming Soon)</div>} />
-          <Route path="settings" element={<div className="p-8">Dashboard Settings (Coming Soon)</div>} />
+        {/* Operations Dashboard - PROTECTED (Manager Only) */}
+        <Route element={<ProtectedRoute />}>
+          <Route path="/dashboard" element={<DashboardLayout />}>
+            <Route index element={<Overview />} />
+            <Route path="reservations" element={<DashboardReservations />} />
+            <Route path="tables" element={<TableManagement />} />
+            <Route path="menu" element={<MenuManager />} />
+            <Route path="analytics" element={<Analytics />} />
+            <Route path="ai-logs" element={<AiLogs />} />
+            <Route path="customers" element={<div className="p-8">Customer CRM Module (Coming Soon)</div>} />
+            <Route path="settings" element={<div className="p-8">Dashboard Settings (Coming Soon)</div>} />
+          </Route>
         </Route>
 
         {/* Public Website Routes */}
