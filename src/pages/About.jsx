@@ -81,6 +81,7 @@ export default function About() {
       <section className="py-24 bg-white dark:bg-gray-900/50 transition-colors">
         <div className="max-w-7xl mx-auto px-6 space-y-32">
           {/* Nordic Inspiration */}
+          <div className="flex flex-col md:flex-row gap-12 md:gap-16 items-center">
             <div className="flex-1 order-2 md:order-1">
               <img 
                 src="https://images.unsplash.com/photo-1498654077810-12c21d4d6dc3?auto=format&fit=crop&q=80&w=1000" 

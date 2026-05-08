@@ -53,7 +53,7 @@ export default function Menu() {
       <div className="max-w-7xl mx-auto px-6">
         <div className="text-center mb-12 md:mb-16">
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 mb-4 px-2">
-            Aifur Culinary Menu
+            Our Culinary Canvas
           </h1>
           <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
             From the serene fjords of Sweden to the vibrant streets of Pakistan, 
@@ -69,8 +69,8 @@ export default function Menu() {
               onClick={() => setActiveTab(tab)}
               className={`px-4 md:px-8 py-3 md:py-3 rounded-2xl md:rounded-full font-bold transition-all duration-300 text-sm md:text-base ${
                 activeTab === tab 
-                  ? 'bg-red-600 text-white shadow-xl scale-[1.02] md:scale-105' 
-                  : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-2 border-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 shadow-sm'
+                  ? 'bg-indigo-600 text-white shadow-xl scale-[1.02] md:scale-105' 
+                  : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-100 dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 shadow-sm'
               }`}
             >
               {tab.charAt(0).toUpperCase() + tab.slice(1)}
