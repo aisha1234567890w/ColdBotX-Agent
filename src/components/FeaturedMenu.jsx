@@ -17,7 +17,7 @@ export default function FeaturedMenu() {
   ];
 
   return (
-    <section className="pb-32 pt-12 bg-white dark:bg-gray-950 transition-colors relative overflow-hidden">
+    <section className="pb-16 md:pb-32 pt-12 bg-white dark:bg-gray-950 transition-colors relative overflow-hidden">
       {/* Decorative Background Elements */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-px bg-gradient-to-r from-transparent via-gray-200 dark:via-gray-800 to-transparent"></div>
       
@@ -37,7 +37,7 @@ export default function FeaturedMenu() {
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="text-4xl md:text-5xl font-black text-gray-900 dark:text-white mb-6 tracking-tight leading-tight"
+              className="text-3xl sm:text-4xl md:text-5xl font-black text-gray-900 dark:text-white mb-6 tracking-tight leading-tight"
             >
               Chef's <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">Recommendations</span>
             </motion.h2>
@@ -70,7 +70,7 @@ export default function FeaturedMenu() {
           </motion.div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10">
           {featuredItems.map((item, index) => (
             <motion.div 
               key={index}
@@ -80,7 +80,7 @@ export default function FeaturedMenu() {
               transition={{ delay: item.delay }}
               className="group cursor-pointer relative"
             >
-              <div className="relative h-[450px] rounded-[2.5rem] overflow-hidden mb-8 shadow-2xl transition-all duration-500 group-hover:shadow-indigo-500/20 group-hover:-translate-y-2">
+              <div className="relative h-[350px] sm:h-[450px] rounded-[2rem] md:rounded-[2.5rem] overflow-hidden mb-6 md:mb-8 shadow-2xl transition-all duration-500 group-hover:shadow-indigo-500/20 group-hover:-translate-y-2">
                 <img 
                   src={item.image} 
                   alt={item.name} 

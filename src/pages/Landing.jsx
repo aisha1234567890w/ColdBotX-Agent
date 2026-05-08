@@ -23,7 +23,7 @@ const WhyAifur = () => {
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="text-5xl md:text-7xl font-black text-gray-900 dark:text-white tracking-tighter leading-none"
+              className="text-4xl sm:text-5xl md:text-7xl font-black text-gray-900 dark:text-white tracking-tighter leading-[1.1]"
             >
               Mastering the <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">Art of Fusion.</span>
@@ -41,14 +41,14 @@ const WhyAifur = () => {
         </div>
 
         {/* Bento Grid Layout */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 h-auto md:h-[850px]">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-6 h-auto md:h-[850px]">
           
           {/* Main Story Box (Large) */}
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
-            className="md:col-span-8 relative rounded-[3rem] overflow-hidden group shadow-2xl"
+            className="md:col-span-8 relative rounded-[2rem] md:rounded-[3rem] overflow-hidden group shadow-2xl min-h-[400px] md:min-h-0"
           >
             <img 
               src="/images/philosophy-fusion.png" 
@@ -56,8 +56,8 @@ const WhyAifur = () => {
               className="w-full h-full object-cover transition-transform duration-[2s] group-hover:scale-110"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
-            <div className="absolute bottom-12 left-12 right-12 text-white">
-              <h3 className="text-4xl font-black mb-4">The Secret of Aifur</h3>
+            <div className="absolute bottom-8 left-8 right-8 md:bottom-12 md:left-12 md:right-12 text-white">
+              <h3 className="text-2xl md:text-4xl font-black mb-3 md:mb-4">The Secret of Aifur</h3>
               <p className="text-lg text-white/80 font-medium max-w-xl">
                 The most daring flavors happen when precision meets passion. 
                 We source the finest Nordic salmon and pair it with organic Indus spices.
@@ -71,7 +71,7 @@ const WhyAifur = () => {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
-            className="md:col-span-4 relative rounded-[3rem] overflow-hidden group shadow-2xl"
+            className="md:col-span-4 relative rounded-[2rem] md:rounded-[3rem] overflow-hidden group shadow-2xl min-h-[300px] md:min-h-0"
           >
             <img 
               src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&q=80&w=800" 
@@ -94,7 +94,7 @@ const WhyAifur = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.2 }}
-            className="md:col-span-4 bg-gray-50 dark:bg-gray-900 rounded-[3rem] p-10 group relative overflow-hidden shadow-xl border border-gray-100 dark:border-gray-800"
+            className="md:col-span-4 bg-gray-50 dark:bg-gray-900 rounded-[2rem] md:rounded-[3rem] p-8 md:p-10 group relative overflow-hidden shadow-xl border border-gray-100 dark:border-gray-800"
           >
             <div className="relative z-10 h-full flex flex-col justify-between">
               <div className="w-12 h-12 rounded-full bg-white dark:bg-gray-800 flex items-center justify-center text-2xl shadow-lg border border-gray-100 dark:border-gray-700">🇸🇪</div>
@@ -111,7 +111,7 @@ const WhyAifur = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.3 }}
-            className="md:col-span-4 bg-gray-50 dark:bg-gray-900 rounded-[3rem] p-10 group relative overflow-hidden shadow-xl border border-gray-100 dark:border-gray-800"
+            className="md:col-span-4 bg-gray-50 dark:bg-gray-900 rounded-[2rem] md:rounded-[3rem] p-8 md:p-10 group relative overflow-hidden shadow-xl border border-gray-100 dark:border-gray-800"
           >
             <div className="relative z-10 h-full flex flex-col justify-between">
               <div className="w-12 h-12 rounded-full bg-white dark:bg-gray-800 flex items-center justify-center text-2xl shadow-lg border border-gray-100 dark:border-gray-700">🇵🇰</div>
@@ -128,7 +128,7 @@ const WhyAifur = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.4 }}
-            className="md:col-span-4 bg-gray-900 dark:bg-indigo-600 rounded-[3rem] p-8 flex items-center justify-center group shadow-2xl relative overflow-hidden"
+            className="md:col-span-4 bg-gray-900 dark:bg-indigo-600 rounded-[2rem] md:rounded-[3rem] p-8 flex items-center justify-center group shadow-2xl relative overflow-hidden min-h-[150px] md:min-h-0"
           >
             <Link to="/about" className="relative z-10 text-center">
               <div className="text-white font-black text-2xl mb-2 group-hover:scale-105 transition-transform">Explore Our Story</div>
