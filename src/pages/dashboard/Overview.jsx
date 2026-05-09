@@ -30,7 +30,7 @@ import { menuData } from '../../data/menu';
 import { motion } from 'framer-motion';
 import { useTheme } from '../../context/ThemeContext';
 
-const COLORS = ['#FF6B35', '#4F46E5', '#10B981', '#F59E0B'];
+const COLORS = ['#4F46E5', '#EAB308', '#10B981', '#6366F1'];
 
 const StatCard = ({ icon: Icon, label, value, trend, trendUp, color }) => (
   <motion.div 
@@ -120,7 +120,7 @@ export default function Overview() {
 
   if (loading) return (
     <div className="h-[60vh] flex items-center justify-center">
-      <div className="w-10 h-10 border-4 border-[#FF6B35]/20 border-t-[#FF6B35] rounded-full animate-spin" />
+      <div className="w-10 h-10 border-4 border-indigo-600/20 border-t-indigo-600 rounded-full animate-spin" />
     </div>
   );
 
@@ -136,7 +136,7 @@ export default function Overview() {
           <div className="px-4 py-2 bg-white dark:bg-white/5 border border-gray-100 dark:border-white/5 rounded-xl flex items-center gap-2 text-xs font-bold text-gray-500">
             <Calendar size={14} /> Last 30 Days
           </div>
-          <button className="px-6 py-2.5 bg-[#FF6B35] text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-lg shadow-orange-500/20 hover:scale-105 transition-transform">
+          <button className="px-6 py-2.5 bg-indigo-600 text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-lg shadow-indigo-500/20 hover:scale-105 transition-transform">
             Export Report
           </button>
         </div>
@@ -150,7 +150,7 @@ export default function Overview() {
           value={stats.orders} 
           trend="1.58%" 
           trendUp={true} 
-          color="bg-[#FF6B35]"
+          color="bg-indigo-600"
         />
         <StatCard 
           icon={Users} 
@@ -178,11 +178,11 @@ export default function Overview() {
           <div className="flex justify-between items-center mb-10">
             <div>
               <h3 className="text-lg font-black tracking-tight mb-1">Total Revenue</h3>
-              <p className="text-3xl font-black text-[#FF6B35] tracking-tighter">{stats.revenue}</p>
+              <p className="text-3xl font-black text-indigo-600 tracking-tighter">{stats.revenue}</p>
             </div>
             <div className="flex gap-4">
               <div className="flex items-center gap-2 text-[10px] font-bold text-gray-400">
-                <span className="w-2 h-2 rounded-full bg-[#FF6B35]" /> Income
+                <span className="w-2 h-2 rounded-full bg-indigo-600" /> Income
               </div>
               <div className="flex items-center gap-2 text-[10px] font-bold text-gray-400">
                 <span className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-700" /> Expense
@@ -195,8 +195,8 @@ export default function Overview() {
               <AreaChart data={revenueData}>
                 <defs>
                   <linearGradient id="colorIncome" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#FF6B35" stopOpacity={0.1}/>
-                    <stop offset="95%" stopColor="#FF6B35" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#4F46E5" stopOpacity={0.1}/>
+                    <stop offset="95%" stopColor="#4F46E5" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={theme === 'dark' ? '#333' : '#eee'} />
@@ -222,7 +222,7 @@ export default function Overview() {
                 <Area 
                   type="monotone" 
                   dataKey="income" 
-                  stroke="#FF6B35" 
+                  stroke="#4F46E5" 
                   strokeWidth={4}
                   fillOpacity={1} 
                   fill="url(#colorIncome)" 
@@ -244,7 +244,7 @@ export default function Overview() {
            <div className="bg-white dark:bg-white/5 p-8 rounded-[2.5rem] border border-gray-100 dark:border-white/5 shadow-sm flex-1">
              <div className="flex justify-between items-center mb-8">
                <h3 className="text-lg font-black tracking-tight">Trending Menus</h3>
-               <button className="text-[10px] font-black uppercase text-[#FF6B35]">This Week</button>
+               <button className="text-[10px] font-black uppercase text-indigo-600">This Week</button>
              </div>
              <div className="space-y-6">
                 {trendingMenus.map((item, i) => (
@@ -254,7 +254,7 @@ export default function Overview() {
                     </div>
                     <div className="flex-1 flex flex-col justify-center">
                       <h4 className="text-sm font-black mb-1 line-clamp-1">{item.name}</h4>
-                      <div className="flex items-center gap-1 text-[#FF6B35] mb-2">
+                      <div className="flex items-center gap-1 text-indigo-600 mb-2">
                          <Star size={10} fill="currentColor" />
                          <span className="text-[10px] font-black">4.9 (350 orders)</span>
                       </div>
@@ -274,7 +274,7 @@ export default function Overview() {
         <div className="lg:col-span-8 bg-white dark:bg-white/5 p-8 rounded-[2.5rem] border border-gray-100 dark:border-white/5 shadow-sm">
            <div className="flex justify-between items-center mb-10">
               <h3 className="text-lg font-black tracking-tight">Orders Overview</h3>
-              <select className="bg-transparent text-[10px] font-black uppercase outline-none text-[#FF6B35]">
+              <select className="bg-transparent text-[10px] font-black uppercase outline-none text-indigo-600">
                 <option>This Week</option>
                 <option>Last Week</option>
               </select>
@@ -296,10 +296,10 @@ export default function Overview() {
                   />
                   <Bar 
                     dataKey="count" 
-                    fill="#FF6B35" 
+                    fill="#4F46E5" 
                     radius={[8, 8, 8, 8]} 
                     barSize={30}
-                    activeBar={<CustomBar fill="#4F46E5" />}
+                    activeBar={<CustomBar fill="#EAB308" />}
                   />
                 </BarChart>
              </ResponsiveContainer>

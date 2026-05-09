@@ -27,8 +27,8 @@ const NavItem = ({ icon: Icon, label, path, active, collapsed }) => (
     to={path}
     className={`group relative flex items-center gap-3 px-4 py-3.5 transition-all duration-300 rounded-2xl mb-1 ${
       active 
-        ? 'text-white font-bold bg-[#FF6B35] shadow-lg shadow-orange-500/20' 
-        : 'text-gray-500 dark:text-gray-400 hover:text-[#FF6B35] dark:hover:text-white hover:bg-orange-50 dark:hover:bg-white/5'
+        ? 'text-white font-bold bg-indigo-600 shadow-lg shadow-indigo-500/20' 
+        : 'text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-white hover:bg-indigo-50 dark:hover:bg-white/5'
     }`}
   >
     <div className={`transition-transform duration-300 ${active ? 'scale-110' : 'group-hover:scale-110'}`}>
@@ -79,13 +79,13 @@ export default function DashboardLayout() {
         <div className="p-8 flex items-center justify-between mb-4">
           {!isCollapsed ? (
             <Link to="/" className="flex items-center gap-3">
-               <div className="w-10 h-10 bg-[#FF6B35] rounded-xl flex items-center justify-center text-white shadow-xl shadow-orange-500/20">
+               <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-xl shadow-indigo-500/20">
                  <UtensilsCrossed size={20} />
                </div>
                <span className="text-xl font-black tracking-tighter">Aifur</span>
             </Link>
           ) : (
-            <div className="w-10 h-10 bg-[#FF6B35] rounded-xl flex items-center justify-center mx-auto text-white shadow-xl">
+            <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center mx-auto text-white shadow-xl">
                <UtensilsCrossed size={20} />
             </div>
           )}
@@ -106,13 +106,13 @@ export default function DashboardLayout() {
         {/* Sidebar Footer */}
         <div className="p-6 border-t border-gray-50 dark:border-white/5 space-y-4">
            {!isCollapsed && (
-             <div className="bg-orange-50 dark:bg-orange-500/10 p-4 rounded-2xl mb-4 relative overflow-hidden group">
+             <div className="bg-indigo-50 dark:bg-indigo-500/10 p-4 rounded-2xl mb-4 relative overflow-hidden group">
                <div className="relative z-10">
-                 <h4 className="text-xs font-black text-[#FF6B35] uppercase tracking-widest mb-1">Aifur AI</h4>
+                 <h4 className="text-xs font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest mb-1">Aifur AI</h4>
                  <p className="text-[10px] text-gray-500 dark:text-gray-400 font-bold mb-3">Upgrade to Pro for deep insights.</p>
-                 <button className="w-full py-2 bg-[#FF6B35] text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-transform">Upgrade Now</button>
+                 <button className="w-full py-2 bg-indigo-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-transform">Upgrade Now</button>
                </div>
-               <Plus size={40} className="absolute -bottom-4 -right-4 text-orange-500/10 group-hover:rotate-90 transition-transform duration-500" />
+               <Plus size={40} className="absolute -bottom-4 -right-4 text-indigo-500/10 group-hover:rotate-90 transition-transform duration-500" />
              </div>
            )}
            <button 
@@ -141,12 +141,12 @@ export default function DashboardLayout() {
 
             {/* Actions */}
             <div className="flex items-center gap-4">
-              <button onClick={toggleTheme} className="p-3 rounded-2xl bg-gray-100 dark:bg-white/5 text-gray-500 hover:text-[#FF6B35] transition-all">
+              <button onClick={toggleTheme} className="p-3 rounded-2xl bg-gray-100 dark:bg-white/5 text-gray-500 hover:text-indigo-600 transition-all">
                 {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
               </button>
-              <button className="relative p-3 rounded-2xl bg-gray-100 dark:bg-white/5 text-gray-500 hover:text-[#FF6B35] transition-all">
+              <button className="relative p-3 rounded-2xl bg-gray-100 dark:bg-white/5 text-gray-500 hover:text-indigo-600 transition-all">
                 <Bell size={20} />
-                <span className="absolute top-3 right-3 w-2 h-2 bg-[#FF6B35] rounded-full ring-2 ring-white dark:ring-[#030712]" />
+                <span className="absolute top-3 right-3 w-2 h-2 bg-indigo-600 rounded-full ring-2 ring-white dark:ring-[#030712]" />
               </button>
               <div className="h-8 w-px bg-gray-200 dark:bg-white/10 mx-2" />
               <div className="flex items-center gap-3">
@@ -154,8 +154,8 @@ export default function DashboardLayout() {
                    <div className="text-sm font-black">{user.name}</div>
                    <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Administrator</div>
                  </div>
-                 <div className="w-12 h-12 rounded-2xl bg-[#FF6B35]/10 border border-[#FF6B35]/20 flex items-center justify-center p-0.5 overflow-hidden shadow-lg shadow-orange-500/10">
-                   <img src={`https://ui-avatars.com/api/?name=${user.name}&background=FF6B35&color=fff&bold=true`} className="w-full h-full rounded-xl object-cover" alt="Profile" />
+                 <div className="w-12 h-12 rounded-2xl bg-indigo-600/10 border border-indigo-600/20 flex items-center justify-center p-0.5 overflow-hidden shadow-lg shadow-indigo-500/10">
+                   <img src={`https://ui-avatars.com/api/?name=${user.name}&background=4F46E5&color=fff&bold=true`} className="w-full h-full rounded-xl object-cover" alt="Profile" />
                  </div>
               </div>
             </div>
@@ -171,7 +171,7 @@ export default function DashboardLayout() {
       {/* Mobile Menu Toggle (Fixed bottom right) */}
       <button 
         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        className="lg:hidden fixed bottom-6 right-6 w-14 h-14 bg-[#FF6B35] text-white rounded-2xl shadow-2xl z-50 flex items-center justify-center animate-bounce"
+        className="lg:hidden fixed bottom-6 right-6 w-14 h-14 bg-indigo-600 text-white rounded-2xl shadow-2xl z-50 flex items-center justify-center animate-bounce"
       >
         <MenuIcon size={24} />
       </button>
@@ -186,7 +186,7 @@ export default function DashboardLayout() {
             </div>
             <nav className="space-y-4">
               {menuItems.map(item => (
-                <Link key={item.path} to={item.path} onClick={() => setIsMobileMenuOpen(false)} className={`flex items-center gap-4 p-4 rounded-2xl font-bold ${location.pathname === item.path ? 'bg-orange-500 text-white shadow-xl' : 'text-gray-500'}`}>
+                <Link key={item.path} to={item.path} onClick={() => setIsMobileMenuOpen(false)} className={`flex items-center gap-4 p-4 rounded-2xl font-bold ${location.pathname === item.path ? 'bg-indigo-600 text-white shadow-xl' : 'text-gray-500'}`}>
                   <item.icon size={20} /> {item.label}
                 </Link>
               ))}
