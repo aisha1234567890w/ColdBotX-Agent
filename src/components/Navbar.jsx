@@ -77,6 +77,16 @@ export default function Navbar() {
         </div>
 
         <div className="flex items-center gap-3 md:gap-5">
+          {user && (
+            <Link 
+              to={user.role === 'manager' ? '/manager' : '/user-dashboard'}
+              className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-lg shadow-black/10 dark:shadow-white/5 border border-transparent dark:border-white/10"
+            >
+              <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse"></div>
+              {user.role === 'manager' ? 'Ops Center' : 'Dashboard'}
+            </Link>
+          )}
+
           <button
             onClick={toggleTheme}
             className="p-2.5 rounded-xl text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 transition-all border border-transparent hover:border-gray-200 dark:hover:border-gray-700"

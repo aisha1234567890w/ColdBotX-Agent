@@ -56,7 +56,7 @@ export default function Login() {
         provider,
         options: {
           // This should ideally redirect to a processing page or use getSession on the target page
-          redirectTo: `${window.location.origin}/user-dashboard`
+          redirectTo: `${window.location.origin}`
         }
       });
       if (error) throw error;
