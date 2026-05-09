@@ -31,7 +31,7 @@ export default function Navbar() {
   }, []);
 
   // Hide global navbar on manager dashboard to prevent double-header issue
-  if (location.pathname.startsWith('/manager')) return null;
+  if (location.pathname.startsWith('/admin-ops')) return null;
 
   const handleLogout = async () => {
     localStorage.removeItem('user');
@@ -79,7 +79,7 @@ export default function Navbar() {
         <div className="flex items-center gap-3 md:gap-5">
           {user && (
             <Link 
-              to={user.role === 'manager' ? '/manager' : '/user-dashboard'}
+              to={user.role === 'manager' ? '/admin-ops' : '/user-dashboard'}
               className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-lg shadow-black/10 dark:shadow-white/5 border border-transparent dark:border-white/10"
             >
               <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse"></div>
@@ -102,7 +102,7 @@ export default function Navbar() {
           {user ? (
             <div className="flex items-center gap-3 md:gap-5">
               <Link 
-                to={user.role === 'manager' ? '/manager' : '/user-dashboard'}
+                to={user.role === 'manager' ? '/admin-ops' : '/user-dashboard'}
                 className="flex items-center gap-2 group"
               >
                 <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-black shadow-lg shadow-indigo-500/20 group-hover:scale-105 transition-transform">
@@ -153,7 +153,7 @@ export default function Navbar() {
           ))}
           {user && (
              <Link 
-               to={user.role === 'manager' ? '/manager' : '/user-dashboard'} 
+               to={user.role === 'manager' ? '/admin-ops' : '/user-dashboard'} 
                onClick={() => setOpen(false)} 
                className="py-3 px-4 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 font-black text-xs uppercase tracking-widest mt-2 text-center"
              >

@@ -51,13 +51,13 @@ export default function DashboardLayout() {
   const user = JSON.parse(localStorage.getItem('user') || '{"name": "Admin", "email": "admin@aifur.com"}');
 
   const menuItems = [
-    { icon: LayoutDashboard, label: 'Dashboard', path: '/manager' },
-    { icon: CalendarCheck, label: 'Orders', path: '/manager/reservations' },
-    { icon: MessageSquareCode, label: 'Messages', path: '/manager/ai-logs' },
-    { icon: TableProperties, label: 'Calendar', path: '/manager/tables' },
-    { icon: UtensilsCrossed, label: 'Menu', path: '/manager/menu' },
-    { icon: Users, label: 'Inventory', path: '/manager/customers' },
-    { icon: BarChart3, label: 'Reviews', path: '/manager/analytics' },
+    { icon: LayoutDashboard, label: 'Dashboard', path: '/admin-ops' },
+    { icon: CalendarCheck, label: 'Orders', path: '/admin-ops/reservations' },
+    { icon: MessageSquareCode, label: 'Messages', path: '/admin-ops/ai-logs' },
+    { icon: TableProperties, label: 'Calendar', path: '/admin-ops/tables' },
+    { icon: UtensilsCrossed, label: 'Menu', path: '/admin-ops/menu' },
+    { icon: Users, label: 'Inventory', path: '/admin-ops/customers' },
+    { icon: BarChart3, label: 'Reviews', path: '/admin-ops/analytics' },
   ];
 
   const handleLogout = async () => {

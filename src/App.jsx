@@ -56,7 +56,7 @@ function App() {
     <Router>
       <Routes>
         {/* Operations Dashboard (Manager Side) - PROTECTED */}
-        <Route path="/manager" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
+        <Route path="/admin-ops" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
           <Route index element={<Overview />} />
           <Route path="reservations" element={<DashboardReservations />} />
           <Route path="tables" element={<TableManagement />} />
