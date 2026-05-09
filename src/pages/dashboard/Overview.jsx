@@ -225,18 +225,19 @@ export default function Overview() {
         </div>
 
         {/* Quick Actions */}
+        {/* Quick Actions */}
         <div className="bg-white dark:bg-white/5 rounded-[2rem] border border-gray-100 dark:border-white/5 shadow-sm p-8">
           <h3 className="text-lg font-black tracking-tight mb-6">Quick Actions</h3>
           <div className="space-y-3">
-            <button className="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-white/5 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-2xl font-bold transition-all group">
+            <button onClick={() => window.location.href = '/admin-ops'} className="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-white/5 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-2xl font-bold transition-all group">
               <span className="flex items-center gap-3"><Calendar size={18} /> Manage Today's Bookings</span>
               <ChevronRight size={18} className="opacity-0 group-hover:opacity-100 transform group-hover:translate-x-1 transition-all" />
             </button>
-            <button className="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-white/5 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-2xl font-bold transition-all group">
+            <button onClick={() => window.location.href = '/admin-ops'} className="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-white/5 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-2xl font-bold transition-all group">
               <span className="flex items-center gap-3"><TableProperties size={18} /> Reassign Tables</span>
               <ChevronRight size={18} className="opacity-0 group-hover:opacity-100 transform group-hover:translate-x-1 transition-all" />
             </button>
-            <button className="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-white/5 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-2xl font-bold transition-all group">
+            <button onClick={() => window.location.href = '/admin-ops'} className="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-white/5 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-2xl font-bold transition-all group">
               <span className="flex items-center gap-3"><Users size={18} /> View VIP Guests</span>
               <ChevronRight size={18} className="opacity-0 group-hover:opacity-100 transform group-hover:translate-x-1 transition-all" />
             </button>

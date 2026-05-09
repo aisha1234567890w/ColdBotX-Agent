@@ -16,28 +16,28 @@ export default function Customers() {
       // Here, we derive unique customers from reservations_main for CRM purposes.
       const { data, error } = await supabase
         .from('reservations_main')
-        .select('name, phone, date, guests, source')
+        .select('customer_name, phone_number, reservation_date, guests_count, source')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
 
       // Group by phone number to create CRM profiles
       const crmProfiles = data.reduce((acc, current) => {
-        const phone = current.phone;
+        const phone = current.phone_number;
         if (!acc[phone]) {
           acc[phone] = {
             id: phone,
-            name: current.name,
+            name: current.customer_name,
             phone: phone,
             totalVisits: 1,
-            lastVisit: current.date,
-            totalGuests: parseInt(current.guests) || 1,
+            lastVisit: current.reservation_date,
+            totalGuests: parseInt(current.guests_count) || 1,
             source: current.source,
             isLoyal: false
           };
         } else {
           acc[phone].totalVisits += 1;
-          acc[phone].totalGuests += (parseInt(current.guests) || 0);
+          acc[phone].totalGuests += (parseInt(current.guests_count) || 0);
           acc[phone].isLoyal = acc[phone].totalVisits >= 3;
         }
         return acc;

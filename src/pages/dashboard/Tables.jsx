@@ -14,13 +14,15 @@ const TableCard = ({ table, theme, onUpdateStatus }) => {
 
   const handleStatusChange = async (newStatus) => {
     setMenuOpen(false);
-    // Optimistic UI Update so it works instantly for the user
     onUpdateStatus(table.id, newStatus);
     
+    // Convert to DB accepted string
+    const dbStatus = newStatus === 'Available' ? 'free' : newStatus.toLowerCase();
+
     try {
       await supabase
         .from('restaurant_tables')
-        .update({ status: newStatus, last_updated: new Date().toISOString() })
+        .update({ status: dbStatus })
         .eq('id', table.id);
     } catch (err) {
       console.warn('Supabase update failed, relying on local state.', err);
@@ -134,10 +136,12 @@ export default function Tables() {
         }));
         setTables(localTables);
       } else {
-        const mappedData = data.map(t => ({
-           ...t,
-           status: t.status ? t.status.charAt(0).toUpperCase() + t.status.slice(1) : 'Available'
-        }));
+        const mappedData = data.map(t => {
+           let formattedStatus = 'Available';
+           if (t.status === 'occupied') formattedStatus = 'Occupied';
+           if (t.status === 'reserved') formattedStatus = 'Reserved';
+           return { ...t, status: formattedStatus };
+        });
         setTables(mappedData);
       }
     } catch (err) {

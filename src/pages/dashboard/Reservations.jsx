@@ -11,14 +11,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 const ReservationRow = ({ reservation, theme, onUpdateStatus }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   
-  // Safely extract names/fields based on what Supabase actually returns
-  const name = reservation.name || reservation.customer_name || reservation.firstName || 'Unknown Guest';
-  const phone = reservation.phone || reservation.phoneNumber || 'No phone provided';
-  const guests = reservation.guests || reservation.party_size || reservation.partySize || 2;
-  const date = reservation.date || reservation.reservation_date || new Date().toLocaleDateString();
-  const time = reservation.time || reservation.reservation_time || '19:00';
+  // Safely extract names/fields based on exact Supabase schema
+  const name = reservation.customer_name || 'Unknown Guest';
+  const phone = reservation.phone_number || 'No phone provided';
+  const guests = reservation.guests_count || 2;
+  const date = reservation.reservation_date || new Date().toLocaleDateString();
+  const time = reservation.reservation_time || '19:00';
   const source = reservation.source || 'Web';
-  const status = reservation.status || 'Confirmed';
+  const status = reservation.status ? reservation.status.charAt(0).toUpperCase() + reservation.status.slice(1) : 'Confirmed';
 
   const handleStatusChange = async (newStatus) => {
     setMenuOpen(false);
@@ -26,7 +26,7 @@ const ReservationRow = ({ reservation, theme, onUpdateStatus }) => {
     try {
       await supabase
         .from('reservations_main')
-        .update({ status: newStatus })
+        .update({ status: newStatus.toLowerCase() })
         .eq('id', reservation.id);
     } catch (err) {
       console.warn("Silent local fallback for status update");

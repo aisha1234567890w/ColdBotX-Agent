@@ -57,38 +57,32 @@ export default function Analytics() {
       }
 
       // 1. Average Party Size
-      const totalGuests = reservations.reduce((acc, curr) => acc + (parseInt(curr.guests) || 0), 0);
+      const totalGuests = reservations.reduce((sum, r) => sum + (parseInt(r.guests_count) || 0), 0);
       const avgPartySize = (totalGuests / reservations.length).toFixed(1);
 
-      // 2. Peak Hours (Reservation Volume by Hour)
+      // 2. Day-wise Trends
+      const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const dayCounts = { Mon:0, Tue:0, Wed:0, Thu:0, Fri:0, Sat:0, Sun:0 };
+      reservations.forEach(r => {
+        if(r.reservation_date) {
+          const dayName = days[new Date(r.reservation_date).getDay()];
+          dayCounts[dayName] = (dayCounts[dayName] || 0) + 1;
+        }
+      });
+      const dayTrends = Object.keys(dayCounts).map(day => ({ day, reservations: dayCounts[day] }));
+
+      // 3. Peak Hours (Reservation Volume by Hour)
       const hourCounts = {};
       reservations.forEach(r => {
-        const hour = r.time?.split(':')[0];
-        if (hour) {
+        if(r.reservation_time) {
+          const hour = r.reservation_time.substring(0, 5); // get HH:MM
           hourCounts[hour] = (hourCounts[hour] || 0) + 1;
         }
       });
-      const peakHours = Object.keys(hourCounts).sort().map(hour => ({
-        time: `${hour}:00`,
-        bookings: hourCounts[hour]
-      }));
-
-      // 3. Day-wise Trends
-      const dayCounts = {};
-      reservations.forEach(r => {
-        if (r.date) {
-          dayCounts[r.date] = (dayCounts[r.date] || 0) + 1;
-        }
-      });
-      // Sort by date and take last 7 days
-      const sortedDays = Object.keys(dayCounts).sort();
-      const dayTrends = sortedDays.slice(-7).map(date => {
-        const d = new Date(date);
-        return {
-          day: d.toLocaleDateString('en-US', { weekday: 'short' }),
-          reservations: dayCounts[date]
-        };
-      });
+      const peakHours = Object.keys(hourCounts)
+        .sort()
+        .slice(0, 5) // limit to top 5
+        .map(time => ({ time, bookings: hourCounts[time] }));
 
       // 4. Channel Performance (Source)
       const sourceCounts = {};
