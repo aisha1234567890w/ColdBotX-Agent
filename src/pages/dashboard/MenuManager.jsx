@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { 
   UtensilsCrossed, Search, Plus, MoreVertical, Edit2, Trash2, Eye, 
-  Flame, RefreshCcw, Save
+  Flame, RefreshCcw, Save, X
 } from 'lucide-react';
 import { menuData as defaultMenuData } from '../../data/menu';
 import { useTheme } from '../../context/ThemeContext';
@@ -24,7 +24,13 @@ export default function MenuManagement() {
     // Load from localStorage or fallback to default
     const saved = localStorage.getItem('aifur_menu_override');
     if (saved) {
-      setMenuState(JSON.parse(saved));
+      try {
+        setMenuState(JSON.parse(saved));
+      } catch (e) {
+        console.error("Corrupted menu data in localStorage", e);
+        localStorage.removeItem('aifur_menu_override');
+        setMenuState(defaultMenuData);
+      }
     } else {
       setMenuState(defaultMenuData);
       localStorage.setItem('aifur_menu_override', JSON.stringify(defaultMenuData));

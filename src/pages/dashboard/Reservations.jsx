@@ -168,10 +168,11 @@ export default function Reservations() {
     setReservations(sorted);
   };
 
-  const filteredReservations = reservations.filter(r => 
-    (r.name && r.name.toLowerCase().includes(searchTerm.toLowerCase())) || 
-    (r.phone && r.phone.includes(searchTerm))
-  );
+  const filteredReservations = reservations.filter(r => {
+    const searchName = (r.customer_name || r.name || '').toLowerCase();
+    const searchPhone = (r.phone_number || r.phone || '');
+    return searchName.includes(searchTerm.toLowerCase()) || searchPhone.includes(searchTerm);
+  });
 
   return (
     <div className="space-y-8 pb-20 animate-in fade-in duration-500">
