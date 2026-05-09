@@ -40,12 +40,8 @@ export default function Login() {
 
       setIsLoading(false);
       
-      // Role-based redirection
-      if (userProfile.role === 'manager') {
-        navigate("/manager");
-      } else {
-        navigate("/user-dashboard");
-      }
+      // Always redirect to User Dashboard first as requested
+      navigate("/user-dashboard");
 
     } catch (err) {
       console.error("Login error:", err);
