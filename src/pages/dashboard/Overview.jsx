@@ -73,17 +73,16 @@ export default function Overview() {
       const peakHourRaw = Object.keys(timeFreq).sort((a, b) => timeFreq[b] - timeFreq[a])[0] || "20";
       const peakHour = `${peakHourRaw}:00 - ${parseInt(peakHourRaw)+1}:00`;
 
-      // Mock Table occupancy (Randomized for visual effect, weighted by current time)
-      const totalTables = 10;
-      // In a real scenario, we check if todayRes has time == now.
-      const occupiedTables = todayRes.filter(r => {
-        // Roughly active within 1 hour
-        const resHour = parseInt(r.time?.split(':')[0] || 0);
-        const currentHour = parseInt(now.split(':')[0]);
-        return Math.abs(resHour - currentHour) <= 1;
-      }).length;
+      const { data: tablesData, error: tablesError } = await supabase
+        .from('restaurant_tables')
+        .select('*');
+
+      if (tablesError) console.error(tablesError);
+
+      const totalTables = tablesData ? tablesData.length : 20; // Fallback to 20 if failed
       
-      const actualOccupied = Math.min(occupiedTables, totalTables);
+      // Calculate real occupied tables based on status
+      const actualOccupied = tablesData ? tablesData.filter(t => t.status?.toLowerCase() === 'occupied').length : 0;
 
       // Alerts
       const alerts = [];
@@ -157,7 +156,7 @@ export default function Overview() {
             </div>
             <div>
               <p className="text-gray-500 text-xs font-bold uppercase tracking-widest">Tables</p>
-              <h3 className="text-2xl font-black">{stats.occupiedTables} <span className="text-gray-400 text-lg">/ 10</span></h3>
+              <h3 className="text-2xl font-black">{stats.occupiedTables} <span className="text-gray-400 text-lg">/ {stats.occupiedTables + stats.availableTables}</span></h3>
             </div>
           </div>
           <div className="text-xs font-bold text-gray-400 flex items-center gap-1">

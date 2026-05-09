@@ -20,7 +20,6 @@ import DashboardReservations from "./pages/dashboard/Reservations";
 import TableManagement from "./pages/dashboard/Tables";
 import MenuManager from "./pages/dashboard/MenuManager";
 import Analytics from "./pages/dashboard/Analytics";
-import AiLogs from "./pages/dashboard/AiLogs";
 import Customers from "./pages/dashboard/Customers";
 import Settings from "./pages/dashboard/Settings";
 import './dashboard.css';
@@ -64,7 +63,6 @@ function App() {
           <Route path="tables" element={<TableManagement />} />
           <Route path="menu" element={<MenuManager />} />
           <Route path="analytics" element={<Analytics />} />
-          <Route path="ai-logs" element={<AiLogs />} />
           <Route path="customers" element={<Customers />} />
           <Route path="settings" element={<Settings />} />
         </Route>

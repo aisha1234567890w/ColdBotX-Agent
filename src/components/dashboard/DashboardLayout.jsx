@@ -57,7 +57,6 @@ export default function DashboardLayout() {
     { icon: UtensilsCrossed, label: 'Menu Management', path: '/admin-ops/menu' },
     { icon: Users, label: 'Customer Profiles', path: '/admin-ops/customers' },
     { icon: BarChart3, label: 'Analytics & Insights', path: '/admin-ops/analytics' },
-    { icon: MessageSquareCode, label: 'AI Activity Logs', path: '/admin-ops/ai-logs' },
     { icon: Settings, label: 'Settings & Config', path: '/admin-ops/settings' }
   ];
 
