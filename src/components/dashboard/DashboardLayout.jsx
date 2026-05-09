@@ -51,13 +51,14 @@ export default function DashboardLayout() {
   const user = JSON.parse(localStorage.getItem('user') || '{"name": "Admin", "email": "admin@aifur.com"}');
 
   const menuItems = [
-    { icon: LayoutDashboard, label: 'Dashboard', path: '/admin-ops' },
-    { icon: CalendarCheck, label: 'Orders', path: '/admin-ops/reservations' },
-    { icon: MessageSquareCode, label: 'Messages', path: '/admin-ops/ai-logs' },
-    { icon: TableProperties, label: 'Calendar', path: '/admin-ops/tables' },
-    { icon: UtensilsCrossed, label: 'Menu', path: '/admin-ops/menu' },
-    { icon: Users, label: 'Inventory', path: '/admin-ops/customers' },
-    { icon: BarChart3, label: 'Reviews', path: '/admin-ops/analytics' },
+    { icon: LayoutDashboard, label: 'Overview', path: '/admin-ops' },
+    { icon: CalendarCheck, label: 'Reservations & Bookings', path: '/admin-ops/reservations' },
+    { icon: TableProperties, label: 'Table & Seating', path: '/admin-ops/tables' },
+    { icon: UtensilsCrossed, label: 'Menu Management', path: '/admin-ops/menu' },
+    { icon: Users, label: 'Customer Profiles', path: '/admin-ops/customers' },
+    { icon: BarChart3, label: 'Analytics & Insights', path: '/admin-ops/analytics' },
+    { icon: MessageSquareCode, label: 'AI Activity Logs', path: '/admin-ops/ai-logs' },
+    { icon: Settings, label: 'Settings & Config', path: '/admin-ops/settings' }
   ];
 
   const handleLogout = async () => {
