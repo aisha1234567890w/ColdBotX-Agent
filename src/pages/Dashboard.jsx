@@ -6,22 +6,23 @@ import {
   MapPin, 
   Clock, 
   Users, 
-  Star, 
-  Gift, 
   ChefHat, 
   ArrowRight,
   LogOut,
-  User as UserIcon,
   Bell,
-  CheckCircle2,
-  AlertCircle,
-  CreditCard,
-  Crown,
-  Settings,
-  Search,
-  Plus
+  Sparkles,
+  Utensils,
+  Camera,
+  PlayCircle
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+
+const IMAGES = {
+  hero: "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&q=80&w=2000",
+  salmon: "https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&q=80&w=1000",
+  interior: "https://images.unsplash.com/photo-1550966841-3ecfcdac896a?auto=format&fit=crop&q=80&w=1000",
+  plating: "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&q=80&w=1000"
+};
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -30,12 +31,9 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchUserDataAndReservations = async () => {
+    const fetchData = async () => {
       const storedUser = JSON.parse(localStorage.getItem("user") || "null");
-      if (!storedUser) {
-        navigate('/login');
-        return;
-      }
+      if (!storedUser) { navigate('/login'); return; }
       setUser(storedUser);
 
       try {
@@ -44,16 +42,15 @@ export default function Dashboard() {
           .select('*')
           .eq('email', storedUser.email)
           .order('date', { ascending: false });
-
         if (error) throw error;
         setReservations(data || []);
       } catch (err) {
-        console.error("Error fetching reservations:", err);
+        console.error(err);
       } finally {
-        setTimeout(() => setLoading(false), 1200); // Luxury wait
+        setTimeout(() => setLoading(false), 1500);
       }
     };
-    fetchUserDataAndReservations();
+    fetchData();
   }, [navigate]);
 
   const handleLogout = async () => {
@@ -64,259 +61,210 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#030712] overflow-hidden">
-        {/* Animated Background Blobs for Loader */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-[120px] animate-pulse"></div>
-        
-        <div className="relative z-10 flex flex-col items-center gap-8">
-          <div className="relative">
+      <div className="min-h-screen flex items-center justify-center bg-[#050505]">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="flex flex-col items-center"
+        >
+          <div className="w-20 h-0.5 bg-gold-500/20 relative overflow-hidden mb-8">
             <motion.div 
-              animate={{ rotate: 360 }}
-              transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-              className="w-24 h-24 rounded-[2.5rem] border-[3px] border-indigo-100/50 dark:border-indigo-900/30"
-            ></motion.div>
-            <motion.div 
-              animate={{ rotate: -360 }}
-              transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-              className="absolute inset-0 w-24 h-24 rounded-[2.5rem] border-t-[3px] border-indigo-600 shadow-[0_0_20px_rgba(79,70,229,0.4)]"
-            ></motion.div>
+              initial={{ left: "-100%" }}
+              animate={{ left: "100%" }}
+              transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute top-0 w-1/2 h-full bg-gradient-to-r from-transparent via-amber-500 to-transparent"
+            />
           </div>
-          <div className="text-center">
-            <h3 className="text-xl font-black uppercase tracking-[0.4em] text-gray-900 dark:text-white mb-2">Aifur</h3>
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-indigo-500 animate-pulse">Crafting your luxury experience</p>
-          </div>
-        </div>
+          <h2 className="text-white text-xs font-black uppercase tracking-[0.6em] animate-pulse">Setting your table</h2>
+        </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#fafafa] dark:bg-[#030712] transition-colors duration-1000 relative overflow-hidden">
+    <div className="min-h-screen bg-[#050505] text-white selection:bg-amber-500/30">
       
-      {/* Abstract Background Elements */}
-      <div className="fixed top-0 left-0 w-full h-full pointer-events-none overflow-hidden z-0">
-        <div className="absolute top-[-10%] right-[-5%] w-[40%] h-[40%] bg-indigo-500/5 dark:bg-indigo-500/10 rounded-full blur-[120px] animate-pulse"></div>
-        <div className="absolute bottom-[-10%] left-[-5%] w-[30%] h-[30%] bg-purple-500/5 dark:bg-purple-500/10 rounded-full blur-[100px]"></div>
-      </div>
+      {/* Cinematic Hero Section */}
+      <section className="relative h-[60vh] md:h-[70vh] flex items-end overflow-hidden">
+        <motion.div 
+          initial={{ scale: 1.1, opacity: 0 }}
+          animate={{ scale: 1, opacity: 0.6 }}
+          transition={{ duration: 2 }}
+          className="absolute inset-0 z-0"
+        >
+          <img src={IMAGES.hero} className="w-full h-full object-cover" alt="Aifur Atmosphere" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-[#050505]/50" />
+        </motion.div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 py-12 relative z-10">
-        
-        {/* Superior Header */}
-        <div className="flex flex-col lg:flex-row items-center justify-between gap-10 mb-16">
-          <div className="flex items-center gap-6 group">
-            <div className="relative">
-              <div className="w-20 h-20 rounded-3xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-purple-600 flex items-center justify-center text-white text-3xl font-black shadow-2xl shadow-indigo-500/40 group-hover:rotate-6 transition-transform duration-500">
-                {user?.name?.charAt(0).toUpperCase()}
-              </div>
-              <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-emerald-500 border-4 border-white dark:border-[#030712] rounded-full flex items-center justify-center">
-                <CheckCircle2 size={14} className="text-white" />
-              </div>
-            </div>
-            <div>
-              <h1 className="text-4xl font-black text-gray-900 dark:text-white tracking-tighter leading-none mb-2">
-                Welcome, {user?.name?.split(' ')[0]}
-              </h1>
-              <div className="flex items-center gap-3 text-gray-500 dark:text-gray-400 font-bold text-[10px] uppercase tracking-widest">
-                <Crown size={12} className="text-amber-500" /> Platinum Member since 2026
-              </div>
-            </div>
-          </div>
-          
-          <div className="flex flex-wrap items-center justify-center gap-4">
-             <div className="flex items-center bg-white dark:bg-white/5 border border-gray-100 dark:border-white/5 rounded-2xl px-4 py-2 shadow-sm">
-               <Search size={16} className="text-gray-400 mr-2" />
-               <input type="text" placeholder="Search your history..." className="bg-transparent border-none focus:outline-none text-xs font-bold w-40" />
-             </div>
-             <div className="flex gap-3">
-               <button className="p-3.5 rounded-2xl bg-white dark:bg-white/5 border border-gray-100 dark:border-white/5 text-gray-500 hover:text-indigo-600 transition-all shadow-sm">
-                 <Bell size={20} />
-               </button>
-               <button className="p-3.5 rounded-2xl bg-white dark:bg-white/5 border border-gray-100 dark:border-white/5 text-gray-500 hover:text-indigo-600 transition-all shadow-sm">
-                 <Settings size={20} />
-               </button>
-             </div>
-          </div>
-        </div>
-
-        {/* The Bento Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-          
-          {/* Virtual Membership Card (Large) */}
-          <motion.div 
-            whileHover={{ y: -5 }}
-            className="lg:col-span-2 xl:col-span-2 bg-gray-900 dark:bg-[#111827] rounded-[3rem] p-10 text-white shadow-[0_30px_60px_-15px_rgba(0,0,0,0.3)] relative overflow-hidden flex flex-col justify-between h-[400px]"
+        <div className="max-w-7xl mx-auto px-6 lg:px-12 w-full pb-20 relative z-10">
+          <motion.div
+            initial={{ y: 50, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.5, duration: 1 }}
           >
-            <div className="absolute top-0 right-0 w-full h-full pointer-events-none">
-              <div className="absolute top-[-20%] right-[-10%] w-80 h-80 bg-indigo-600/20 rounded-full blur-[80px]"></div>
-              <div className="absolute bottom-[-10%] left-[-10%] w-64 h-64 bg-purple-600/10 rounded-full blur-[60px]"></div>
-              {/* Pattern Overlay */}
-              <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '24px 24px' }}></div>
+            <div className="flex items-center gap-4 mb-6">
+              <span className="w-12 h-[1px] bg-amber-500" />
+              <span className="text-[10px] font-black uppercase tracking-[0.4em] text-amber-500">Welcome Back</span>
             </div>
-
-            <div className="flex justify-between items-start relative z-10">
-              <div className="flex flex-col gap-1">
-                <span className="text-[10px] font-black uppercase tracking-[0.4em] text-indigo-400 mb-2">Aifur Elite Pass</span>
-                <div className="text-2xl font-black italic tracking-tighter">PLATINUM LEVEL</div>
-              </div>
-              <div className="w-14 h-10 bg-white/10 backdrop-blur-md rounded-lg border border-white/10 flex items-center justify-center overflow-hidden">
-                <div className="w-6 h-6 bg-amber-500/40 rounded-full -mr-2"></div>
-                <div className="w-6 h-6 bg-amber-600/40 rounded-full"></div>
-              </div>
-            </div>
-
-            <div className="relative z-10">
-               <div className="text-3xl font-mono tracking-[0.2em] mb-10 text-gray-300">
-                 **** **** **** {user?.id?.slice(-4) || '2026'}
-               </div>
-               <div className="flex justify-between items-end">
-                 <div>
-                   <div className="text-[8px] font-black uppercase tracking-[0.2em] text-gray-500 mb-1">Card Holder</div>
-                   <div className="text-lg font-black tracking-tight">{user?.name?.toUpperCase()}</div>
-                 </div>
-                 <div className="text-right">
-                   <div className="text-[8px] font-black uppercase tracking-[0.2em] text-gray-500 mb-1">Reward Points</div>
-                   <div className="text-3xl font-black text-indigo-400 tracking-tighter leading-none">1,240</div>
-                 </div>
-               </div>
-            </div>
+            <h1 className="text-6xl md:text-8xl font-black tracking-tighter mb-4 leading-none">
+              {user?.name?.split(' ')[0]}<span className="text-amber-500">.</span>
+            </h1>
+            <p className="text-gray-400 max-w-lg text-sm md:text-base font-medium leading-relaxed">
+              Your table at Aifur is more than a seat—it's a journey through the Nordic soul and the spirit of the East.
+            </p>
           </motion.div>
+        </div>
+      </section>
 
-          {/* Quick Action: New Reservation */}
-          <Link 
-            to="/reservations"
-            className="group relative bg-white dark:bg-gray-900/50 backdrop-blur-xl rounded-[3rem] p-10 border border-gray-100 dark:border-white/5 shadow-2xl flex flex-col justify-between h-[400px] transition-all hover:bg-indigo-600 dark:hover:bg-indigo-600"
-          >
-            <div className="w-16 h-16 bg-indigo-50 dark:bg-indigo-500/10 rounded-2xl flex items-center justify-center text-indigo-600 group-hover:bg-white group-hover:text-indigo-600 transition-colors">
-              <Plus size={32} />
-            </div>
-            <div>
-              <h3 className="text-3xl font-black text-gray-900 dark:text-white mb-4 group-hover:text-white transition-colors tracking-tighter">Reserve a <br/>Table</h3>
-              <p className="text-gray-500 dark:text-gray-400 text-sm font-medium leading-relaxed group-hover:text-indigo-100 transition-colors">Experience the cross-cultural magic of Aifur today.</p>
-            </div>
-            <ArrowRight size={24} className="text-gray-300 group-hover:text-white group-hover:translate-x-2 transition-all" />
-          </Link>
+      <div className="max-w-7xl mx-auto px-6 lg:px-12 py-20">
+        
+        {/* Main Experience Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+          
+          {/* Next Adventure - Cinematic Card */}
+          <div className="lg:col-span-8 space-y-12">
+            <motion.div
+              initial={{ y: 40, opacity: 0 }}
+              whileInView={{ y: 0, opacity: 1 }}
+              viewport={{ once: true }}
+            >
+              <div className="flex justify-between items-end mb-8">
+                <h2 className="text-2xl font-black tracking-tight flex items-center gap-4">
+                  Your Next Adventure
+                  <Sparkles size={18} className="text-amber-500" />
+                </h2>
+                <Link to="/reservations" className="text-[10px] font-black uppercase tracking-widest text-amber-500 hover:tracking-[0.2em] transition-all">New Booking</Link>
+              </div>
 
-          {/* Points Progress (Small) */}
-          <div className="bg-white dark:bg-gray-900/50 backdrop-blur-xl rounded-[3rem] p-10 border border-gray-100 dark:border-white/5 shadow-xl flex flex-col justify-between h-[400px]">
-            <div>
-              <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 mb-8">Points Progress</h4>
-              <div className="relative w-32 h-32 mx-auto mb-8">
-                <svg className="w-full h-full" viewBox="0 0 100 100">
-                  <circle className="text-gray-100 dark:text-gray-800" strokeWidth="10" stroke="currentColor" fill="transparent" r="40" cx="50" cy="50" />
-                  <circle className="text-indigo-600" strokeWidth="10" strokeDasharray={251.2} strokeDashoffset={251.2 - (251.2 * 75) / 100} strokeLinecap="round" stroke="currentColor" fill="transparent" r="40" cx="50" cy="50" />
-                </svg>
-                <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <span className="text-2xl font-black text-gray-900 dark:text-white">75%</span>
+              {reservations.length > 0 ? (
+                <div className="group relative overflow-hidden rounded-[3rem] bg-[#111] border border-white/5 h-[450px]">
+                  <img src={IMAGES.interior} className="absolute inset-0 w-full h-full object-cover opacity-40 group-hover:scale-105 transition-transform duration-[3s]" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
+                  
+                  <div className="absolute inset-0 p-12 flex flex-col justify-between">
+                    <div className="flex justify-between items-start">
+                      <div className="px-4 py-2 bg-white/10 backdrop-blur-md rounded-xl border border-white/10 text-[10px] font-black uppercase tracking-widest">
+                        {reservations[0].status || 'Confirmed'}
+                      </div>
+                      <div className="flex items-center gap-2 text-amber-500">
+                        <Clock size={16} />
+                        <span className="text-xs font-black italic">{reservations[0].time}</span>
+                      </div>
+                    </div>
+
+                    <div>
+                       <div className="text-5xl font-black mb-4 tracking-tighter">
+                         {new Date(reservations[0].date).toLocaleDateString(undefined, { day: 'numeric', month: 'long' })}
+                       </div>
+                       <div className="flex items-center gap-6 text-gray-400 font-bold uppercase tracking-widest text-[10px]">
+                         <span className="flex items-center gap-2"><Users size={14} /> {reservations[0].guests} Guests</span>
+                         <span className="flex items-center gap-2"><MapPin size={14} /> Aifur Lounge</span>
+                       </div>
+                       <div className="mt-8 flex gap-4">
+                         <button className="px-8 py-4 bg-white text-black rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-amber-500 transition-colors">Modify Experience</button>
+                         <button className="px-8 py-4 border border-white/10 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-white/5 transition-colors">Directions</button>
+                       </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="rounded-[3rem] bg-[#111] border border-dashed border-white/10 p-20 text-center">
+                  <Utensils size={48} className="mx-auto mb-8 text-white/20" />
+                  <h3 className="text-2xl font-black mb-4 tracking-tight">The table is set.</h3>
+                  <p className="text-gray-500 mb-10 max-w-xs mx-auto text-sm font-medium">You haven't booked your next experience yet. Let's change that.</p>
+                  <Link to="/reservations" className="inline-flex px-10 py-5 bg-amber-500 text-black rounded-2xl font-black uppercase tracking-widest text-[10px] hover:scale-105 transition-all shadow-2xl shadow-amber-500/20">Book a Table</Link>
+                </div>
+              )}
+            </motion.div>
+
+            {/* Visual Gallery: From the Kitchen */}
+            <motion.div
+              initial={{ y: 40, opacity: 0 }}
+              whileInView={{ y: 0, opacity: 1 }}
+              viewport={{ once: true }}
+            >
+              <h2 className="text-2xl font-black tracking-tight mb-8 flex items-center gap-4">
+                From the Kitchen
+                <Camera size={18} className="text-amber-500" />
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="group relative h-[300px] rounded-[2.5rem] overflow-hidden">
+                  <img src={IMAGES.salmon} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" />
+                  <div className="absolute inset-0 bg-black/30 group-hover:bg-black/10 transition-colors" />
+                  <div className="absolute bottom-0 left-0 p-8">
+                    <h4 className="text-lg font-black tracking-tight mb-1">Nordic Salmon</h4>
+                    <p className="text-xs text-amber-500 font-black uppercase tracking-widest">Seasonal Special</p>
+                  </div>
+                </div>
+                <div className="group relative h-[300px] rounded-[2.5rem] overflow-hidden">
+                  <img src={IMAGES.plating} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" />
+                  <div className="absolute inset-0 bg-black/30 group-hover:bg-black/10 transition-colors" />
+                  <div className="absolute bottom-0 left-0 p-8">
+                    <h4 className="text-lg font-black tracking-tight mb-1">Art of Plating</h4>
+                    <p className="text-xs text-amber-500 font-black uppercase tracking-widest">Visual Experience</p>
+                  </div>
                 </div>
               </div>
-              <p className="text-center text-[10px] font-bold text-gray-500 uppercase tracking-widest">250 pts to Gold Tier</p>
-            </div>
-            <button className="w-full py-4 rounded-2xl bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-[10px] font-black uppercase tracking-widest hover:bg-indigo-600 hover:text-white transition-all">
-              Redeem Now
+            </motion.div>
+          </div>
+
+          {/* Side Content: Experience Highlights */}
+          <div className="lg:col-span-4 space-y-12">
+            
+            {/* Chef's Note */}
+            <motion.div 
+              initial={{ x: 40, opacity: 0 }}
+              whileInView={{ x: 0, opacity: 1 }}
+              viewport={{ once: true }}
+              className="bg-[#111] rounded-[2.5rem] p-10 border border-white/5 relative overflow-hidden"
+            >
+              <ChefHat className="text-amber-500 mb-8" size={32} />
+              <h3 className="text-xl font-black mb-4 tracking-tight">Chef's Choice</h3>
+              <p className="text-sm text-gray-400 font-medium leading-relaxed mb-10">
+                "This month, we are focusing on the raw purity of Arctic waters combined with the warmth of Pakistani saffron."
+              </p>
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-full bg-white/10" />
+                <div>
+                  <div className="text-xs font-black tracking-tight text-white uppercase">Ayesha Altaf</div>
+                  <div className="text-[10px] font-bold text-gray-500 uppercase">Executive Chef</div>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Visual Teaser */}
+            <motion.div 
+              initial={{ x: 40, opacity: 0 }}
+              whileInView={{ x: 0, opacity: 1 }}
+              viewport={{ once: true }}
+              className="relative rounded-[2.5rem] h-[350px] overflow-hidden group"
+            >
+              <img src={IMAGES.interior} className="w-full h-full object-cover" />
+              <div className="absolute inset-0 bg-amber-900/40 mix-blend-multiply" />
+              <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center">
+                <PlayCircle size={48} className="text-white mb-4 group-hover:scale-110 transition-transform" />
+                <h4 className="font-black text-xl tracking-tight leading-tight">The Aifur <br/>Atmosphere</h4>
+              </div>
+            </motion.div>
+
+            {/* End Session */}
+            <button 
+              onClick={handleLogout}
+              className="w-full py-8 border border-white/5 rounded-[2.5rem] flex items-center justify-center gap-4 text-gray-500 hover:text-white hover:bg-red-500 transition-all font-black text-[10px] uppercase tracking-[0.4em]"
+            >
+              <LogOut size={16} /> End Journey
             </button>
           </div>
 
-          {/* Latest Reservation (Large) */}
-          <div className="lg:col-span-3 xl:col-span-3 bg-white dark:bg-gray-900/50 backdrop-blur-xl rounded-[3rem] p-10 md:p-12 border border-gray-100 dark:border-white/5 shadow-2xl min-h-[400px]">
-            <div className="flex items-center justify-between mb-12">
-               <h2 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">Your Next Experience</h2>
-               <div className="flex gap-2">
-                 <button className="p-2 rounded-lg bg-gray-50 dark:bg-white/5 text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"><Settings size={16} /></button>
-               </div>
-            </div>
-
-            {reservations.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="space-y-8">
-                  <div className="flex items-center gap-6">
-                    <div className="w-16 h-16 bg-indigo-50 dark:bg-indigo-900/30 rounded-2xl flex flex-col items-center justify-center shrink-0">
-                      <span className="text-[10px] font-black text-indigo-500 uppercase">{new Date(reservations[0].date).toLocaleString('default', { month: 'short' })}</span>
-                      <span className="text-2xl font-black text-gray-900 dark:text-white">{new Date(reservations[0].date).getDate()}</span>
-                    </div>
-                    <div>
-                      <div className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Confirmed Date</div>
-                      <div className="text-lg font-black text-gray-900 dark:text-white">{new Date(reservations[0].date).toLocaleDateString(undefined, { weekday: 'long' })}</div>
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="p-5 bg-gray-50 dark:bg-white/5 rounded-2xl">
-                       <div className="flex items-center gap-2 text-indigo-500 mb-2 font-black text-[10px] uppercase tracking-widest">
-                         <Clock size={12} /> Time
-                       </div>
-                       <div className="text-lg font-black text-gray-900 dark:text-white">{reservations[0].time}</div>
-                    </div>
-                    <div className="p-5 bg-gray-50 dark:bg-white/5 rounded-2xl">
-                       <div className="flex items-center gap-2 text-indigo-500 mb-2 font-black text-[10px] uppercase tracking-widest">
-                         <Users size={12} /> Size
-                       </div>
-                       <div className="text-lg font-black text-gray-900 dark:text-white">{reservations[0].guests} People</div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex flex-col justify-between">
-                  <div className="p-6 bg-emerald-500/5 dark:bg-emerald-500/10 rounded-3xl border border-emerald-500/20">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center text-white">
-                        <CheckCircle2 size={16} />
-                      </div>
-                      <span className="text-xs font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400">Ready for Service</span>
-                    </div>
-                    <p className="text-[11px] text-gray-500 dark:text-gray-400 font-medium leading-relaxed">
-                      We've prepared your table in the Nordic Lounge. Your preferences have been shared with Chef Ayesha.
-                    </p>
-                  </div>
-                  <div className="flex gap-4 mt-6">
-                    <button className="flex-1 py-4 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:scale-105 transition-transform">Get Directions</button>
-                    <button className="flex-1 py-4 border border-gray-200 dark:border-white/10 rounded-2xl font-black uppercase tracking-widest text-[10px] text-gray-500">Cancel</button>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center py-20">
-                <div className="w-20 h-20 bg-gray-50 dark:bg-white/5 rounded-full flex items-center justify-center mb-6">
-                   <AlertCircle size={32} className="text-gray-300" />
-                </div>
-                <p className="text-gray-500 font-bold text-sm">No upcoming bookings found.</p>
-              </div>
-            )}
-          </div>
-
-          {/* Chef's Curated Recommendation */}
-          <div className="bg-gradient-to-br from-indigo-600 via-indigo-700 to-purple-800 rounded-[3rem] p-10 text-white shadow-2xl relative overflow-hidden group">
-             <div className="absolute top-0 right-0 w-full h-full opacity-10 pointer-events-none group-hover:scale-110 transition-transform duration-[2000ms]">
-               <img src="https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?auto=format&fit=crop&q=80&w=800" className="w-full h-full object-cover" />
-             </div>
-             <div className="relative z-10 flex flex-col justify-between h-full">
-                <div>
-                  <ChefHat className="text-indigo-300 mb-6" size={32} />
-                  <h3 className="text-2xl font-black tracking-tight mb-4">Chef's Pick for You</h3>
-                  <p className="text-indigo-100 text-sm font-medium leading-relaxed mb-8">
-                    Based on your previous visit, you'll love our Smoked Nordic Masala Salmon.
-                  </p>
-                </div>
-                <button className="w-fit px-6 py-3 bg-white text-indigo-600 rounded-xl font-black uppercase tracking-widest text-[10px] hover:scale-105 transition-transform shadow-xl">
-                  Add to Booking
-                </button>
-             </div>
-          </div>
-
-          {/* End Session Button (Fixed) */}
-          <div className="lg:col-span-4 xl:col-span-4 mt-8">
-             <button 
-              onClick={handleLogout}
-              className="w-full py-8 bg-white dark:bg-white/5 border border-gray-100 dark:border-white/5 rounded-[2.5rem] flex items-center justify-center gap-4 group transition-all hover:bg-red-500 hover:border-red-500"
-             >
-               <div className="w-10 h-10 bg-red-500/10 rounded-xl flex items-center justify-center text-red-500 group-hover:bg-white group-hover:text-red-500 transition-colors">
-                 <LogOut size={20} />
-               </div>
-               <span className="text-[10px] font-black uppercase tracking-[0.5em] text-gray-500 group-hover:text-white transition-colors">Securely End Session</span>
-             </button>
-          </div>
-
         </div>
       </div>
+      
+      {/* Footer Decoration */}
+      <div className="py-20 flex flex-col items-center opacity-20">
+        <div className="w-px h-20 bg-gradient-to-b from-amber-500 to-transparent mb-8" />
+        <span className="text-[10px] font-black uppercase tracking-[0.8em] text-gray-500">AIFUR ISLAMABAD</span>
+      </div>
+
     </div>
   );
 }
