@@ -47,6 +47,14 @@ const CategorySection = ({ title, items }) => (
 
 export default function Menu() {
   const [activeTab, setActiveTab] = useState('swedish');
+  const [localMenuData, setLocalMenuData] = useState(menuData);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('aifur_menu_override');
+    if (saved) {
+      setLocalMenuData(JSON.parse(saved));
+    }
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 pt-12 pb-24 transition-colors duration-200">
@@ -81,36 +89,41 @@ export default function Menu() {
         {/* Menu Content */}
         <div className="animate-fade-in">
           {activeTab === 'swedish' && (
-            <>
-              <CategorySection title="Swedish Starters" items={menuData.swedish.starters} />
-              <CategorySection title="Classic Swedish Mains" items={menuData.swedish.mains} />
-              <CategorySection title="Swedish Desserts" items={menuData.swedish.desserts} />
-              <CategorySection title="Swedish Beverages" items={menuData.swedish.beverages} />
-            </>
-          )}
-          {activeTab === 'pakistani' && (
-            <>
-              <CategorySection title="Desi Starters" items={menuData.pakistani.starters} />
-              <CategorySection title="BBQ & Grills" items={menuData.pakistani.bbq} />
-              <CategorySection title="Traditional Curries" items={menuData.pakistani.mains} />
-              <CategorySection title="Rice & Bread" items={[...menuData.pakistani.rice, ...menuData.pakistani.bread]} />
-              <CategorySection title="Desi Desserts" items={menuData.pakistani.desserts} />
-              <CategorySection title="Desi Beverages" items={menuData.pakistani.beverages} />
-            </>
-          )}
-          {activeTab === 'fusion' && (
-            <>
-              <CategorySection title="Fusion Starters" items={menuData.fusion.starters} />
-              <CategorySection title="Fusion Mains" items={menuData.fusion.mains} />
-              <CategorySection title="Fusion Rice & Bowls" items={menuData.fusion.rice} />
-              <CategorySection title="Fusion Desserts" items={menuData.fusion.desserts} />
-              <CategorySection title="Fusion Beverages" items={menuData.fusion.beverages} />
-            </>
-          )}
-          {activeTab === 'deals' && (
-            <CategorySection title="Exclusive Deals & Combos" items={menuData.deals} />
-          )}
-        </div>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+            <CategorySection title="Starters" items={localMenuData.swedish.starters} />
+            <CategorySection title="Mains" items={localMenuData.swedish.mains} />
+            <CategorySection title="Desserts" items={localMenuData.swedish.desserts} />
+            <CategorySection title="Beverages" items={localMenuData.swedish.beverages} />
+          </motion.div>
+        )}
+
+        {activeTab === 'pakistani' && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+            <CategorySection title="Starters" items={localMenuData.pakistani.starters} />
+            <CategorySection title="BBQ" items={localMenuData.pakistani.bbq} />
+            <CategorySection title="Mains" items={localMenuData.pakistani.mains} />
+            <CategorySection title="Rice" items={localMenuData.pakistani.rice} />
+            <CategorySection title="Bread" items={localMenuData.pakistani.bread} />
+            <CategorySection title="Desserts" items={localMenuData.pakistani.desserts} />
+            <CategorySection title="Beverages" items={localMenuData.pakistani.beverages} />
+          </motion.div>
+        )}
+
+        {activeTab === 'fusion' && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+            <CategorySection title="Starters" items={localMenuData.fusion.starters} />
+            <CategorySection title="Mains" items={localMenuData.fusion.mains} />
+            <CategorySection title="Rice" items={localMenuData.fusion.rice} />
+            <CategorySection title="Desserts" items={localMenuData.fusion.desserts} />
+            <CategorySection title="Beverages" items={localMenuData.fusion.beverages} />
+          </motion.div>
+        )}
+
+        {activeTab === 'deals' && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+            <CategorySection title="Value Deals" items={localMenuData.deals} />
+          </motion.div>
+        )}</div>
       </div>
     </div>
   );

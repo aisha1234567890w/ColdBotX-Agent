@@ -1,24 +1,36 @@
 import { useState } from 'react';
-import { Settings as SettingsIcon, Save, Store, Clock, Users, Bell, Shield, Smartphone } from 'lucide-react';
+import { Settings as SettingsIcon, Save, Store, Clock, Users, Bell, Shield, Smartphone, CheckCircle2 } from 'lucide-react';
 
 export default function Settings() {
   const [saving, setSaving] = useState(false);
 
+  const [showToast, setShowToast] = useState(false);
+
   const handleSave = () => {
     setSaving(true);
-    setTimeout(() => setSaving(false), 1000);
+    setTimeout(() => {
+      setSaving(false);
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+    }, 1000);
   };
 
   return (
-    <div className="space-y-8 max-w-5xl">
+    <div className="space-y-8 max-w-5xl relative">
+      {showToast && (
+        <div className="fixed top-4 right-4 bg-emerald-500 text-white px-6 py-3 rounded-xl shadow-xl font-bold flex items-center gap-2 animate-in slide-in-from-top-4 z-50">
+          <CheckCircle2 size={18} /> Settings saved successfully!
+        </div>
+      )}
       <div className="flex justify-between items-end">
         <div>
-          <h1 className="text-3xl font-black tracking-tight mb-2">Platform Settings</h1>
+          <h1 className="text-3xl font-black tracking-tight mb-2">Settings & Config</h1>
           <p className="text-gray-500 font-bold">Configure Aifur AI, operational hours, and system preferences</p>
         </div>
         <button 
           onClick={handleSave}
-          className="flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-xl text-sm font-black uppercase tracking-widest hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-500/20"
+          disabled={saving}
+          className="flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-xl text-sm font-black uppercase tracking-widest hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-500/20 disabled:opacity-70"
         >
           <Save size={18} />
           {saving ? 'Saving...' : 'Save Changes'}

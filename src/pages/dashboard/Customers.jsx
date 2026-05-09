@@ -95,12 +95,12 @@ export default function Customers() {
               <tr key={c.id} className="hover:bg-gray-50 dark:hover:bg-white/5 transition-colors group">
                 <td className="p-6">
                   <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 flex items-center justify-center font-black">
-                      {c.name.charAt(0).toUpperCase()}
+                    <div className="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 flex items-center justify-center font-black uppercase">
+                      {(c.name || 'U').charAt(0)}
                     </div>
                     <div>
-                      <div className="font-bold">{c.name}</div>
-                      <div className="text-xs text-gray-500">From {c.source || 'Unknown'}</div>
+                      <div className="font-bold">{c.name || 'Unknown Guest'}</div>
+                      <div className="text-xs text-gray-500">From {c.source || 'Web'}</div>
                     </div>
                   </div>
                 </td>
