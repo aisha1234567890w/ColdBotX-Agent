@@ -56,46 +56,31 @@ function App() {
     <Router>
       <Routes>
         {/* Operations Dashboard (Manager Side) - PROTECTED */}
-        <Route element={<ProtectedRoute />}>
-          <Route path="/manager" element={<DashboardLayout />}>
-            <Route index element={<Overview />} />
-            <Route path="reservations" element={<DashboardReservations />} />
-            <Route path="tables" element={<TableManagement />} />
-            <Route path="menu" element={<MenuManager />} />
-            <Route path="analytics" element={<Analytics />} />
-            <Route path="ai-logs" element={<AiLogs />} />
-            <Route path="customers" element={<div className="p-8">Customer CRM Module (Coming Soon)</div>} />
-            <Route path="settings" element={<div className="p-8">Dashboard Settings (Coming Soon)</div>} />
-          </Route>
+        <Route path="/manager" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
+          <Route index element={<Overview />} />
+          <Route path="reservations" element={<DashboardReservations />} />
+          <Route path="tables" element={<TableManagement />} />
+          <Route path="menu" element={<MenuManager />} />
+          <Route path="analytics" element={<Analytics />} />
+          <Route path="ai-logs" element={<AiLogs />} />
+          <Route path="customers" element={<div className="p-8">Customer CRM Module (Coming Soon)</div>} />
+          <Route path="settings" element={<div className="p-8">Dashboard Settings (Coming Soon)</div>} />
         </Route>
 
         {/* Public Website & User Side */}
-        <Route
-          path="*"
-          element={
-            <>
-              <Navbar />
-              <Routes>
-                <Route path="/" element={<Landing />} />
-                <Route path="/menu" element={<Menu />} />
-                <Route path="/reservations" element={<Reservations />} />
-                <Route path="/about" element={<About />} />
-                <Route path="/contact" element={<Contact />} />
-                <Route path="/signup" element={<Signup />} />
-                <Route path="/login" element={<Login />} />
-                
-                {/* User Dashboard (Customer Side) */}
-                <Route element={<ProtectedRoute />}>
-                  <Route path="/profile" element={<Profile />} />
-                  <Route path="/user-dashboard" element={<Dashboard />} />
-                </Route>
+        <Route path="/" element={<><Navbar /><Landing /><Footer /></>} />
+        <Route path="/menu" element={<><Navbar /><Menu /><Footer /></>} />
+        <Route path="/reservations" element={<><Navbar /><Reservations /><Footer /></>} />
+        <Route path="/about" element={<><Navbar /><About /><Footer /></>} />
+        <Route path="/contact" element={<><Navbar /><Contact /><Footer /></>} />
+        <Route path="/signup" element={<><Navbar /><Signup /><Footer /></>} />
+        <Route path="/login" element={<><Navbar /><Login /><Footer /></>} />
+        
+        {/* User Dashboard (Customer Side) */}
+        <Route path="/profile" element={<ProtectedRoute><><Navbar /><Profile /><Footer /></></ProtectedRoute>} />
+        <Route path="/user-dashboard" element={<ProtectedRoute><><Navbar /><Dashboard /><Footer /></></ProtectedRoute>} />
 
-                <Route path="*" element={<Navigate to="/" replace />} />
-              </Routes>
-              <Footer />
-            </>
-          }
-        />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
   );
