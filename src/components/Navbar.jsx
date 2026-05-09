@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTheme } from '../context/ThemeContext';
 import { supabase } from '../utils/supabaseClient';
 
@@ -8,128 +8,148 @@ export default function Navbar() {
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem('user') || 'null');
+  const [user, setUser] = useState(null);
 
-  // Hide global navbar on dashboard to prevent double-header issue (Dashboard has its own)
-  if (location.pathname === '/dashboard') return null;
+  useEffect(() => {
+    // Initial load
+    const storedUser = JSON.parse(localStorage.getItem('user') || 'null');
+    setUser(storedUser);
+
+    // Listen for auth state changes from Supabase
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session) {
+        const updatedUser = JSON.parse(localStorage.getItem('user') || 'null');
+        setUser(updatedUser);
+      } else {
+        setUser(null);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  // Hide global navbar on manager dashboard to prevent double-header issue
+  if (location.pathname.startsWith('/manager')) return null;
 
   const handleLogout = async () => {
-    // Clear ALL auth-related storage FIRST, before any async calls
     localStorage.removeItem('user');
-    localStorage.removeItem('token');
     localStorage.removeItem('supabase_session');
     localStorage.removeItem('isLoggedIn');
-
-    try {
-      await supabase.auth.signOut();
-    } catch (e) {
-      console.warn('Logout warning:', e);
-    }
-
+    setUser(null);
+    await supabase.auth.signOut();
     navigate('/login');
   };
 
+  const navLinks = [
+    { to: '/', label: 'Home' },
+    { to: '/menu', label: 'Menu' },
+    { to: '/reservations', label: 'Reservations' },
+    { to: '/about', label: 'About' },
+    { to: '/contact', label: 'Contact' }
+  ];
+
   return (
-    <header className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md shadow-sm sticky top-0 z-50 transition-colors duration-200">
+    <header className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md shadow-sm sticky top-0 z-50 transition-colors duration-200 border-b border-gray-100 dark:border-gray-800">
       <div className="max-w-7xl mx-auto px-4 md:px-6 py-3 md:py-4 flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Link to="/" className="text-xl font-bold text-gray-900 dark:text-white hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Aifur</Link>
+          <Link to="/" className="text-2xl font-black tracking-tighter text-gray-900 dark:text-white hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+            Aifur
+          </Link>
 
           {/* Desktop nav */}
-          <nav className="hidden md:flex items-center gap-6 ml-6 text-sm text-gray-600 dark:text-gray-300">
-            {[
-              { to: '/', label: 'Home' },
-              { to: '/menu', label: 'Menu' },
-              { to: '/reservations', label: 'Reservations' },
-              { to: '/about', label: 'About' },
-              { to: '/contact', label: 'Contact' }
-            ].map((link) => (
+          <nav className="hidden md:flex items-center gap-6 ml-8">
+            {navLinks.map((link) => (
               <Link
                 key={link.to}
                 to={link.to}
-                className="group relative px-1 py-1 inline-block text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
+                className={`text-sm font-bold tracking-tight transition-colors ${
+                  location.pathname === link.to 
+                    ? 'text-indigo-600 dark:text-indigo-400' 
+                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                }`}
               >
-                <span className="relative z-10">{link.label}</span>
-                <span className="absolute left-0 -bottom-0.5 h-0.5 w-full bg-gradient-to-r from-indigo-500 to-purple-600 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left rounded" />
+                {link.label}
               </Link>
             ))}
           </nav>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 md:gap-5">
           <button
             onClick={toggleTheme}
-            className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 transition-colors"
+            className="p-2.5 rounded-xl text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 transition-all border border-transparent hover:border-gray-200 dark:hover:border-gray-700"
             aria-label="Toggle theme"
           >
             {theme === 'dark' ? (
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-              </svg>
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
             ) : (
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-              </svg>
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
             )}
           </button>
 
           {user ? (
-            <div className="flex items-center gap-4">
-              <Link to="/profile" className="w-8 h-8 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full flex items-center justify-center text-white font-bold hover:opacity-90 overflow-hidden">
-                {user.avatar ? <img src={user.avatar} alt="Profile" className="w-full h-full object-cover" /> : (user.name?.charAt(0) || "U")}
+            <div className="flex items-center gap-3 md:gap-5">
+              <Link 
+                to={user.role === 'manager' ? '/manager' : '/user-dashboard'}
+                className="flex items-center gap-2 group"
+              >
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-black shadow-lg shadow-indigo-500/20 group-hover:scale-105 transition-transform">
+                  {user.name?.charAt(0).toUpperCase() || 'U'}
+                </div>
+                <div className="hidden lg:block">
+                  <div className="text-[10px] font-black uppercase tracking-widest text-gray-500">{user.role === 'manager' ? 'Ops Center' : 'Account'}</div>
+                  <div className="text-xs font-bold dark:text-white truncate max-w-[100px]">{user.name}</div>
+                </div>
               </Link>
               <button
                 onClick={handleLogout}
-                className="text-sm text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 font-semibold"
+                className="text-xs font-black uppercase tracking-widest text-red-500 hover:text-red-600 transition-colors"
               >
                 Sign out
               </button>
-              <Link to="/dashboard">
-                <button className="group relative overflow-hidden px-4 py-2 rounded-lg text-sm font-semibold text-white shadow-lg inline-flex items-center transform transition-all duration-200 hover:scale-105">
-                  <span className="absolute inset-0 bg-gradient-to-r from-blue-500 to-indigo-600 opacity-90"></span>
-                  <span className="relative z-10">Dashboard</span>
-                </button>
-              </Link>
             </div>
           ) : (
-            <>
-              <Link to="/login" className="text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors">Sign in</Link>
-
-            </>
+            <Link 
+              to="/login" 
+              className="px-6 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-black uppercase tracking-widest hover:bg-indigo-700 shadow-xl shadow-indigo-500/20 transition-all transform hover:-translate-y-0.5 active:scale-95"
+            >
+              Sign in
+            </Link>
           )}
 
           {/* Mobile menu button */}
           <button
             onClick={() => setOpen(!open)}
-            className="md:hidden p-2 rounded-lg border border-gray-200 dark:border-gray-700 dark:text-gray-300"
-            aria-label="Toggle menu"
+            className="md:hidden p-2 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 transition-all"
           >
-            <svg className="w-6 h-6 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              {open ? (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              ) : (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              )}
-            </svg>
+            {open ? (
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+            ) : (
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
+            )}
           </button>
         </div>
       </div>
 
       {/* Mobile menu panel */}
-      <div className={`md:hidden bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800 overflow-hidden transition-all ${open ? 'max-h-96' : 'max-h-0'}`}>
-        <div className="px-6 py-4 flex flex-col gap-3">
-          <Link to="/" onClick={() => setOpen(false)} className="py-2 px-3 rounded hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300">Home</Link>
-          <Link to="/menu" onClick={() => setOpen(false)} className="py-2 px-3 rounded hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300">Menu</Link>
-          <Link to="/reservations" onClick={() => setOpen(false)} className="py-2 px-3 rounded hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300">Reservations</Link>
-          <Link to="/about" onClick={() => setOpen(false)} className="py-2 px-3 rounded hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300">About</Link>
-          <Link to="/contact" onClick={() => setOpen(false)} className="py-2 px-3 rounded hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300">Contact</Link>
-          <div className="pt-2 border-t border-gray-100 dark:border-gray-800">
-            {user ? (
-              <>
-                <button onClick={() => { setOpen(false); handleLogout(); }} className="block w-full text-center text-red-600 dark:text-red-400 font-semibold py-2">Sign out</button>
-              </>
-            ) : null}
-          </div>
+      <div className={`md:hidden bg-white dark:bg-gray-900 overflow-hidden transition-all duration-300 ${open ? 'max-h-[500px] border-t border-gray-100 dark:border-gray-800' : 'max-h-0'}`}>
+        <div className="px-6 py-6 flex flex-col gap-2">
+          {navLinks.map(link => (
+            <Link key={link.to} to={link.to} onClick={() => setOpen(false)} className="py-3 px-4 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 text-sm font-bold text-gray-700 dark:text-gray-300 transition-all">
+              {link.label}
+            </Link>
+          ))}
+          {user && (
+             <Link 
+               to={user.role === 'manager' ? '/manager' : '/user-dashboard'} 
+               onClick={() => setOpen(false)} 
+               className="py-3 px-4 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 font-black text-xs uppercase tracking-widest mt-2 text-center"
+             >
+               {user.role === 'manager' ? 'Operations Dashboard' : 'My Dashboard'}
+             </Link>
+          )}
         </div>
       </div>
     </header>

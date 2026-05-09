@@ -29,17 +29,22 @@ function App() {
       (event, session) => {
         if (event === 'SIGNED_IN' && session) {
           localStorage.setItem('supabase_session', JSON.stringify(session));
+          // Store basic user info if not already there
           if (!localStorage.getItem('user')) {
             const meta = session.user.user_metadata || {};
             const profile = {
-              name: meta.name || session.user.email.split('@')[0],
+              id: session.user.id,
+              name: meta.name || meta.full_name || session.user.email.split('@')[0],
               email: session.user.email,
+              avatar: meta.avatar_url,
+              role: meta.role || 'customer'
             };
             localStorage.setItem('user', JSON.stringify(profile));
           }
         } else if (event === 'SIGNED_OUT') {
           localStorage.removeItem('supabase_session');
           localStorage.removeItem('user');
+          localStorage.removeItem('isLoggedIn');
         }
       }
     );
@@ -50,9 +55,9 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* Operations Dashboard - PROTECTED (Manager Only) */}
+        {/* Operations Dashboard (Manager Side) - PROTECTED */}
         <Route element={<ProtectedRoute />}>
-          <Route path="/dashboard" element={<DashboardLayout />}>
+          <Route path="/manager" element={<DashboardLayout />}>
             <Route index element={<Overview />} />
             <Route path="reservations" element={<DashboardReservations />} />
             <Route path="tables" element={<TableManagement />} />
@@ -64,7 +69,7 @@ function App() {
           </Route>
         </Route>
 
-        {/* Public Website Routes */}
+        {/* Public Website & User Side */}
         <Route
           path="*"
           element={
@@ -79,6 +84,7 @@ function App() {
                 <Route path="/signup" element={<Signup />} />
                 <Route path="/login" element={<Login />} />
                 
+                {/* User Dashboard (Customer Side) */}
                 <Route element={<ProtectedRoute />}>
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/user-dashboard" element={<Dashboard />} />
@@ -96,3 +102,4 @@ function App() {
 }
 
 export default App;
+

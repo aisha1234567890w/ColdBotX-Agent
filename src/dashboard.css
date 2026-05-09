@@ -1,31 +1,46 @@
 /* Dashboard Theme Variables */
 :root {
-  --dash-bg: #030712;
-  --dash-card: rgba(17, 24, 39, 0.7);
-  --dash-border: rgba(255, 255, 255, 0.1);
+  --dash-bg: #ffffff;
+  --dash-card: #ffffff;
+  --dash-border: #e5e7eb;
   --dash-accent: #6366f1;
-  --dash-accent-hover: #4f46e5;
-  --dash-text: #f9fafb;
-  --dash-text-muted: #9ca3af;
+  --dash-text: #111827;
+  --dash-text-muted: #6b7280;
   --dash-success: #10b981;
   --dash-warning: #f59e0b;
   --dash-danger: #ef4444;
 }
 
+.dark {
+  --dash-bg: #030712;
+  --dash-card: rgba(17, 24, 39, 0.7);
+  --dash-border: rgba(255, 255, 255, 0.1);
+  --dash-text: #f9fafb;
+  --dash-text-muted: #9ca3af;
+}
+
 .dashboard-glass {
   background: var(--dash-card);
   backdrop-filter: blur(12px);
-  border: 1px border var(--dash-border);
+  border: 1px solid var(--dash-border);
   border-radius: 1.5rem;
+  transition: all 0.3s ease;
 }
 
-.sidebar-link-active {
-  background: linear-gradient(to right, rgba(99, 102, 241, 0.15), transparent);
-  border-left: 4px solid var(--dash-accent);
-  color: var(--dash-accent);
+.dark .dashboard-glass {
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+}
+
+.light .dashboard-glass {
+  box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.05);
 }
 
 .stat-card-gradient {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(168, 85, 247, 0.05));
+  border: 1px solid rgba(99, 102, 241, 0.1);
+}
+
+.dark .stat-card-gradient {
   background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.1));
   border: 1px solid rgba(99, 102, 241, 0.2);
 }
@@ -37,4 +52,39 @@
 
 .animate-pulse-soft {
   animation: pulse-soft 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Custom Table Styles */
+.dashboard-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.dashboard-table th {
+  padding: 1.25rem 1rem;
+  font-size: 0.65rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--dash-text-muted);
+  border-bottom: 1px solid var(--dash-border);
+}
+
+.dashboard-table td {
+  padding: 1.25rem 1rem;
+  font-size: 0.875rem;
+  border-bottom: 1px solid var(--dash-border);
+}
+
+.dashboard-table tr:last-child td {
+  border-bottom: none;
+}
+
+.dashboard-table tr:hover td {
+  background: rgba(99, 102, 241, 0.02);
+}
+
+.dark .dashboard-table tr:hover td {
+  background: rgba(255, 255, 255, 0.02);
 }

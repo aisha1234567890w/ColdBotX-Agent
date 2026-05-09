@@ -21,6 +21,7 @@ build
 .env.production
 .env.test.local
 .env.production.local
+api keys.txt
 
 # Project specific
 *.json
