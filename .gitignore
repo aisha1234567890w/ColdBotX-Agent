@@ -25,6 +25,7 @@ api keys.txt
 
 # Project specific
 *.json
+!vercel.json
 *.docx
 !package.json
 !package-lock.json
