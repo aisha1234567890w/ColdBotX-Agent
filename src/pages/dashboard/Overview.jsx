@@ -23,8 +23,7 @@ import {
   Bar,
   PieChart,
   Pie,
-  Cell,
-  Rectangle
+  Cell
 } from 'recharts';
 import { supabase } from '../../utils/supabaseClient';
 import { menuData } from '../../data/menu';
@@ -300,7 +299,7 @@ export default function Overview() {
                     fill="#FF6B35" 
                     radius={[8, 8, 8, 8]} 
                     barSize={30}
-                    activeBar={<Rectangle fill="#4F46E5" stroke="none" />}
+                    activeBar={<CustomBar fill="#4F46E5" />}
                   />
                 </BarChart>
              </ResponsiveContainer>
@@ -342,3 +341,9 @@ export default function Overview() {
     </div>
   );
 }
+
+// Custom Bar for BarChart active state
+const CustomBar = (props) => {
+  const { fill, x, y, width, height } = props;
+  return <rect x={x} y={y} width={width} height={height} fill={fill} rx={8} ry={8} />;
+};
