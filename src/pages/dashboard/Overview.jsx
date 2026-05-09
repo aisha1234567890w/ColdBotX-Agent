@@ -1,241 +1,344 @@
-import { motion } from 'framer-motion';
+import { useState, useEffect } from 'react';
 import { 
   Users, 
-  Calendar, 
+  ShoppingBag, 
+  DollarSign, 
   TrendingUp, 
-  Clock, 
-  AlertCircle, 
-  CheckCircle2,
-  Table as TableIcon,
-  Smartphone,
-  MessageSquare,
-  Phone,
-  RefreshCcw
+  ArrowUpRight, 
+  ArrowDownRight,
+  MoreVertical,
+  Calendar,
+  ChevronRight,
+  Star
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { 
+  AreaChart, 
+  Area, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  Rectangle
+} from 'recharts';
 import { supabase } from '../../utils/supabaseClient';
+import { menuData } from '../../data/menu';
+import { motion } from 'framer-motion';
 import { useTheme } from '../../context/ThemeContext';
 
-const StatCard = ({ label, value, icon: Icon, trend, color }) => (
-  <div className="dashboard-glass p-6 stat-card-gradient transition-all duration-300 hover:scale-[1.02]">
-    <div className="flex justify-between items-start mb-4">
-      <div className={`p-3 rounded-xl bg-${color}-500/10 text-${color}-400 border border-${color}-500/20`}>
-        <Icon size={24} />
-      </div>
-      {trend && (
-        <div className={`flex items-center gap-1 text-xs font-bold ${trend > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-          {trend > 0 ? '+' : ''}{trend}%
-          <TrendingUp size={12} className={trend < 0 ? 'rotate-180' : ''} />
-        </div>
-      )}
-    </div>
-    <div className="text-3xl font-black mb-1">{value}</div>
-    <div className="text-gray-500 text-[10px] font-bold uppercase tracking-widest">{label}</div>
-  </div>
-);
+const COLORS = ['#FF6B35', '#4F46E5', '#10B981', '#F59E0B'];
 
-const LiveReservation = ({ name, time, party, source, status, theme }) => (
-  <div className={`flex items-center justify-between p-4 rounded-2xl border transition-colors group ${
-    theme === 'dark' ? 'bg-white/5 border-white/5 hover:bg-white/[0.08]' : 'bg-gray-50 border-gray-100 hover:bg-gray-100'
-  }`}>
-    <div className="flex items-center gap-4">
-      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500/20 to-purple-500/20 flex items-center justify-center font-bold text-indigo-400 text-xs">
-        {name ? name.split(' ').map(n => n[0]).join('') : '??'}
+const StatCard = ({ icon: Icon, label, value, trend, trendUp, color }) => (
+  <motion.div 
+    whileHover={{ y: -5 }}
+    className="bg-white dark:bg-white/5 p-6 rounded-[2rem] border border-gray-100 dark:border-white/5 shadow-sm"
+  >
+    <div className="flex items-center justify-between mb-4">
+      <div className={`p-3 rounded-2xl ${color} bg-opacity-10 text-opacity-100`}>
+        <Icon size={24} className={color.replace('bg-', 'text-')} />
       </div>
-      <div>
-        <div className="text-sm font-bold group-hover:text-indigo-400 transition-colors">{name || 'Guest'}</div>
-        <div className="text-[10px] text-gray-500 font-bold flex items-center gap-2">
-          <Clock size={10} /> {time} • {party} Guests
+      <button className="text-gray-400 hover:text-gray-600 transition-colors"><MoreVertical size={20} /></button>
+    </div>
+    <div>
+      <p className="text-gray-500 dark:text-gray-400 text-xs font-bold uppercase tracking-widest mb-1">{label}</p>
+      <div className="flex items-end gap-3">
+        <h3 className="text-2xl font-black tracking-tight">{value}</h3>
+        <div className={`flex items-center text-[10px] font-black pb-1 ${trendUp ? 'text-emerald-500' : 'text-red-500'}`}>
+          {trendUp ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
+          {trend}
         </div>
       </div>
     </div>
-    <div className="flex items-center gap-3">
-      <div className={`p-2 rounded-lg ${theme === 'dark' ? 'bg-white/5 text-gray-400' : 'bg-white text-gray-400 shadow-sm'}`} title={`Source: ${source}`}>
-        {source === 'Call' ? <Phone size={14} /> : source === 'WhatsApp' ? <Smartphone size={14} /> : <MessageSquare size={14} />}
-      </div>
-      <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
-        status === 'Confirmed' ? 'bg-emerald-500/10 text-emerald-500' : 
-        status === 'Pending' ? 'bg-orange-500/10 text-orange-500' :
-        'bg-gray-500/10 text-gray-500'
-      }`}>
-        {status}
-      </span>
-    </div>
-  </div>
+  </motion.div>
 );
 
-export default function DashboardOverview() {
+export default function Overview() {
   const { theme } = useTheme();
+  const [stats, setStats] = useState({ orders: 0, customers: 0, revenue: 0 });
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({
-    todayBookings: 0,
-    occupancy: '0%',
-    revenue: 'PKR 0',
-    growth: 0
-  });
-  const [recentReservations, setRecentReservations] = useState([]);
 
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      const today = new Date().toISOString().split('T')[0];
-      
-      // Fetch today's reservations
-      const { data: todayRes, error: resError } = await supabase
-        .from('reservations_main')
-        .select('*')
-        .eq('date', today);
-      
-      if (resError) throw resError;
-
-      // Fetch recent reservations for the list
-      const { data: recent, error: recentError } = await supabase
-        .from('reservations_main')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(5);
-
-      if (recentError) throw recentError;
-
-      setRecentReservations(recent || []);
-      setStats({
-        todayBookings: todayRes?.length || 0,
-        occupancy: '72%', // Mocked for now until table logic is in
-        revenue: `PKR ${(todayRes?.length || 0) * 3500}`, // Mocked revenue calc
-        growth: 12
-      });
-    } catch (err) {
-      console.error('Error fetching dashboard data:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Trending items from Fusion Mains (Aifur's pride)
+  const trendingMenus = menuData.fusion.mains.slice(0, 3);
 
   useEffect(() => {
-    fetchData();
+    const fetchDashboardData = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('reservations_main')
+          .select('*')
+          .order('date', { ascending: false });
+
+        if (error) throw error;
+
+        const totalOrders = data.length;
+        const uniqueCustomers = new Set(data.map(r => r.email)).size;
+        const totalRevenue = data.reduce((acc, r) => acc + (parseInt(r.guests) * 4500), 0);
+
+        setStats({
+          orders: totalOrders.toLocaleString(),
+          customers: uniqueCustomers.toLocaleString(),
+          revenue: `PKR ${totalRevenue.toLocaleString()}`
+        });
+      } catch (err) {
+        console.error("Dashboard data error:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
   }, []);
 
+  // Mock chart data for high-end visualization
+  const revenueData = [
+    { name: 'Mar', income: 120000, expense: 80000 },
+    { name: 'Apr', income: 150000, expense: 90000 },
+    { name: 'May', income: 184839, expense: 95000 },
+    { name: 'Jun', income: 160000, expense: 85000 },
+    { name: 'Jul', income: 195000, expense: 110000 },
+  ];
+
+  const categoryData = [
+    { name: 'Fusion', value: 45 },
+    { name: 'Swedish', value: 30 },
+    { name: 'Pakistani', value: 25 },
+  ];
+
+  const weeklyData = [
+    { name: 'Mon', count: 120 },
+    { name: 'Tue', count: 150 },
+    { name: 'Wed', count: 180 },
+    { name: 'Thu', count: 240 },
+    { name: 'Fri', count: 320 },
+    { name: 'Sat', count: 450 },
+    { name: 'Sun', count: 380 },
+  ];
+
+  if (loading) return (
+    <div className="h-[60vh] flex items-center justify-center">
+      <div className="w-10 h-10 border-4 border-[#FF6B35]/20 border-t-[#FF6B35] rounded-full animate-spin" />
+    </div>
+  );
+
   return (
-    <div className="space-y-8 max-w-[1600px] mx-auto pb-20">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+    <div className="space-y-8 animate-in fade-in duration-700">
+      
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-2">
         <div>
-          <h1 className="text-3xl font-black tracking-tight mb-2">Operations Overview</h1>
-          <p className="text-gray-500 font-medium flex items-center gap-2">
-            Aifur Islamabad • 
-            <span className="flex items-center gap-1.5 text-emerald-500 font-bold">
-              <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
-              Live for Service
-            </span>
-          </p>
+          <h1 className="text-3xl font-black tracking-tighter mb-1">Dashboard</h1>
+          <p className="text-gray-500 text-sm font-medium">Welcome back to Aifur Operations Center</p>
         </div>
-        <div className="flex gap-3">
-          <button 
-            onClick={fetchData}
-            className={`p-3 rounded-xl border transition-all ${
-              theme === 'dark' ? 'bg-white/5 border-white/5 hover:bg-white/10' : 'bg-white border-gray-200 hover:bg-gray-50'
-            }`}
-            title="Refresh Data"
-          >
-            <RefreshCcw size={18} className={loading ? 'animate-spin' : ''} />
-          </button>
-          <div className={`rounded-xl px-4 py-2 border text-xs font-bold flex items-center gap-2 ${
-            theme === 'dark' ? 'bg-white/5 border-white/5' : 'bg-white border-gray-200 shadow-sm'
-          }`}>
-            <Calendar size={14} className="text-indigo-400" />
-            {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+        <div className="flex items-center gap-3">
+          <div className="px-4 py-2 bg-white dark:bg-white/5 border border-gray-100 dark:border-white/5 rounded-xl flex items-center gap-2 text-xs font-bold text-gray-500">
+            <Calendar size={14} /> Last 30 Days
           </div>
-          <button className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-xl text-sm font-black transition-all shadow-lg shadow-indigo-500/20 active:scale-95">
-            + Quick Booking
+          <button className="px-6 py-2.5 bg-[#FF6B35] text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-lg shadow-orange-500/20 hover:scale-105 transition-transform">
+            Export Report
           </button>
         </div>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard label="Today's Bookings" value={stats.todayBookings} icon={Calendar} trend={12} color="indigo" />
-        <StatCard label="Live Occupancy" value={stats.occupancy} icon={TableIcon} trend={5} color="purple" />
-        <StatCard label="AI Efficiency" value="98%" icon={TrendingUp} trend={2} color="orange" />
-        <StatCard label="Est. Revenue" value={stats.revenue} icon={TrendingUp} trend={18} color="emerald" />
+      {/* Row 1: Stat Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <StatCard 
+          icon={ShoppingBag} 
+          label="Total Orders" 
+          value={stats.orders} 
+          trend="1.58%" 
+          trendUp={true} 
+          color="bg-[#FF6B35]"
+        />
+        <StatCard 
+          icon={Users} 
+          label="Total Customers" 
+          value={stats.customers} 
+          trend="0.42%" 
+          trendUp={true} 
+          color="bg-indigo-600"
+        />
+        <StatCard 
+          icon={DollarSign} 
+          label="Total Revenue" 
+          value={stats.revenue} 
+          trend="2.35%" 
+          trendUp={true} 
+          color="bg-emerald-600"
+        />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Recent Reservations */}
-        <div className="lg:col-span-2 dashboard-glass p-8">
-          <div className="flex justify-between items-center mb-8">
-            <h2 className="text-xl font-black flex items-center gap-3">
-              Upcoming Reservations
-              <span className="bg-indigo-500/10 text-indigo-400 text-[10px] px-2 py-1 rounded-full uppercase tracking-widest font-bold">Live Feed</span>
-            </h2>
-            <button className="text-xs font-bold text-indigo-400 hover:underline">View All Bookings</button>
+      {/* Row 2: Charts and Trending */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        {/* Main Revenue Chart */}
+        <div className="lg:col-span-8 bg-white dark:bg-white/5 p-8 rounded-[2.5rem] border border-gray-100 dark:border-white/5 shadow-sm">
+          <div className="flex justify-between items-center mb-10">
+            <div>
+              <h3 className="text-lg font-black tracking-tight mb-1">Total Revenue</h3>
+              <p className="text-3xl font-black text-[#FF6B35] tracking-tighter">{stats.revenue}</p>
+            </div>
+            <div className="flex gap-4">
+              <div className="flex items-center gap-2 text-[10px] font-bold text-gray-400">
+                <span className="w-2 h-2 rounded-full bg-[#FF6B35]" /> Income
+              </div>
+              <div className="flex items-center gap-2 text-[10px] font-bold text-gray-400">
+                <span className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-700" /> Expense
+              </div>
+            </div>
           </div>
           
-          <div className="space-y-4">
-            {loading ? (
-              [1, 2, 3].map(i => (
-                <div key={i} className="h-20 animate-pulse bg-gray-500/10 rounded-2xl"></div>
-              ))
-            ) : recentReservations.length > 0 ? (
-              recentReservations.map((res) => (
-                <LiveReservation 
-                  key={res.id}
-                  name={res.name}
-                  time={res.time}
-                  party={res.guests}
-                  source={res.source || 'Web'}
-                  status={res.status || 'Confirmed'}
-                  theme={theme}
+          <div className="h-[350px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={revenueData}>
+                <defs>
+                  <linearGradient id="colorIncome" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#FF6B35" stopOpacity={0.1}/>
+                    <stop offset="95%" stopColor="#FF6B35" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={theme === 'dark' ? '#333' : '#eee'} />
+                <XAxis 
+                  dataKey="name" 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{ fontSize: 10, fontWeight: 700, fill: '#888' }} 
+                  dy={10}
                 />
-              ))
-            ) : (
-              <div className="py-12 text-center text-gray-500 font-bold italic">
-                No reservations found for today.
-              </div>
-            )}
+                <YAxis 
+                  hide 
+                />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: theme === 'dark' ? '#111' : '#fff', 
+                    borderRadius: '16px', 
+                    border: 'none', 
+                    boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' 
+                  }}
+                  itemStyle={{ fontSize: '10px', fontWeight: '900' }}
+                />
+                <Area 
+                  type="monotone" 
+                  dataKey="income" 
+                  stroke="#FF6B35" 
+                  strokeWidth={4}
+                  fillOpacity={1} 
+                  fill="url(#colorIncome)" 
+                />
+                <Area 
+                  type="monotone" 
+                  dataKey="expense" 
+                  stroke="#888" 
+                  strokeWidth={2}
+                  fillOpacity={0}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
         </div>
 
-        {/* Live Alerts & AI Insights */}
-        <div className="space-y-8">
-          <div className={`dashboard-glass p-8 border-l-4 border-orange-500 ${theme === 'light' ? 'bg-orange-50/50' : ''}`}>
-            <div className="flex items-center gap-3 text-orange-500 mb-4">
-              <AlertCircle size={20} />
-              <h3 className="font-black">Operational Alerts</h3>
-            </div>
-            <div className="space-y-4">
-              <div className="flex gap-4">
-                <div className="w-1 h-12 bg-orange-500/20 rounded-full"></div>
-                <div>
-                  <div className="text-sm font-bold">High Load Detected</div>
-                  <div className="text-[10px] text-gray-500 leading-relaxed mt-1">Evening slot (19:00-21:00) is at 85% capacity. Monitor standby list.</div>
-                </div>
-              </div>
-              <div className="flex gap-4">
-                <div className="w-1 h-12 bg-indigo-500/20 rounded-full"></div>
-                <div>
-                  <div className="text-sm font-bold">AI Agent Notice</div>
-                  <div className="text-[10px] text-gray-500 leading-relaxed mt-1">Voice AI successfully handled 12 calls in the last hour. No human intervention needed.</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="dashboard-glass p-8 bg-gradient-to-br from-indigo-600 to-purple-600 text-white border-none overflow-hidden relative group">
-            <div className="absolute -right-8 -top-8 w-32 h-32 bg-white/10 rounded-full blur-3xl group-hover:bg-white/20 transition-all duration-700"></div>
-            <div className="relative z-10">
-              <div className="flex items-center gap-2 text-indigo-100 mb-4">
-                <TrendingUp size={16} />
-                <span className="text-[10px] font-black uppercase tracking-widest">AI Smart Insight</span>
-              </div>
-              <h4 className="text-lg font-black mb-2 text-white">Staffing Optimized</h4>
-              <p className="text-xs text-indigo-100 leading-relaxed mb-6">Current staffing matches predicted guest flow. Efficiency is at peak performance.</p>
-              <button className="w-full py-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl text-xs font-bold hover:bg-white/20 transition-colors">
-                View Detailed Report
-              </button>
-            </div>
-          </div>
+        {/* Side Column: Trending Menus */}
+        <div className="lg:col-span-4 flex flex-col gap-8">
+           <div className="bg-white dark:bg-white/5 p-8 rounded-[2.5rem] border border-gray-100 dark:border-white/5 shadow-sm flex-1">
+             <div className="flex justify-between items-center mb-8">
+               <h3 className="text-lg font-black tracking-tight">Trending Menus</h3>
+               <button className="text-[10px] font-black uppercase text-[#FF6B35]">This Week</button>
+             </div>
+             <div className="space-y-6">
+                {trendingMenus.map((item, i) => (
+                  <div key={i} className="flex gap-4 group">
+                    <div className="w-20 h-20 rounded-2xl overflow-hidden shrink-0">
+                      <img src={item.image} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt={item.name} />
+                    </div>
+                    <div className="flex-1 flex flex-col justify-center">
+                      <h4 className="text-sm font-black mb-1 line-clamp-1">{item.name}</h4>
+                      <div className="flex items-center gap-1 text-[#FF6B35] mb-2">
+                         <Star size={10} fill="currentColor" />
+                         <span className="text-[10px] font-black">4.9 (350 orders)</span>
+                      </div>
+                      <div className="text-sm font-black text-gray-400">PKR {item.price.toLocaleString()}</div>
+                    </div>
+                  </div>
+                ))}
+             </div>
+           </div>
         </div>
       </div>
+
+      {/* Row 3: Orders Overview & Category Analysis */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        {/* Orders Overview Bar Chart */}
+        <div className="lg:col-span-8 bg-white dark:bg-white/5 p-8 rounded-[2.5rem] border border-gray-100 dark:border-white/5 shadow-sm">
+           <div className="flex justify-between items-center mb-10">
+              <h3 className="text-lg font-black tracking-tight">Orders Overview</h3>
+              <select className="bg-transparent text-[10px] font-black uppercase outline-none text-[#FF6B35]">
+                <option>This Week</option>
+                <option>Last Week</option>
+              </select>
+           </div>
+           <div className="h-[300px]">
+             <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={weeklyData}>
+                  <XAxis 
+                    dataKey="name" 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{ fontSize: 10, fontWeight: 700, fill: '#888' }} 
+                    dy={10}
+                  />
+                  <YAxis hide />
+                  <Tooltip 
+                    cursor={{ fill: 'transparent' }}
+                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}
+                  />
+                  <Bar 
+                    dataKey="count" 
+                    fill="#FF6B35" 
+                    radius={[8, 8, 8, 8]} 
+                    barSize={30}
+                    activeBar={<Rectangle fill="#4F46E5" stroke="none" />}
+                  />
+                </BarChart>
+             </ResponsiveContainer>
+           </div>
+        </div>
+
+        {/* Category Breakdown Pie Chart */}
+        <div className="lg:col-span-4 bg-white dark:bg-white/5 p-8 rounded-[2.5rem] border border-gray-100 dark:border-white/5 shadow-sm">
+           <h3 className="text-lg font-black tracking-tight mb-8">Top Categories</h3>
+           <div className="h-[250px] relative">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={categoryData}
+                    innerRadius={60}
+                    outerRadius={80}
+                    paddingAngle={5}
+                    dataKey="value"
+                  >
+                    {categoryData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+           </div>
+           <div className="grid grid-cols-2 gap-4 mt-6">
+              {categoryData.map((cat, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS[i] }} />
+                  <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">{cat.name} {cat.value}%</span>
+                </div>
+              ))}
+           </div>
+        </div>
+      </div>
+
     </div>
   );
 }
-

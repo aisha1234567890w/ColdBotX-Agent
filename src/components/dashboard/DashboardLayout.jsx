@@ -16,24 +16,27 @@ import {
   Sun,
   LogOut,
   Menu as MenuIcon,
-  X
+  X,
+  Plus
 } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { supabase } from '../../utils/supabaseClient';
 
-const NavItem = ({ icon: Icon, label, path, active }) => (
+const NavItem = ({ icon: Icon, label, path, active, collapsed }) => (
   <Link 
     to={path}
-    className={`relative flex items-center gap-2 px-4 py-2 transition-all duration-300 rounded-xl ${
+    className={`group relative flex items-center gap-3 px-4 py-3.5 transition-all duration-300 rounded-2xl mb-1 ${
       active 
-        ? 'text-indigo-600 dark:text-indigo-400 font-bold bg-indigo-50 dark:bg-indigo-500/10' 
-        : 'text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/5'
+        ? 'text-white font-bold bg-[#FF6B35] shadow-lg shadow-orange-500/20' 
+        : 'text-gray-500 dark:text-gray-400 hover:text-[#FF6B35] dark:hover:text-white hover:bg-orange-50 dark:hover:bg-white/5'
     }`}
   >
-    <Icon size={18} />
-    <span className="text-sm font-semibold whitespace-nowrap">{label}</span>
-    {active && (
-      <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-indigo-600 dark:bg-indigo-400 rounded-full" />
+    <div className={`transition-transform duration-300 ${active ? 'scale-110' : 'group-hover:scale-110'}`}>
+      <Icon size={20} />
+    </div>
+    {!collapsed && <span className="text-sm font-bold tracking-tight">{label}</span>}
+    {active && !collapsed && (
+      <div className="absolute right-4 w-1.5 h-1.5 bg-white rounded-full shadow-[0_0_8px_rgba(255,255,255,0.8)]" />
     )}
   </Link>
 );
@@ -43,19 +46,18 @@ export default function DashboardLayout() {
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [notifications] = useState(3);
+  const [isCollapsed, setIsCollapsed] = useState(false);
   
   const user = JSON.parse(localStorage.getItem('user') || '{"name": "Admin", "email": "admin@aifur.com"}');
 
   const menuItems = [
-    { icon: LayoutDashboard, label: 'Overview', path: '/manager' },
-    { icon: CalendarCheck, label: 'Reservations', path: '/manager/reservations' },
-    { icon: TableProperties, label: 'Table Map', path: '/manager/tables' },
-    { icon: UtensilsCrossed, label: 'Menu Manager', path: '/manager/menu' },
-    { icon: BarChart3, label: 'Analytics', path: '/manager/analytics' },
-    { icon: Users, label: 'Customers', path: '/manager/customers' },
-    { icon: MessageSquareCode, label: 'AI Activity', path: '/manager/ai-logs' },
-    { icon: Settings, label: 'Settings', path: '/manager/settings' },
+    { icon: LayoutDashboard, label: 'Dashboard', path: '/manager' },
+    { icon: CalendarCheck, label: 'Orders', path: '/manager/reservations' },
+    { icon: MessageSquareCode, label: 'Messages', path: '/manager/ai-logs' },
+    { icon: TableProperties, label: 'Calendar', path: '/manager/tables' },
+    { icon: UtensilsCrossed, label: 'Menu', path: '/manager/menu' },
+    { icon: Users, label: 'Inventory', path: '/manager/customers' },
+    { icon: BarChart3, label: 'Reviews', path: '/manager/analytics' },
   ];
 
   const handleLogout = async () => {
@@ -66,148 +68,132 @@ export default function DashboardLayout() {
   };
 
   return (
-    <div className={`min-h-screen transition-colors duration-300 ${theme === 'dark' ? 'bg-[#030712] text-white' : 'bg-gray-50 text-gray-900'}`}>
-      {/* Top Navigation Bar */}
-      <header className={`sticky top-0 z-50 backdrop-blur-xl border-b ${theme === 'dark' ? 'bg-[#030712]/80 border-white/5' : 'bg-white/80 border-gray-200'}`}>
-        <div className="max-w-[1600px] mx-auto px-4 md:px-8">
-          <div className="flex h-20 items-center justify-between">
-            {/* Logo & Search */}
-            <div className="flex items-center gap-8">
-              <Link to="/" className="text-2xl font-black tracking-tighter flex items-center gap-2">
-                <span className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-sm italic text-white shadow-lg shadow-indigo-500/30">A</span>
-                <span className={theme === 'dark' ? 'text-white' : 'text-gray-900'}>AIFUR</span>
-                <span className="text-[10px] bg-indigo-500/20 text-indigo-500 dark:text-indigo-400 px-2 py-0.5 rounded-full font-bold tracking-normal border border-indigo-500/20">OPS</span>
-              </Link>
-
-              <div className={`hidden lg:flex items-center gap-3 px-4 py-2 rounded-2xl border transition-all ${
-                theme === 'dark' 
-                  ? 'bg-white/5 border-white/5 focus-within:border-indigo-500/50' 
-                  : 'bg-gray-100 border-gray-200 focus-within:border-indigo-500/50'
-              } w-80 group`}>
-                <Search size={18} className="text-gray-500 group-focus-within:text-indigo-500" />
-                <input 
-                  type="text" 
-                  placeholder="Search Ops Center..." 
-                  className="bg-transparent border-none outline-none text-sm w-full placeholder:text-gray-500"
-                />
-              </div>
+    <div className={`min-h-screen flex transition-colors duration-300 ${theme === 'dark' ? 'bg-[#030712] text-white' : 'bg-[#FAFAFA] text-gray-900'}`}>
+      
+      {/* Permanent Side Sidebar (Desktop) */}
+      <aside className={`hidden lg:flex flex-col fixed top-0 left-0 h-screen transition-all duration-500 z-50 border-r ${
+        isCollapsed ? 'w-24' : 'w-72'
+      } ${theme === 'dark' ? 'bg-[#030712] border-white/5' : 'bg-white border-gray-100'}`}>
+        
+        {/* Sidebar Header */}
+        <div className="p-8 flex items-center justify-between mb-4">
+          {!isCollapsed ? (
+            <Link to="/" className="flex items-center gap-3">
+               <div className="w-10 h-10 bg-[#FF6B35] rounded-xl flex items-center justify-center text-white shadow-xl shadow-orange-500/20">
+                 <UtensilsCrossed size={20} />
+               </div>
+               <span className="text-xl font-black tracking-tighter">Aifur</span>
+            </Link>
+          ) : (
+            <div className="w-10 h-10 bg-[#FF6B35] rounded-xl flex items-center justify-center mx-auto text-white shadow-xl">
+               <UtensilsCrossed size={20} />
             </div>
+          )}
+        </div>
 
-            {/* Desktop Navigation */}
-            <nav className="hidden xl:flex items-center gap-1">
-              {menuItems.slice(0, 5).map((item) => (
-                <NavItem 
-                  key={item.path}
-                  {...item}
-                  active={location.pathname === item.path || (item.path !== '/manager' && location.pathname.startsWith(item.path))}
-                />
-              ))}
-            </nav>
+        {/* Navigation Links */}
+        <nav className="flex-1 px-4 overflow-y-auto">
+          {menuItems.map((item) => (
+            <NavItem 
+              key={item.path}
+              {...item}
+              collapsed={isCollapsed}
+              active={location.pathname === item.path}
+            />
+          ))}
+        </nav>
+
+        {/* Sidebar Footer */}
+        <div className="p-6 border-t border-gray-50 dark:border-white/5 space-y-4">
+           {!isCollapsed && (
+             <div className="bg-orange-50 dark:bg-orange-500/10 p-4 rounded-2xl mb-4 relative overflow-hidden group">
+               <div className="relative z-10">
+                 <h4 className="text-xs font-black text-[#FF6B35] uppercase tracking-widest mb-1">Aifur AI</h4>
+                 <p className="text-[10px] text-gray-500 dark:text-gray-400 font-bold mb-3">Upgrade to Pro for deep insights.</p>
+                 <button className="w-full py-2 bg-[#FF6B35] text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-transform">Upgrade Now</button>
+               </div>
+               <Plus size={40} className="absolute -bottom-4 -right-4 text-orange-500/10 group-hover:rotate-90 transition-transform duration-500" />
+             </div>
+           )}
+           <button 
+             onClick={handleLogout}
+             className={`flex items-center gap-3 px-4 py-3 rounded-xl w-full text-red-500 hover:bg-red-50 transition-all ${isCollapsed ? 'justify-center' : ''}`}
+           >
+             <LogOut size={20} />
+             {!isCollapsed && <span className="text-sm font-bold tracking-tight">Logout</span>}
+           </button>
+        </div>
+      </aside>
+
+      {/* Main Content Area */}
+      <div className={`flex-1 flex flex-col transition-all duration-500 ${isCollapsed ? 'lg:ml-24' : 'lg:ml-72'}`}>
+        
+        {/* Top bar */}
+        <header className={`sticky top-0 z-40 backdrop-blur-xl border-b ${theme === 'dark' ? 'bg-[#030712]/80 border-white/5' : 'bg-white/80 border-gray-100'}`}>
+          <div className="px-6 h-20 flex items-center justify-between">
+            {/* Search */}
+            <div className={`flex items-center gap-3 px-4 py-2.5 rounded-2xl transition-all w-96 ${
+              theme === 'dark' ? 'bg-white/5 border border-white/5' : 'bg-gray-100 border border-transparent focus-within:bg-white focus-within:border-gray-200 focus-within:shadow-sm'
+            }`}>
+              <Search size={18} className="text-gray-400" />
+              <input type="text" placeholder="Search anything..." className="bg-transparent border-none outline-none text-sm w-full font-medium" />
+            </div>
 
             {/* Actions */}
-            <div className="flex items-center gap-3 md:gap-6">
-              <div className="flex items-center gap-1 md:gap-2">
-                <button 
-                  onClick={toggleTheme}
-                  className={`p-2.5 rounded-xl transition-all ${theme === 'dark' ? 'text-gray-400 hover:text-white hover:bg-white/5' : 'text-gray-500 hover:text-indigo-600 hover:bg-gray-100'}`}
-                >
-                  {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
-                </button>
-                <button className={`relative p-2.5 rounded-xl transition-all ${theme === 'dark' ? 'text-gray-400 hover:text-white hover:bg-white/5' : 'text-gray-500 hover:text-indigo-600 hover:bg-gray-100'}`}>
-                  <Bell size={20} />
-                  {notifications > 0 && (
-                    <span className="absolute top-2 right-2 w-4 h-4 bg-red-500 text-[10px] font-black flex items-center justify-center rounded-full text-white ring-2 ring-white dark:ring-[#030712]">
-                      {notifications}
-                    </span>
-                  )}
-                </button>
-              </div>
-
-              <div className={`h-8 w-px ${theme === 'dark' ? 'bg-white/10' : 'bg-gray-200'} hidden md:block`}></div>
-
-              {/* Profile Dropdown (Simplified for now) */}
-              <div className="flex items-center gap-3 group cursor-pointer">
-                <div className="hidden md:block text-right">
-                  <div className="text-sm font-bold truncate max-w-[100px]">{user.name}</div>
-                  <div className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Admin</div>
-                </div>
-                <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center font-black text-white group-hover:scale-105 transition-transform shadow-lg shadow-indigo-500/20">
-                  {user.name?.charAt(0) || 'A'}
-                </div>
-                <button 
-                  onClick={handleLogout}
-                  className={`p-2.5 rounded-xl transition-all md:hidden xl:block ${theme === 'dark' ? 'text-gray-400 hover:text-red-400 hover:bg-red-500/10' : 'text-gray-500 hover:text-red-600 hover:bg-red-50'}`}
-                  title="Logout"
-                >
-                  <LogOut size={20} />
-                </button>
-              </div>
-
-              {/* Mobile Menu Toggle */}
-              <button 
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className={`xl:hidden p-2.5 rounded-xl transition-all ${theme === 'dark' ? 'text-gray-400 hover:text-white hover:bg-white/5' : 'text-gray-500 hover:text-indigo-600 hover:bg-gray-100'}`}
-              >
-                {isMobileMenuOpen ? <X size={24} /> : <MenuIcon size={24} />}
+            <div className="flex items-center gap-4">
+              <button onClick={toggleTheme} className="p-3 rounded-2xl bg-gray-100 dark:bg-white/5 text-gray-500 hover:text-[#FF6B35] transition-all">
+                {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
               </button>
+              <button className="relative p-3 rounded-2xl bg-gray-100 dark:bg-white/5 text-gray-500 hover:text-[#FF6B35] transition-all">
+                <Bell size={20} />
+                <span className="absolute top-3 right-3 w-2 h-2 bg-[#FF6B35] rounded-full ring-2 ring-white dark:ring-[#030712]" />
+              </button>
+              <div className="h-8 w-px bg-gray-200 dark:bg-white/10 mx-2" />
+              <div className="flex items-center gap-3">
+                 <div className="text-right hidden sm:block">
+                   <div className="text-sm font-black">{user.name}</div>
+                   <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Administrator</div>
+                 </div>
+                 <div className="w-12 h-12 rounded-2xl bg-[#FF6B35]/10 border border-[#FF6B35]/20 flex items-center justify-center p-0.5 overflow-hidden shadow-lg shadow-orange-500/10">
+                   <img src={`https://ui-avatars.com/api/?name=${user.name}&background=FF6B35&color=fff&bold=true`} className="w-full h-full rounded-xl object-cover" alt="Profile" />
+                 </div>
+              </div>
             </div>
           </div>
-        </div>
+        </header>
 
-        {/* Mobile Menu */}
-        {isMobileMenuOpen && (
-          <div className={`xl:hidden border-t animate-in slide-in-from-top duration-300 ${theme === 'dark' ? 'bg-[#030712] border-white/5' : 'bg-white border-gray-200'}`}>
-            <div className="p-4 space-y-1">
-              {menuItems.map((item) => (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
-                    location.pathname === item.path 
-                      ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' 
-                      : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-white/5'
-                  }`}
-                >
-                  <item.icon size={20} />
-                  <span className="font-bold">{item.label}</span>
+        {/* Page Content Overlay */}
+        <main className="p-8 pb-32">
+          <Outlet />
+        </main>
+      </div>
+
+      {/* Mobile Menu Toggle (Fixed bottom right) */}
+      <button 
+        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        className="lg:hidden fixed bottom-6 right-6 w-14 h-14 bg-[#FF6B35] text-white rounded-2xl shadow-2xl z-50 flex items-center justify-center animate-bounce"
+      >
+        <MenuIcon size={24} />
+      </button>
+
+      {/* Mobile Menu Overlay */}
+      {isMobileMenuOpen && (
+        <div className="lg:hidden fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm animate-fade-in" onClick={() => setIsMobileMenuOpen(false)}>
+          <div className="absolute right-0 top-0 bottom-0 w-72 bg-white dark:bg-[#030712] p-8 animate-slide-in-right" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-12">
+               <span className="text-2xl font-black italic">Aifur.</span>
+               <button onClick={() => setIsMobileMenuOpen(false)}><X size={24} /></button>
+            </div>
+            <nav className="space-y-4">
+              {menuItems.map(item => (
+                <Link key={item.path} to={item.path} onClick={() => setIsMobileMenuOpen(false)} className={`flex items-center gap-4 p-4 rounded-2xl font-bold ${location.pathname === item.path ? 'bg-orange-500 text-white shadow-xl' : 'text-gray-500'}`}>
+                  <item.icon size={20} /> {item.label}
                 </Link>
               ))}
-              <button 
-                onClick={handleLogout}
-                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-500 hover:bg-red-500/10 transition-all mt-4 border border-red-500/20"
-              >
-                <LogOut size={20} />
-                <span className="font-bold">Sign Out</span>
-              </button>
-            </div>
-          </div>
-        )}
-      </header>
-
-      {/* Page Content */}
-      <main className="max-w-[1600px] mx-auto p-4 md:p-8">
-        <Outlet />
-      </main>
-
-      {/* Footer status bar */}
-      <footer className={`fixed bottom-0 left-0 right-0 py-2 px-6 backdrop-blur-md border-t z-40 hidden md:flex items-center justify-between ${
-        theme === 'dark' ? 'bg-[#030712]/50 border-white/5' : 'bg-white/50 border-gray-100'
-      }`}>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>
-            <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">System Operational</span>
-          </div>
-          <div className={`h-3 w-px ${theme === 'dark' ? 'bg-white/10' : 'bg-gray-200'}`}></div>
-          <div className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">
-            Aifur AI Engine v2.4 <span className="text-indigo-500">Active</span>
+            </nav>
           </div>
         </div>
-        <div className="text-[10px] text-gray-400 font-medium">
-          Last sync: {new Date().toLocaleTimeString()}
-        </div>
-      </footer>
+      )}
     </div>
   );
 }
