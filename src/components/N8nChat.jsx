@@ -50,21 +50,30 @@ export default function N8nChat() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          action: 'sendMessage',
           chatInput: text,
           sessionId: getSessionId(),
         }),
       });
 
-      if (!response.ok) throw new Error('Network error');
+      console.log('[N8nChat] Response status:', response.status);
+      if (!response.ok) {
+        const errText = await response.text();
+        console.error('[N8nChat] Error body:', errText);
+        throw new Error(`HTTP ${response.status}`);
+      }
 
       const data = await response.json();
-      // n8n can return output in multiple formats
+      console.log('[N8nChat] Response data:', data);
+
+      // n8n Chat Trigger returns output in multiple possible formats
       const replyText =
         data?.output ||
         data?.text ||
         data?.message ||
         data?.reply ||
-        (Array.isArray(data) && (data[0]?.output || data[0]?.text)) ||
+        data?.response ||
+        (Array.isArray(data) && (data[0]?.output || data[0]?.text || data[0]?.message)) ||
         'Sorry, I didn\'t get a response. Please try again.';
 
       setMessages(prev => [...prev, { role: 'assistant', text: replyText }]);
