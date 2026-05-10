@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import VapiAssistant from '../components/VapiAssistant';
-import VoiceflowChat, { openVoiceflowChat } from '../components/VoiceflowChat';
+import N8nChat, { openN8nChat } from '../components/N8nChat';
 
 const BookingForm = () => {
   const [formData, setFormData] = useState({
@@ -303,7 +303,7 @@ export default function Reservations() {
                 <p className="text-lg text-gray-600 dark:text-gray-400">Our intelligent chatbot is online and ready.</p>
               </div>
               <button 
-                onClick={openVoiceflowChat}
+                onClick={openN8nChat}
                 className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-black px-12 py-5 rounded-2xl shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-1 active:scale-95"
               >
                 Start Chat Now
@@ -323,7 +323,7 @@ export default function Reservations() {
                 <p className="text-lg text-gray-600 dark:text-gray-400">Our concierge team is available to assist you via message.</p>
               </div>
               <a 
-                href="https://wa.me/923001234567?text=Hello%20Aifur%20Restaurant,%20I%20would%20like%20to%20make%20a%20reservation."
+                href="https://wa.me/923705575773?text=Hello%20Aifur%20Restaurant,%20I%20would%20like%20to%20make%20a%20reservation."
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-block bg-emerald-600 text-white font-black px-12 py-5 rounded-2xl shadow-xl hover:shadow-emerald-500/20 hover:shadow-2xl transition-all transform hover:-translate-y-1 active:scale-95"
@@ -344,7 +344,7 @@ export default function Reservations() {
           )}
         </motion.div>
       </div>
-      <VoiceflowChat />
+      <N8nChat />
     </div>
   );
 }
