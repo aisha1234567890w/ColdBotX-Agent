@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { 
   Search, Filter, Calendar, Users, Phone, MessageSquare, Smartphone,
   MoreVertical, Download, ArrowUpDown, ExternalLink, RefreshCcw,
-  Check, X
+  Check, X, AlertTriangle
 } from 'lucide-react';
 import { supabase } from '../../utils/supabaseClient';
 import { useTheme } from '../../context/ThemeContext';
@@ -10,31 +11,37 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 const ReservationRow = ({ reservation, theme, onUpdateStatus }) => {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
   
-  // Safely extract names/fields based on exact Supabase schema
   const name = reservation.customer_name || 'Unknown Guest';
   const phone = reservation.phone_number || 'No phone provided';
   const guests = reservation.guests_count || 2;
   const date = reservation.reservation_date || new Date().toLocaleDateString();
   const time = reservation.reservation_time || '19:00';
   const source = reservation.source || 'Web';
-  const status = reservation.status ? reservation.status.charAt(0).toUpperCase() + reservation.status.slice(1) : 'Confirmed';
+  const status = reservation.status ? reservation.status.charAt(0).toUpperCase() + reservation.status.slice(1).toLowerCase() : 'Confirmed';
 
   const handleStatusChange = async (newStatus) => {
+    setIsUpdating(true);
     setMenuOpen(false);
-    onUpdateStatus(reservation.id, newStatus);
     try {
-      await supabase
+      const { error } = await supabase
         .from('reservations_main')
         .update({ status: newStatus.toLowerCase() })
         .eq('id', reservation.id);
+      
+      if (!error) {
+        onUpdateStatus(reservation.id, newStatus.toLowerCase());
+      }
     } catch (err) {
-      console.warn("Silent local fallback for status update");
+      console.error("Update Error:", err);
+    } finally {
+      setIsUpdating(false);
     }
   };
 
   return (
-    <tr className={`group border-b transition-all ${theme === 'dark' ? 'border-white/5 hover:bg-white/[0.02]' : 'border-gray-100 hover:bg-gray-50'}`}>
+    <tr className={`group border-b transition-all ${isUpdating ? 'opacity-50' : ''} ${theme === 'dark' ? 'border-white/5 hover:bg-white/[0.02]' : 'border-gray-100 hover:bg-gray-50'}`}>
       <td className="py-5 pl-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500/20 to-purple-500/20 flex items-center justify-center font-bold text-indigo-600 dark:text-indigo-400 text-xs uppercase shadow-inner">
@@ -73,9 +80,9 @@ const ReservationRow = ({ reservation, theme, onUpdateStatus }) => {
       </td>
       <td className="py-5">
         <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
-          status === 'Confirmed' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-500' : 
-          status === 'Pending' ? 'bg-orange-500/10 text-orange-600 dark:text-orange-500' : 
-          status === 'Cancelled' || status === 'Canceled' ? 'bg-red-500/10 text-red-600 dark:text-red-500' :
+          status.toLowerCase() === 'confirmed' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-500' : 
+          status.toLowerCase() === 'pending' ? 'bg-orange-500/10 text-orange-600 dark:text-orange-500' : 
+          status.toLowerCase() === 'cancelled' || status.toLowerCase() === 'canceled' ? 'bg-red-500/10 text-red-600 dark:text-red-500' :
           'bg-gray-500/10 text-gray-500'
         }`}>
           {status}
@@ -99,9 +106,9 @@ const ReservationRow = ({ reservation, theme, onUpdateStatus }) => {
               className="absolute top-12 right-12 w-40 bg-white dark:bg-gray-900 border border-gray-100 dark:border-white/10 shadow-xl rounded-2xl overflow-hidden z-20 text-left"
             >
               <div className="p-2 space-y-1">
-                <button onClick={() => handleStatusChange('Confirmed')} className="w-full text-left px-3 py-2 text-xs font-bold hover:bg-emerald-50 dark:hover:bg-white/5 rounded-xl text-emerald-600">Mark Confirmed</button>
-                <button onClick={() => handleStatusChange('Pending')} className="w-full text-left px-3 py-2 text-xs font-bold hover:bg-orange-50 dark:hover:bg-white/5 rounded-xl text-orange-600">Mark Pending</button>
-                <button onClick={() => handleStatusChange('Cancelled')} className="w-full text-left px-3 py-2 text-xs font-bold hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl text-red-500">Cancel Booking</button>
+                <button onClick={() => handleStatusChange('confirmed')} className="w-full text-left px-3 py-2 text-xs font-bold hover:bg-emerald-50 dark:hover:bg-white/5 rounded-xl text-emerald-600">Mark Confirmed</button>
+                <button onClick={() => handleStatusChange('pending')} className="w-full text-left px-3 py-2 text-xs font-bold hover:bg-orange-50 dark:hover:bg-white/5 rounded-xl text-orange-600">Mark Pending</button>
+                <button onClick={() => handleStatusChange('cancelled')} className="w-full text-left px-3 py-2 text-xs font-bold hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl text-red-500">Cancel Booking</button>
               </div>
             </motion.div>
           )}
@@ -113,8 +120,9 @@ const ReservationRow = ({ reservation, theme, onUpdateStatus }) => {
 
 export default function Reservations() {
   const { theme } = useTheme();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [activeFilter, setActiveFilter] = useState('All');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
   const [reservations, setReservations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [sortOrder, setSortOrder] = useState('desc');
@@ -125,23 +133,15 @@ export default function Reservations() {
       let query = supabase.from('reservations_main').select('*');
 
       if (activeFilter !== 'All') {
-        query = query.eq('status', activeFilter);
+        query = query.ilike('status', activeFilter);
       }
 
-      const { data, error } = await query;
+      const { data, error } = await query.order('created_at', { ascending: false });
 
-      if (error || !data || data.length === 0) {
-        // Safe fallback for UI rendering if Supabase block or empty
-        const fallback = [
-          { id: '1', name: 'James Wilson', phone: '+123456789', guests: 4, source: 'Call', status: 'Confirmed', date: new Date().toLocaleDateString(), time: '19:30' },
-          { id: '2', name: 'Sarah Connor', phone: '+987654321', guests: 2, source: 'WhatsApp', status: 'Pending', date: new Date().toLocaleDateString(), time: '20:00' }
-        ];
-        setReservations(fallback);
-      } else {
-        setReservations(data);
-      }
+      if (error) throw error;
+      setReservations(data || []);
     } catch (err) {
-      console.warn('Falling back to local data');
+      console.error('Fetch Error:', err);
     } finally {
       setLoading(false);
     }
@@ -150,6 +150,11 @@ export default function Reservations() {
   useEffect(() => {
     fetchReservations();
   }, [fetchReservations]);
+
+  useEffect(() => {
+    const urlSearch = searchParams.get('search');
+    if (urlSearch) setSearchTerm(urlSearch);
+  }, [searchParams]);
 
   const handleUpdateStatus = (id, newStatus) => {
     setReservations(prev => prev.map(r => r.id === id ? { ...r, status: newStatus } : r));
@@ -197,11 +202,22 @@ export default function Reservations() {
               type="text" 
               placeholder="Search guests or phone..." 
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setSearchParams(e.target.value ? { search: e.target.value } : {});
+              }}
               className="w-full pl-12 pr-4 py-3 bg-gray-50 dark:bg-white/5 border-none rounded-xl text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none"
             />
           </div>
-          <button className="p-3 bg-gray-50 dark:bg-white/5 rounded-xl hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
+          <button 
+            onClick={() => {
+              setSearchTerm('');
+              setActiveFilter('All');
+              setSearchParams({});
+            }}
+            title="Clear all filters"
+            className="p-3 bg-gray-50 dark:bg-white/5 rounded-xl hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
+          >
             <Filter size={18} className="text-gray-500" />
           </button>
         </div>
