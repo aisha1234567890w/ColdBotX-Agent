@@ -11,6 +11,7 @@ import Menu from './pages/Menu';
 import Reservations from './pages/Reservations';
 import Profile from './pages/Profile';
 import ProtectedRoute from './components/ProtectedRoute';
+import ManagerRoute from './components/ManagerRoute';
 import { supabase } from './utils/supabaseClient';
 import { useEffect } from 'react';
 import { AppProvider } from './context/AppContext';
