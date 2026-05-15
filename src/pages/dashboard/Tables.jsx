@@ -24,32 +24,28 @@ const TableCard = ({ table, theme, onUpdateStatus }) => {
   const handleStatusChange = async (newStatus) => {
     setMenuOpen(false);
     
-    // Convert to DB accepted string
     const dbStatus = newStatus === 'Available' ? 'free' : newStatus.toLowerCase();
+    const now = new Date().toISOString();
     const updateData = { status: dbStatus };
     
     if (dbStatus === 'occupied') {
-      updateData.occupied_at = new Date().toISOString();
+      updateData.occupied_at = now;
     } else {
       updateData.occupied_at = null;
     }
 
     try {
-      // First try with occupied_at, if it fails, we fall back to just status
       const { error } = await supabase
         .from('restaurant_tables')
         .update(updateData)
         .eq('id', table.id);
       
       if (error && error.message.includes('occupied_at')) {
-        // Fallback for missing column
-        await supabase
-          .from('restaurant_tables')
-          .update({ status: dbStatus })
-          .eq('id', table.id);
+        await supabase.from('restaurant_tables').update({ status: dbStatus }).eq('id', table.id);
       }
       
-      onUpdateStatus(table.id, newStatus);
+      // Update local state with both status AND timestamp so timer starts instantly
+      onUpdateStatus(table.id, newStatus, dbStatus === 'occupied' ? now : null);
     } catch (err) {
       console.error('Sync Error:', err);
     }
