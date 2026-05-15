@@ -117,7 +117,7 @@ export default function DashboardLayout() {
                <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-xl shadow-indigo-500/20">
                  <UtensilsCrossed size={20} />
                </div>
-               <span className="text-xl font-black tracking-tighter">Aifur</span>
+               <span className="text-xl font-black tracking-tighter">Aifur Admin Pro</span>
             </Link>
           ) : (
             <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center mx-auto text-white shadow-xl">
@@ -167,18 +167,26 @@ export default function DashboardLayout() {
         <header className={`sticky top-0 z-40 backdrop-blur-xl border-b ${theme === 'dark' ? 'bg-[#030712]/80 border-white/5' : 'bg-white/80 border-gray-100'}`}>
           <div className="px-6 h-20 flex items-center justify-between">
             {/* Search */}
-            <div className={`flex items-center gap-3 px-4 py-2.5 rounded-2xl transition-all w-96 ${
-              theme === 'dark' ? 'bg-white/5 border border-white/5' : 'bg-gray-100 border border-transparent focus-within:bg-white focus-within:border-gray-200 focus-within:shadow-sm'
-            }`}>
-              <Search size={18} className="text-gray-400" />
-              <input 
-                type="text" 
-                placeholder="Search guests or bookings..." 
-                className="bg-transparent border-none outline-none text-sm w-full font-medium"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={handleSearch}
-              />
+            <div className="flex items-center gap-6">
+              <div className={`flex items-center gap-3 px-4 py-2.5 rounded-2xl transition-all w-80 ${
+                theme === 'dark' ? 'bg-white/5 border border-white/5' : 'bg-gray-100 border border-transparent focus-within:bg-white focus-within:border-gray-200 focus-within:shadow-sm'
+              }`}>
+                <Search size={18} className="text-gray-400" />
+                <input 
+                  type="text" 
+                  placeholder="Search guests..." 
+                  className="bg-transparent border-none outline-none text-sm w-full font-medium"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={handleSearch}
+                />
+              </div>
+
+              {/* LIVE SYNC INDICATOR */}
+              <div className="hidden xl:flex items-center gap-3 px-4 py-2 bg-emerald-500/5 border border-emerald-500/20 rounded-2xl">
+                <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.6)]"></div>
+                <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Global Live Sync Active</span>
+              </div>
             </div>
 
             {/* Actions */}
