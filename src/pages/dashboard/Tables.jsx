@@ -12,28 +12,41 @@ const TableCard = ({ table, theme, onUpdateStatus }) => {
   const isOccupied = table.status === 'occupied' || table.status === 'Occupied';
   const isReserved = table.status === 'reserved' || table.status === 'Reserved';
 
+  const getTimeOccupied = () => {
+    if (!table.occupied_at) return null;
+    const diff = Date.now() - new Date(table.occupied_at).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 60) return `${mins}m`;
+    const hrs = Math.floor(mins / 60);
+    return `${hrs}h ${mins % 60}m`;
+  };
+
   const handleStatusChange = async (newStatus) => {
     setMenuOpen(false);
-    onUpdateStatus(table.id, newStatus);
     
     // Convert to DB accepted string
     const dbStatus = newStatus === 'Available' ? 'free' : newStatus.toLowerCase();
     const updateData = { status: dbStatus };
     
-    // Set timestamp when occupied
     if (dbStatus === 'occupied') {
       updateData.occupied_at = new Date().toISOString();
     } else {
-      updateData.occupied_at = null; // Clear if not occupied
+      updateData.occupied_at = null;
     }
 
     try {
-      await supabase
+      const { error } = await supabase
         .from('restaurant_tables')
         .update(updateData)
         .eq('id', table.id);
+      
+      if (!error) {
+        onUpdateStatus(table.id, newStatus);
+      } else {
+        alert("Failed to update status: " + error.message);
+      }
     } catch (err) {
-      console.warn('Supabase update failed, relying on local state.', err);
+      console.error('Sync Error:', err);
     }
   };
 
@@ -52,6 +65,11 @@ const TableCard = ({ table, theme, onUpdateStatus }) => {
         </div>
         
         <div className="flex items-center gap-2 relative">
+          {isOccupied && (
+            <div className="flex items-center gap-1 text-[10px] font-black text-indigo-600 bg-indigo-50 px-2 py-1 rounded-full border border-indigo-100 animate-pulse">
+              <Clock size={10} /> {getTimeOccupied()}
+            </div>
+          )}
           <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
             isOccupied ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400' : 
             isReserved ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400' : 
@@ -76,11 +94,11 @@ const TableCard = ({ table, theme, onUpdateStatus }) => {
               >
                 <div className="p-2 space-y-1">
                   <div className="px-3 py-1 text-[10px] font-black uppercase tracking-widest text-gray-400">Set Status</div>
-                  <button onClick={() => handleStatusChange('Available')} className="w-full text-left px-3 py-2 text-xs font-bold hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl flex items-center gap-2 text-emerald-600"><Check size={14} /> Available</button>
-                  <button onClick={() => handleStatusChange('Occupied')} className="w-full text-left px-3 py-2 text-xs font-bold hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl flex items-center gap-2 text-indigo-600"><Users size={14} /> Occupied</button>
-                  <button onClick={() => handleStatusChange('Reserved')} className="w-full text-left px-3 py-2 text-xs font-bold hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl flex items-center gap-2 text-amber-600"><Clock size={14} /> Reserved</button>
+                  <button onClick={() => handleStatusChange('Available')} className="w-full text-left px-3 py-2 text-xs font-bold hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl flex items-center gap-2 text-emerald-600 font-bold"><Check size={14} /> Available</button>
+                  <button onClick={() => handleStatusChange('Occupied')} className="w-full text-left px-3 py-2 text-xs font-bold hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl flex items-center gap-2 text-indigo-600 font-bold"><Users size={14} /> Occupied</button>
+                  <button onClick={() => handleStatusChange('Reserved')} className="w-full text-left px-3 py-2 text-xs font-bold hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl flex items-center gap-2 text-amber-600 font-bold"><Clock size={14} /> Reserved</button>
                   <div className="h-px bg-gray-100 dark:bg-white/10 my-1" />
-                  <button onClick={() => setMenuOpen(false)} className="w-full text-left px-3 py-2 text-xs font-bold hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl flex items-center gap-2 text-red-500"><X size={14} /> Close Menu</button>
+                  <button onClick={() => setMenuOpen(false)} className="w-full text-left px-3 py-2 text-xs font-bold hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl flex items-center gap-2 text-red-500 font-bold"><X size={14} /> Close Menu</button>
                 </div>
               </motion.div>
             )}

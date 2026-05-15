@@ -107,7 +107,7 @@ export default function Overview() {
       
       const actualOccupied = Math.max(manualOccupied, arrivingToday.length);
 
-      // 2-Hour Occupancy Check
+      // 2-Hour Occupancy Check & Auto-Free
       const overdueTables = tablesData ? tablesData.filter(t => {
         if (t.status?.toLowerCase() === 'occupied' && t.occupied_at) {
           const occupiedTime = new Date(t.occupied_at).getTime();
@@ -116,6 +116,21 @@ export default function Overview() {
         }
         return false;
       }) : [];
+
+      // Auto-Free Logic: Update Supabase for overdue tables
+      if (overdueTables.length > 0) {
+        const overdueIds = overdueTables.map(t => t.id);
+        await supabase
+          .from('restaurant_tables')
+          .update({ status: 'free', occupied_at: null })
+          .in('id', overdueIds);
+        
+        // Refresh alert text to reflect they were cleared
+        alerts.push({ 
+          type: 'success', 
+          text: `Auto-cleaned ${overdueTables.length} table${overdueTables.length > 1 ? 's' : ''} that exceeded the 2-hour limit.` 
+        });
+      }
 
       const { count: unreadMessages } = await supabase
         .from('contact_inquiries')
