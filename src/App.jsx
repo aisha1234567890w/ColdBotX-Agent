@@ -66,6 +66,7 @@ function App() {
             <Route path="menu" element={<MenuManager />} />
             <Route path="analytics" element={<Analytics />} />
             <Route path="customers" element={<Customers />} />
+            <Route path="messages" element={<Messages />} />
             <Route path="settings" element={<Settings />} />
           </Route>
 

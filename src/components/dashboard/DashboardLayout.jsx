@@ -56,6 +56,7 @@ export default function DashboardLayout() {
     { icon: TableProperties, label: 'Table & Seating', path: '/admin-ops/tables' },
     { icon: UtensilsCrossed, label: 'Menu Management', path: '/admin-ops/menu' },
     { icon: Users, label: 'Customer Profiles', path: '/admin-ops/customers' },
+    { icon: MessageSquareCode, label: 'Messages & Inquiries', path: '/admin-ops/messages' },
     { icon: BarChart3, label: 'Analytics & Insights', path: '/admin-ops/analytics' },
     { icon: Settings, label: 'Settings & Config', path: '/admin-ops/settings' }
   ];
