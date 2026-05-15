@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { supabase } from '../utils/supabaseClient';
 
 export default function Contact() {
     const [formData, setFormData] = useState({ name: '', email: '', subject: '', message: '' });
@@ -9,13 +10,31 @@ export default function Contact() {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         setStatus('sending');
-        setTimeout(() => {
+        
+        try {
+            const { error } = await supabase
+                .from('contact_inquiries')
+                .insert([
+                    {
+                        name: formData.name,
+                        email: formData.email,
+                        subject: formData.subject,
+                        message: formData.message,
+                        status: 'unread'
+                    }
+                ]);
+
+            if (error) throw error;
+
             setStatus('success');
             setFormData({ name: '', email: '', subject: '', message: '' });
-        }, 1500);
+        } catch (error) {
+            console.error('Error sending message:', error);
+            setStatus('error');
+        }
     };
 
     return (
@@ -185,6 +204,9 @@ export default function Contact() {
                                     >
                                         {status === 'sending' ? 'Sending...' : 'Send Message'}
                                     </button>
+                                    {status === 'error' && (
+                                        <p className="text-red-500 text-center text-sm font-bold mt-4 animate-pulse">Failed to send message. Please check your connection.</p>
+                                    )}
                                 </form>
                             )}
                         </div>
