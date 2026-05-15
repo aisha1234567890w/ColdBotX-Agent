@@ -23,6 +23,7 @@ import TableManagement from "./pages/dashboard/Tables";
 import MenuManager from "./pages/dashboard/MenuManager";
 import Analytics from "./pages/dashboard/Analytics";
 import Customers from "./pages/dashboard/Customers";
+import Messages from "./pages/dashboard/Messages";
 import Settings from "./pages/dashboard/Settings";
 import { isManager } from "./utils/auth";
 import './dashboard.css';
