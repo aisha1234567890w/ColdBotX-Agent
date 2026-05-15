@@ -169,11 +169,15 @@ const TableCard = ({ table, theme, onUpdateStatus, onDelete }) => {
       <div className="mb-4">
         <div className="flex items-center gap-2 mb-1">
           <h3 className="text-xl font-black">Table {table.table_number || table.id}</h3>
-          {timeInfo.isOverdue && (
-            <span className="flex items-center gap-1 bg-red-500 text-[8px] text-white px-2 py-0.5 rounded-lg font-black uppercase tracking-tighter animate-bounce">
-              <Bell size={8} /> Rotate
+          {timeInfo.isOverdue ? (
+            <span className="flex items-center gap-1 bg-red-600 text-[8px] text-white px-2 py-1 rounded-lg font-black uppercase tracking-widest animate-pulse shadow-lg shadow-red-500/40">
+              <Bell size={10} /> OVERDUE
             </span>
-          )}
+          ) : timeInfo.isWarning ? (
+            <span className="flex items-center gap-1 bg-amber-500 text-[8px] text-white px-2 py-1 rounded-lg font-black uppercase tracking-widest animate-bounce shadow-lg shadow-amber-500/20">
+              <Clock size={10} /> TIME ALMOST UP
+            </span>
+          ) : null}
         </div>
         <div className="space-y-1">
           <div className="text-[10px] text-gray-500 font-bold uppercase tracking-widest flex items-center gap-2">
