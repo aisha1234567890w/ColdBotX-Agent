@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { menuData } from '../data/menu';
 import { useApp } from '../context/AppContext';
+import { Heart, ShoppingBag } from 'lucide-react';
 import { supabase } from '../utils/supabaseClient';
 
 const CategorySection = ({ title, items = [] }) => {
