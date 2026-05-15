@@ -158,12 +158,33 @@ export default function Reservations() {
     if (urlSearch) setSearchTerm(urlSearch);
   }, [searchParams]);
 
-  const handleUpdateStatus = (id, newStatus) => {
-    setReservations(prev => prev.map(r => r.id === id ? { ...r, status: newStatus } : r));
-  };
-
   const handleExport = () => {
-    alert("Exporting CSV file...");
+    if (reservations.length === 0) return;
+    
+    const headers = ["ID", "Customer Name", "Phone", "Guests", "Source", "Status", "Date", "Time"];
+    const csvContent = [
+      headers.join(","),
+      ...reservations.map(r => [
+        r.id,
+        `"${r.customer_name || 'Unknown'}"`,
+        `"${r.phone_number || ''}"`,
+        r.guests_count || 0,
+        r.source || 'Web',
+        r.status || 'pending',
+        r.reservation_date || '',
+        r.reservation_time || ''
+      ].join(","))
+    ].join("\n");
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `reservations_export_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const toggleSort = () => {

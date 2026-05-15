@@ -18,11 +18,19 @@ const TableCard = ({ table, theme, onUpdateStatus }) => {
     
     // Convert to DB accepted string
     const dbStatus = newStatus === 'Available' ? 'free' : newStatus.toLowerCase();
+    const updateData = { status: dbStatus };
+    
+    // Set timestamp when occupied
+    if (dbStatus === 'occupied') {
+      updateData.occupied_at = new Date().toISOString();
+    } else {
+      updateData.occupied_at = null; // Clear if not occupied
+    }
 
     try {
       await supabase
         .from('restaurant_tables')
-        .update({ status: dbStatus })
+        .update(updateData)
         .eq('id', table.id);
     } catch (err) {
       console.warn('Supabase update failed, relying on local state.', err);
@@ -163,9 +171,18 @@ export default function Tables() {
     setTables(prev => prev.map(t => t.id === id ? { ...t, status: newStatus } : t));
   };
 
-  const handleAddTable = () => {
-    const newId = tables.length > 0 ? Math.max(...tables.map(t => t.id)) + 1 : 1;
-    setTables([...tables, { id: newId, table_number: newId, capacity: 4, status: 'Available' }]);
+  const handleAddTable = async () => {
+    const newNum = tables.length > 0 ? Math.max(...tables.map(t => t.table_number || 0)) + 1 : 1;
+    const newTable = { table_number: newNum, capacity: 4, status: 'free' };
+    
+    try {
+      const { data, error } = await supabase.from('restaurant_tables').insert([newTable]).select();
+      if (!error && data) {
+        setTables([...tables, { ...data[0], status: 'Available' }]);
+      }
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const filteredTables = tables.filter(t => activeFilter === 'All' || t.status === activeFilter);

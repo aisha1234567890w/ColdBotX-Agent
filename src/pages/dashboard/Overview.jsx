@@ -107,6 +107,16 @@ export default function Overview() {
       
       const actualOccupied = Math.max(manualOccupied, arrivingToday.length);
 
+      // 2-Hour Occupancy Check
+      const overdueTables = tablesData ? tablesData.filter(t => {
+        if (t.status?.toLowerCase() === 'occupied' && t.occupied_at) {
+          const occupiedTime = new Date(t.occupied_at).getTime();
+          const limit = 2 * 60 * 60 * 1000; // 2 hours
+          return (Date.now() - occupiedTime) > limit;
+        }
+        return false;
+      }) : [];
+
       const { count: unreadMessages } = await supabase
         .from('contact_inquiries')
         .select('*', { count: 'exact', head: true })
@@ -114,6 +124,12 @@ export default function Overview() {
 
       // Alerts Engine
       const alerts = [];
+      if (overdueTables.length > 0) {
+        alerts.push({ 
+          type: 'critical', 
+          text: `${overdueTables.length} table${overdueTables.length > 1 ? 's' : ''} (T-${overdueTables.map(t=>t.table_number).join(', ')}) exceeded 2-hour limit. Please rotate.` 
+        });
+      }
       if (unreadMessages > 0) {
         alerts.push({ 
           type: 'warning', 
