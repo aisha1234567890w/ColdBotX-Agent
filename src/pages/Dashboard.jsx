@@ -44,19 +44,26 @@ export default function Dashboard() {
     try {
       const phone = userObj.phone || localStorage.getItem('user_phone');
       const cleanPhone = phone ? phone.replace(/[\s\-\(\)\+]/g, '') : null;
-      const shortPhone = cleanPhone && cleanPhone.length > 10 ? cleanPhone.slice(-10) : cleanPhone;
+      // Extract last 9 digits to be extremely safe with 0/92 prefixes
+      const shortPhone = cleanPhone && cleanPhone.length >= 9 ? cleanPhone.slice(-9) : cleanPhone;
 
       let query = supabase.from('reservations_main').select('*');
       
-      // We search across EVERY possible identifying column with a broad OR filter
-      let orFilter = `email.eq."${userObj.email}",customer_name.ilike.%${userObj.name}%,name.ilike.%${userObj.name}%`;
+      // Verified columns from your screenshot: customer_name, phone_number
+      let orFilter = `customer_name.ilike.%${userObj.name.split(' ')[0]}%`;
       
       if (shortPhone) {
-        orFilter += `,phone_number.ilike.%${shortPhone}%,phone.ilike.%${shortPhone}%`;
+        orFilter += `,phone_number.ilike.%${shortPhone}%`;
       }
+
+      console.log("Searching with filter:", orFilter);
 
       const { data, error } = await query.or(orFilter).order('id', { ascending: false });
       
+      if (error) {
+        console.error("Supabase error:", error);
+      }
+
       if (!error) {
         setReservations(data || []);
         setIsFirstTime((data || []).length === 0);
