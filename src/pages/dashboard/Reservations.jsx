@@ -156,7 +156,11 @@ export default function Reservations() {
   useEffect(() => {
     const urlSearch = searchParams.get('search');
     if (urlSearch) setSearchTerm(urlSearch);
-  }, [searchParams]);
+  }, [searchParams, setSearchParams]);
+
+  const handleUpdateStatus = (id, newStatus) => {
+    setReservations(prev => prev.map(r => r.id === id ? { ...r, status: newStatus } : r));
+  };
 
   const handleExport = () => {
     if (reservations.length === 0) return;
