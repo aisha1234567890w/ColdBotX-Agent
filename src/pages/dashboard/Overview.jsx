@@ -57,24 +57,46 @@ export default function Overview() {
 
       if (error) throw error;
 
-      // Calculate Today's Reservations using correct column names
-      const todayRes = reservations.filter(r => r.reservation_date === today);
-      const upcomingRes = reservations.filter(r => 
-        r.reservation_date > today || (r.reservation_date === today && (r.reservation_time || '').substring(0,5) > now)
-      );
+      // Calculate Today's Reservations using a more robust date check
+      const todayDateStr = new Date().toDateString();
+      const todayRes = reservations.filter(r => {
+        if (!r.reservation_date) return false;
+        return new Date(r.reservation_date).toDateString() === todayDateStr;
+      });
 
-      // Calculate Revenue Estimate (Assuming average spend per guest is PKR 4500)
+      const now = new Date();
+      const upcomingRes = reservations.filter(r => {
+        if (!r.reservation_date) return false;
+        const resDate = new Date(r.reservation_date);
+        if (resDate.toDateString() === todayDateStr) {
+           // If today, check if time is in future
+           const resTime = r.reservation_time || '';
+           let resHour = parseInt(resTime);
+           if (resTime.toLowerCase().includes('pm') && resHour < 12) resHour += 12;
+           if (resTime.toLowerCase().includes('am') && resHour === 12) resHour = 0;
+           return resHour > now.getHours();
+        }
+        return resDate > now;
+      });
+
+      // Calculate Revenue Estimate (Basis: Avg PKR 4,500 per guest)
       const todayRevenue = todayRes.reduce((acc, r) => acc + (parseInt(r.guests_count || 0) * 4500), 0);
 
       // Calculate peak hour based on all historical reservations
       const timeFreq = {};
       reservations.forEach(r => {
-        const hour = r.reservation_time?.split(':')[0];
-        if (hour) {
-          timeFreq[hour] = (timeFreq[hour] || 0) + 1;
-        }
+        const timeStr = r.reservation_time || '';
+        let hour = parseInt(timeStr);
+        if (isNaN(hour)) return;
+        
+        // Handle AM/PM
+        if (timeStr.toLowerCase().includes('pm') && hour < 12) hour += 12;
+        if (timeStr.toLowerCase().includes('am') && hour === 12) hour = 0;
+        
+        timeFreq[hour] = (timeFreq[hour] || 0) + 1;
       });
-      const peakHourRaw = Object.keys(timeFreq).sort((a, b) => timeFreq[b] - timeFreq[a])[0] || "20";
+      
+      const peakHourRaw = Object.keys(timeFreq).sort((a, b) => timeFreq[b] - timeFreq[a])[0] || "19";
       const peakHourNum = parseInt(peakHourRaw);
       const ampm = peakHourNum >= 12 ? 'PM' : 'AM';
       const hour12 = peakHourNum % 12 || 12;
@@ -88,8 +110,7 @@ export default function Overview() {
 
       const totalTables = tablesData ? tablesData.length : 20; 
       
-      // Calculate real occupied tables based on BOTH manual status AND today's bookings
-      // Count any table that is NOT 'available' or 'free'
+      // Calculate real occupied tables
       const manualOccupied = tablesData ? tablesData.filter(t => 
         t.status?.toLowerCase() !== 'available' && 
         t.status?.toLowerCase() !== 'free' &&
@@ -97,15 +118,12 @@ export default function Overview() {
       ).length : 0;
       
       const bookedToday = todayRes.length;
-      
-      // We sum them up but cap at total tables to be safe, or take max if we suspect double counting
-      // The user says there are 3 booked overall, so let's ensure we find them.
       const actualOccupied = Math.max(manualOccupied, bookedToday);
 
       // Alerts
       const alerts = [];
       if (todayRes.length > 20) alerts.push({ type: 'warning', text: 'High volume expected today.' });
-      if (actualOccupied >= 8) alerts.push({ type: 'critical', text: 'Restaurant is nearing full capacity.' });
+      if (actualOccupied >= 15) alerts.push({ type: 'critical', text: 'Restaurant is nearing full capacity.' });
       if (alerts.length === 0) alerts.push({ type: 'success', text: 'All operations running smoothly.' });
 
       setStats({
