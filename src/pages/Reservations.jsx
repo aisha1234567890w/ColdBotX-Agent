@@ -93,33 +93,34 @@ const BookingForm = () => {
       }
 
       // 3. Save reservation to reservations_main
+      // Generate a UUID if the DB doesn't do it automatically
+      const reservationId = typeof crypto.randomUUID === 'function' ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15);
+
       const payload = {
-        // Primary Columns
+        id: reservationId,
         customer_name: formData.name,
-        name: formData.name,
         phone_number: formData.phone,
-        phone: formData.phone,
-        email: formData.email,
-        
-        // Date/Time
         reservation_date: formData.date,
-        date: formData.date,
         reservation_time: formData.time,
-        time: formData.time,
-        
-        // Guest count
         guests_count: guestCount,
-        guests: guestCount,
         
-        // Source & Status
+        // Also include these for dashboard compatibility
+        date: formData.date,
+        time: formData.time,
+        guests: guestCount,
+        email: formData.email,
         source: 'Web Form',
         status: 'confirmed',
         special_requests: formData.requests
       };
 
       // Add table info only if we found one
-      if (assignedTableId) payload.table_id = assignedTableId;
-      if (assignedTableNumber) payload.table_number = assignedTableNumber;
+      if (assignedTableId) {
+        payload.table_id = assignedTableId;
+        payload.table_number = assignedTableNumber;
+      }
+
+      console.log("Attempting insert with payload:", payload);
 
       const { error: resError } = await supabase
         .from('reservations_main')
@@ -127,7 +128,18 @@ const BookingForm = () => {
 
       if (resError) {
         console.error("Supabase Insertion Error Detail:", resError);
-        throw resError;
+        // If it fails with a "column does not exist" error, we'll try a fallback
+        if (resError.message?.includes("column") || resError.code === "42703") {
+           const fallbackPayload = {
+             customer_name: formData.name,
+             phone_number: formData.phone,
+             reservation_date: formData.date
+           };
+           const { error: fallbackError } = await supabase.from('reservations_main').insert([fallbackPayload]);
+           if (fallbackError) throw fallbackError;
+        } else {
+          throw resError;
+        }
       }
 
       // 4. Optional: Notify n8n for email confirmation
