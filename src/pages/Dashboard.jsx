@@ -280,36 +280,70 @@ export default function Dashboard() {
                   </h3>
                   <Link to="/reservations" className="text-[10px] font-black uppercase tracking-widest text-indigo-600 hover:underline">View All</Link>
                 </div>
-                {reservations[0] ? (
-                  <div className="flex flex-col md:flex-row gap-8 items-center relative z-10">
-                    <div className="w-full md:w-48 h-32 rounded-2xl overflow-hidden shadow-lg bg-gray-100 dark:bg-white/5">
-                      <img 
-                        src="https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&q=80&w=600" 
-                        className="w-full h-full object-cover" 
-                        alt="Aifur Seating" 
-                      />
+                {(() => {
+                  const now = new Date();
+                  const upcoming = reservations.filter(r => new Date(r.reservation_date || r.date) >= now);
+                  const past = reservations.filter(r => new Date(r.reservation_date || r.date) < now);
+                  const latest = upcoming[0] || reservations[0];
+
+                  if (!latest) return (
+                    <div className="text-center py-12">
+                      <p className="text-gray-400 font-medium mb-4">No reservations found for {user?.name}</p>
+                      <Link to="/reservations" className="text-indigo-600 font-black text-xs uppercase tracking-widest border-b-2 border-indigo-600 pb-1">Book a Table Now</Link>
                     </div>
-                    <div className="flex-1 space-y-2 text-center md:text-left">
-                      <div className="text-3xl font-black text-indigo-600">
-                        {new Date(reservations[0].reservation_date || reservations[0].date).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })} <span className="text-gray-400 font-medium">@</span> {reservations[0].reservation_time || reservations[0].time}
+                  );
+
+                  return (
+                    <div className="space-y-8 relative z-10">
+                      <div className="flex flex-col md:flex-row gap-8 items-center">
+                        <div className="w-full md:w-48 h-32 rounded-2xl overflow-hidden shadow-lg bg-gray-100 dark:bg-white/5">
+                          <img 
+                            src="https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&q=80&w=600" 
+                            className="w-full h-full object-cover" 
+                            alt="Aifur Seating" 
+                          />
+                        </div>
+                        <div className="flex-1 space-y-2 text-center md:text-left">
+                          <div className="text-xs font-black uppercase tracking-widest text-indigo-500 mb-2">
+                            {new Date(latest.reservation_date || latest.date) >= now ? "Upcoming Reservation" : "Latest Visit"}
+                          </div>
+                          <div className="text-3xl font-black text-gray-900 dark:text-white">
+                            {new Date(latest.reservation_date || latest.date).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })} <span className="text-gray-400 font-medium">@</span> {latest.reservation_time || latest.time}
+                          </div>
+                          <div className="flex flex-wrap justify-center md:justify-start gap-4 text-xs font-bold text-gray-500 uppercase tracking-widest">
+                            <span className="flex items-center gap-1"><Users size={14} /> {latest.guests_count || latest.guests} Guests</span>
+                            <span className="flex items-center gap-1"><MapPin size={14} /> Main Lounge</span>
+                          </div>
+                          <div className="pt-4">
+                            <span className={`px-3 py-1 ${latest.status === 'confirmed' ? 'bg-emerald-50 text-emerald-600' : 'bg-orange-50 text-orange-600'} dark:bg-white/10 text-[10px] font-black rounded-lg uppercase tracking-widest border border-gray-100`}>
+                              {latest.status || 'Confirmed'}
+                            </span>
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex flex-wrap justify-center md:justify-start gap-4 text-xs font-bold text-gray-500 uppercase tracking-widest">
-                        <span className="flex items-center gap-1"><Users size={14} /> {reservations[0].guests_count || reservations[0].guests} Guests</span>
-                        <span className="flex items-center gap-1"><MapPin size={14} /> Main Lounge</span>
-                      </div>
-                      <div className="pt-4 flex gap-3 justify-center md:justify-start">
-                        <span className={`px-3 py-1 ${reservations[0].status === 'confirmed' ? 'bg-emerald-50 text-emerald-600' : 'bg-orange-50 text-orange-600'} dark:bg-white/10 text-[10px] font-black rounded-lg uppercase tracking-widest border border-gray-100`}>
-                          {reservations[0].status || 'Confirmed'}
-                        </span>
-                      </div>
+
+                      {past.length > 0 && (
+                        <div className="pt-8 border-t border-gray-50 dark:border-white/5">
+                          <h4 className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-4 flex items-center gap-2">
+                             <Clock size={12} /> Dining History ({past.length})
+                          </h4>
+                          <div className="space-y-3">
+                            {past.slice(0, 2).map((r, i) => (
+                              <div key={i} className="flex justify-between items-center p-3 bg-gray-50 dark:bg-white/5 rounded-2xl">
+                                <div className="text-xs font-bold text-gray-700 dark:text-gray-300">
+                                  {new Date(r.reservation_date || r.date).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                </div>
+                                <div className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                                  {r.guests_count || r.guests} Guests • {r.reservation_time || r.time}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  </div>
-                ) : (
-                  <div className="text-center py-12">
-                    <p className="text-gray-400 font-medium mb-4">No reservations found for {user?.name}</p>
-                    <Link to="/reservations" className="text-indigo-600 font-black text-xs uppercase tracking-widest border-b-2 border-indigo-600 pb-1">Book a Table Now</Link>
-                  </div>
-                )}
+                  );
+                })()}
                 <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50 dark:bg-indigo-500/5 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-700"></div>
               </div>
 
