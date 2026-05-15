@@ -2,6 +2,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useTheme } from '../context/ThemeContext';
 import { supabase } from '../utils/supabaseClient';
+import { ShieldCheck } from 'lucide-react';
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
@@ -102,7 +103,7 @@ export default function Navbar() {
           {user ? (
             <div className="flex items-center gap-3 md:gap-5">
               <Link 
-                to={user.role === 'manager' ? '/admin-ops' : '/user-dashboard'}
+                to="/user-dashboard"
                 className="flex items-center gap-2 group"
               >
                 <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-black shadow-lg shadow-indigo-500/20 group-hover:scale-105 transition-transform">
@@ -110,13 +111,12 @@ export default function Navbar() {
                 </div>
                 <div className="hidden lg:block">
                   <div className="text-[10px] font-black uppercase tracking-widest text-gray-500">
-                    {user.role === 'manager' ? 'Admin / Ops' : 'Customer'}
+                    {user.role === 'manager' ? 'Super Admin' : 'Customer'}
                   </div>
                   <div className="text-xs font-bold dark:text-white truncate max-w-[100px]">{user.name}</div>
                 </div>
               </Link>
               
-              {/* Extra Ops Center link for managers to be super clear */}
               {user.role === 'manager' && (
                 <Link 
                   to="/admin-ops"

@@ -35,12 +35,8 @@ export default function Login() {
 
       setIsLoading(false);
       
-      // Redirect based on role
-      if (userProfile.role === 'manager') {
-        navigate("/admin-ops");
-      } else {
-        navigate("/user-dashboard");
-      }
+      // Always redirect to User Dashboard first so managers can see the customer experience too
+      navigate("/user-dashboard");
 
     } catch (err) {
       console.error("Login error:", err);

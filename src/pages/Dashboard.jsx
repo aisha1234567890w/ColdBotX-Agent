@@ -22,6 +22,7 @@ import {
   CheckCircle2,
   ChevronRight,
   Heart,
+  ShieldCheck,
   X
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -207,6 +208,15 @@ export default function Dashboard() {
                 Hello, <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500">{user?.name?.split(' ')[0]}!</span>
               </h1>
               <p className="text-gray-500 font-medium text-lg">Ready for another culinary journey through Sweden & Pakistan?</p>
+              
+              {user?.role === 'manager' && (
+                <Link 
+                  to="/admin-ops"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-black/10 hover:scale-105 transition-all mt-4"
+                >
+                  <ShieldCheck size={18} className="text-indigo-500" /> Enter Manager Mode
+                </Link>
+              )}
             </motion.div>
             
             <div className="flex items-center gap-6">
