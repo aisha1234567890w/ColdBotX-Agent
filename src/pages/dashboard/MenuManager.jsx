@@ -139,13 +139,17 @@ export default function MenuManagement() {
     <div className="space-y-8 pb-20 animate-in fade-in duration-500 relative">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
-          <h1 className="text-3xl font-black tracking-tight mb-2">Menu Inventory</h1>
-          <p className="text-gray-500 font-medium">Any edits here immediately sync to the main Aifur website.</p>
+          <h1 className="text-3xl font-black tracking-tight mb-2">Live Specials & Availability</h1>
+          <p className="text-gray-500 font-medium">Control pricing and stock in real-time. Changes sync to the website instantly.</p>
         </div>
         <div className="flex gap-4">
-          <button onClick={handleAddNew} className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-2xl text-sm font-black flex items-center gap-2 shadow-xl shadow-indigo-500/20 active:scale-95 transition-all">
-            <Plus size={16} />
-            Add New Dish
+          <button onClick={() => {
+            setEditingItem({ id: 'special', name: 'Today\'s Special', isSpecial: true });
+            setFormData({ name: 'Special Announcement', content: 'Tonight: 20% off on all Swedish Meatballs!', type: 'special' });
+            setIsModalOpen(true);
+          }} className="bg-amber-500 hover:bg-amber-600 text-white px-6 py-3 rounded-2xl text-sm font-black flex items-center gap-2 shadow-xl shadow-amber-500/20 active:scale-95 transition-all">
+            <Flame size={16} />
+            Update Daily Special
           </button>
         </div>
       </div>
@@ -228,12 +232,9 @@ export default function MenuManagement() {
                   <p className="text-[10px] text-gray-500 line-clamp-2 mb-6 leading-relaxed min-h-[2.5rem]">{item.description}</p>
                   
                   <div className="flex justify-between items-center pt-4 border-t border-gray-100 dark:border-white/5">
-                    <div className="flex gap-1">
-                      <button onClick={() => handleEdit(item)} className="p-2 rounded-lg text-gray-400 hover:text-indigo-600 hover:bg-gray-100 dark:hover:bg-white/5 transition-all">
-                        <Edit2 size={14} />
-                      </button>
-                      <button onClick={() => handleDelete(item.id)} className="p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all">
-                        <Trash2 size={14} />
+                    <div className="flex gap-1 w-full">
+                      <button onClick={() => handleEdit(item)} className="flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest text-indigo-600 bg-indigo-50 dark:bg-indigo-500/10 hover:bg-indigo-100 transition-all">
+                        <Edit2 size={12} /> Edit Price & Stock
                       </button>
                     </div>
                   </div>
@@ -253,24 +254,32 @@ export default function MenuManagement() {
               <button onClick={() => setIsModalOpen(false)} className="p-2 text-gray-400 hover:text-gray-900 dark:hover:text-white rounded-xl bg-gray-50 dark:bg-white/5"><X size={20} /></button>
             </div>
             <div className="p-6 space-y-4">
-              <div>
-                <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Dish Name</label>
-                <input type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full p-3 rounded-xl bg-gray-50 dark:bg-white/5 border-none outline-none font-bold" />
-              </div>
-              <div>
-                <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Description</label>
-                <textarea value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full p-3 rounded-xl bg-gray-50 dark:bg-white/5 border-none outline-none text-sm h-24" />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
+              {formData.isSpecial ? (
                 <div>
-                  <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Price (PKR)</label>
-                  <input type="number" value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} className="w-full p-3 rounded-xl bg-gray-50 dark:bg-white/5 border-none outline-none font-bold" />
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Special Announcement Text</label>
+                  <textarea value={formData.content} onChange={e => setFormData({...formData, content: e.target.value})} className="w-full p-3 rounded-xl bg-gray-50 dark:bg-white/5 border-none outline-none text-sm h-32 font-bold" placeholder="e.g. Happy Hour: 50% off on all mocktails!" />
                 </div>
-                <div>
-                  <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Image URL</label>
-                  <input type="text" value={formData.image} onChange={e => setFormData({...formData, image: e.target.value})} className="w-full p-3 rounded-xl bg-gray-50 dark:bg-white/5 border-none outline-none text-xs" />
-                </div>
-              </div>
+              ) : (
+                <>
+                  <div className="bg-gray-50 dark:bg-white/5 p-4 rounded-2xl mb-4">
+                    <h4 className="font-black text-indigo-600 mb-1">{formData.name}</h4>
+                    <p className="text-[10px] text-gray-500 leading-tight">{formData.description}</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Price (PKR)</label>
+                      <input type="number" value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} className="w-full p-3 rounded-xl bg-gray-50 dark:bg-white/5 border-none outline-none font-bold" />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Availability</label>
+                      <select value={formData.isAvailable} onChange={e => setFormData({...formData, isAvailable: e.target.value === 'true'})} className="w-full p-3 rounded-xl bg-gray-50 dark:bg-white/5 border-none outline-none font-bold text-xs">
+                        <option value="true">In Stock</option>
+                        <option value="false">Out of Stock</option>
+                      </select>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
             <div className="p-6 border-t border-gray-100 dark:border-white/5 bg-gray-50 dark:bg-white/[0.02] flex justify-end gap-3">
               <button onClick={() => setIsModalOpen(false)} className="px-6 py-3 rounded-xl text-sm font-bold text-gray-500 hover:text-gray-900 dark:hover:text-white">Cancel</button>
