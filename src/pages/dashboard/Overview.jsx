@@ -89,9 +89,17 @@ export default function Overview() {
       const totalTables = tablesData ? tablesData.length : 20; 
       
       // Calculate real occupied tables based on BOTH manual status AND today's bookings
-      const manualOccupied = tablesData ? tablesData.filter(t => t.status?.toLowerCase() === 'occupied').length : 0;
+      // Count any table that is NOT 'available' or 'free'
+      const manualOccupied = tablesData ? tablesData.filter(t => 
+        t.status?.toLowerCase() !== 'available' && 
+        t.status?.toLowerCase() !== 'free' &&
+        t.status?.toLowerCase() !== ''
+      ).length : 0;
+      
       const bookedToday = todayRes.length;
-      // We take the higher of the two to ensure we don't under-report occupancy
+      
+      // We sum them up but cap at total tables to be safe, or take max if we suspect double counting
+      // The user says there are 3 booked overall, so let's ensure we find them.
       const actualOccupied = Math.max(manualOccupied, bookedToday);
 
       // Alerts
