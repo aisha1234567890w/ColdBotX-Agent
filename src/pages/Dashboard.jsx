@@ -43,18 +43,19 @@ export default function Dashboard() {
   const fetchData = async (userObj) => {
     try {
       const phone = userObj.phone || localStorage.getItem('user_phone');
-      
+      const cleanPhone = phone ? phone.replace(/[\s\-\(\)\+]/g, '') : null;
+      const shortPhone = cleanPhone && cleanPhone.length > 10 ? cleanPhone.slice(-10) : cleanPhone;
+
       let query = supabase.from('reservations_main').select('*');
       
-      if (phone) {
-        // Fetch by Phone - Most reliable!
-        query = query.or(`phone_number.eq."${phone}",phone.eq."${phone}"`);
-      } else {
-        // Fallback to Name (less reliable due to spelling)
-        query = query.or(`customer_name.ilike.%${userObj.name.split(' ')[0]}%,name.ilike.%${userObj.name.split(' ')[0]}%`);
+      // We search across EVERY possible identifying column with a broad OR filter
+      let orFilter = `email.eq."${userObj.email}",customer_name.ilike.%${userObj.name}%,name.ilike.%${userObj.name}%`;
+      
+      if (shortPhone) {
+        orFilter += `,phone_number.ilike.%${shortPhone}%,phone.ilike.%${shortPhone}%`;
       }
 
-      const { data, error } = await query.order('id', { ascending: false });
+      const { data, error } = await query.or(orFilter).order('id', { ascending: false });
       
       if (!error) {
         setReservations(data || []);
