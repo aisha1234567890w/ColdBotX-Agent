@@ -11,6 +11,7 @@ const TableCard = ({ table, theme, onUpdateStatus }) => {
 
   const isOccupied = table.status === 'occupied' || table.status === 'Occupied';
   const isReserved = table.status === 'reserved' || table.status === 'Reserved';
+  const isAvailable = table.status === 'Available' || table.status === 'free';
 
   const getTimeOccupied = () => {
     if (!table.occupied_at) return null;
