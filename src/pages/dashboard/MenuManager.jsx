@@ -128,7 +128,10 @@ export default function MenuManagement() {
     setIsModalOpen(false);
   };
 
-  const items = getItems();
+  const items = getItems().map((item, idx) => ({
+    ...item,
+    id: item.id || `item_${activeCategory}_${activeSub}_${idx}`
+  }));
 
   if (!menuState) return <div className="p-8 text-center">Loading Menu Data...</div>;
 

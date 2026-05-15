@@ -109,10 +109,23 @@ export default function Navbar() {
                   {user.name?.charAt(0).toUpperCase() || 'U'}
                 </div>
                 <div className="hidden lg:block">
-                  <div className="text-[10px] font-black uppercase tracking-widest text-gray-500">{user.role === 'manager' ? 'Ops Center' : 'Account'}</div>
+                  <div className="text-[10px] font-black uppercase tracking-widest text-gray-500">
+                    {user.role === 'manager' ? 'Admin / Ops' : 'Customer'}
+                  </div>
                   <div className="text-xs font-bold dark:text-white truncate max-w-[100px]">{user.name}</div>
                 </div>
               </Link>
+              
+              {/* Extra Ops Center link for managers to be super clear */}
+              {user.role === 'manager' && (
+                <Link 
+                  to="/admin-ops"
+                  className="hidden xl:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 text-[9px] font-black uppercase tracking-tighter hover:bg-indigo-100 transition-all border border-indigo-100 dark:border-indigo-800"
+                >
+                  Ops Dashboard
+                </Link>
+              )}
+
               <button
                 onClick={handleLogout}
                 className="text-xs font-black uppercase tracking-widest text-red-500 hover:text-red-600 transition-colors"
@@ -121,12 +134,15 @@ export default function Navbar() {
               </button>
             </div>
           ) : (
-            <Link 
-              to="/login" 
-              className="px-6 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-black uppercase tracking-widest hover:bg-indigo-700 shadow-xl shadow-indigo-500/20 transition-all transform hover:-translate-y-0.5 active:scale-95"
-            >
-              Sign in
-            </Link>
+            <div className="flex items-center gap-4">
+              <Link to="/login" className="text-xs font-black uppercase tracking-widest text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors">Login</Link>
+              <Link 
+                to="/signup" 
+                className="px-6 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-black uppercase tracking-widest hover:bg-indigo-700 shadow-xl shadow-indigo-500/20 transition-all transform hover:-translate-y-0.5 active:scale-95"
+              >
+                Join Now
+              </Link>
+            </div>
           )}
 
           {/* Mobile menu button */}

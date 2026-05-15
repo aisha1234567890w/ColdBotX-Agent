@@ -6,15 +6,15 @@ export default function FeaturedMenu() {
   // Pick different items based on the day
   const day = new Date().getDate();
   
-  const swedishItem = menuData.swedish.mains[day % menuData.swedish.mains.length];
-  const pakistaniItem = menuData.pakistani.bbq[day % menuData.pakistani.bbq.length];
-  const fusionItem = menuData.fusion.mains[day % menuData.fusion.mains.length];
+  const swedishItem = menuData?.swedish?.mains?.[day % (menuData.swedish.mains.length || 1)] || { name: 'Swedish Main', price: 0, image: '', description: '' };
+  const pakistaniItem = menuData?.pakistani?.bbq?.[day % (menuData.pakistani.bbq.length || 1)] || { name: 'Pakistani BBQ', price: 0, image: '', description: '' };
+  const fusionItem = menuData?.fusion?.mains?.[day % (menuData.fusion.mains.length || 1)] || { name: 'Fusion Main', price: 0, image: '', description: '' };
 
   const featuredItems = [
     { ...swedishItem, tag: 'Nordic Classic', delay: 0.1 },
     { ...pakistaniItem, tag: 'Indus Grill', delay: 0.2 },
     { ...fusionItem, tag: 'Signature Fusion', delay: 0.3 }
-  ];
+  ].filter(item => item.name);
 
   return (
     <section className="pb-16 md:pb-32 pt-12 bg-white dark:bg-gray-950 transition-colors relative overflow-hidden">
