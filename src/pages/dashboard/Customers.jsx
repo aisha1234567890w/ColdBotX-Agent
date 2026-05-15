@@ -45,6 +45,14 @@ export default function Customers() {
           const phone = res.phone_number || res.phone || 'Unknown';
           if (phone === 'Unknown' && !res.customer_name) return;
 
+          // Intelligent source detection
+          let detectedSource = res.source || 'Direct';
+          if (detectedSource === 'Direct' || detectedSource === 'Web') {
+            const notes = (res.notes || '').toLowerCase();
+            if (notes.includes('vapi') || notes.includes('voice')) detectedSource = 'AI Voice';
+            else if (notes.includes('chat') || notes.includes('voiceflow')) detectedSource = 'AI Chat';
+          }
+
           if (!crmProfiles[phone]) {
             crmProfiles[phone] = {
               id: phone,
@@ -53,13 +61,16 @@ export default function Customers() {
               totalVisits: 1,
               lastVisit: res.reservation_date || res.created_at,
               totalGuests: parseInt(res.guests_count || 1),
-              source: res.source || 'Direct',
+              source: detectedSource,
               isLoyal: false
             };
           } else {
             crmProfiles[phone].totalVisits += 1;
             crmProfiles[phone].totalGuests += parseInt(res.guests_count || 1);
             crmProfiles[phone].isLoyal = crmProfiles[phone].totalVisits >= 3;
+            // Keep the most "AI-specific" source if possible
+            if (detectedSource !== 'Direct') crmProfiles[phone].source = detectedSource;
+            
             if (new Date(res.reservation_date) > new Date(crmProfiles[phone].lastVisit)) {
               crmProfiles[phone].lastVisit = res.reservation_date;
             }
