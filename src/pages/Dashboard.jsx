@@ -37,42 +37,53 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [isFirstTime, setIsFirstTime] = useState(true);
   const [showCheckoutSuccess, setShowCheckoutSuccess] = useState(false);
+  const [showPhoneModal, setShowPhoneModal] = useState(false);
+  const [phoneInput, setPhoneInput] = useState("");
+
+  const fetchData = async (userObj) => {
+    try {
+      const phone = userObj.phone || localStorage.getItem('user_phone');
+      
+      let query = supabase.from('reservations_main').select('*');
+      
+      if (phone) {
+        // Fetch by Phone - Most reliable!
+        query = query.or(`phone_number.eq."${phone}",phone.eq."${phone}"`);
+      } else {
+        // Fallback to Name (less reliable due to spelling)
+        query = query.or(`customer_name.ilike.%${userObj.name.split(' ')[0]}%,name.ilike.%${userObj.name.split(' ')[0]}%`);
+      }
+
+      const { data, error } = await query.order('id', { ascending: false });
+      
+      if (!error) {
+        setReservations(data || []);
+        setIsFirstTime((data || []).length === 0);
+      }
+    } catch (err) {
+      console.error("Dashboard fetch error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      const storedUser = JSON.parse(localStorage.getItem("user") || "null");
-      if (!storedUser) { navigate('/login'); return; }
-      setUser(storedUser);
-
-      try {
-        // Fetching from Supabase based on CUSTOMER NAME since email might not be in the table
-        // We try both name and customer_name to be safe with different schemas
-        const { data, error } = await supabase
-          .from('reservations_main')
-          .select('*')
-          .or(`customer_name.eq."${storedUser.name}",name.eq."${storedUser.name}"`)
-          .order('id', { ascending: false });
-        
-        if (error) {
-          console.warn("Supabase fetch error (schema mismatch?), falling back to email check...");
-          const { data: emailData } = await supabase
-            .from('reservations_main')
-            .select('*')
-            .eq('email', storedUser.email);
-          if (emailData) setReservations(emailData);
-        } else {
-          setReservations(data || []);
-        }
-        
-        setIsFirstTime((data || []).length === 0);
-      } catch (err) {
-        console.error("Dashboard fetch error:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
+    const storedUser = JSON.parse(localStorage.getItem("user") || "null");
+    if (!storedUser) { navigate('/login'); return; }
+    setUser(storedUser);
+    fetchData(storedUser);
   }, [navigate]);
+
+  const handleSavePhone = () => {
+    if (!phoneInput) return;
+    localStorage.setItem('user_phone', phoneInput);
+    const updatedUser = { ...user, phone: phoneInput };
+    setUser(updatedUser);
+    localStorage.setItem('user', JSON.stringify(updatedUser));
+    setShowPhoneModal(false);
+    setLoading(true);
+    fetchData(updatedUser);
+  };
 
   const handleLogout = async () => {
     localStorage.clear();
@@ -92,7 +103,6 @@ export default function Dashboard() {
     }, 3000);
   };
 
-  // Real data from menuData for "Popular Picks"
   const popularPicks = [
     { ...menuData.swedish.mains[0], category: 'Swedish Favorite' },
     { ...menuData.pakistani.mains[0], category: 'Indus Special' },
@@ -113,6 +123,29 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 transition-colors duration-300">
       
+      {/* Phone Number Modal */}
+      <AnimatePresence>
+        {showPhoneModal && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[110] flex items-center justify-center bg-black/60 backdrop-blur-sm p-6">
+            <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} className="bg-white dark:bg-gray-900 rounded-[2.5rem] p-10 max-w-md w-full shadow-2xl border border-indigo-100 dark:border-white/5">
+              <h3 className="text-2xl font-black mb-2">Sync Your Bookings</h3>
+              <p className="text-gray-500 text-sm mb-8 font-medium">Enter the phone number you use for AI Call or Chat reservations to see them here.</p>
+              <input 
+                type="tel" 
+                placeholder="e.g. +92 300 1234567" 
+                className="w-full px-6 py-4 bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-2xl mb-6 outline-none focus:ring-2 focus:ring-indigo-600 font-bold"
+                value={phoneInput}
+                onChange={(e) => setPhoneInput(e.target.value)}
+              />
+              <div className="flex gap-4">
+                <button onClick={() => setShowPhoneModal(false)} className="flex-1 py-4 text-gray-400 font-black uppercase tracking-widest text-[10px]">Cancel</button>
+                <button onClick={handleSavePhone} className="flex-1 py-4 bg-indigo-600 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-indigo-500/20">Sync Now</button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Checkout Success Overlay */}
       <AnimatePresence>
         {showCheckoutSuccess && (
@@ -160,20 +193,27 @@ export default function Dashboard() {
               <p className="text-gray-500 font-medium">Let's get you started with a premium dining experience.</p>
             </motion.div>
             
-            <div className="flex items-center gap-4">
-              <div className="flex -space-x-2">
-                {favorites.slice(0, 3).map((fav, i) => (
-                  <div key={i} className="w-8 h-8 rounded-full border-2 border-white dark:border-gray-900 bg-gray-100 overflow-hidden" title={fav.name}>
-                    <img src={fav.image} className="w-full h-full object-cover" alt="" />
-                  </div>
-                ))}
-                {favorites.length > 3 && (
-                  <div className="w-8 h-8 rounded-full border-2 border-white dark:border-gray-900 bg-indigo-600 flex items-center justify-center text-[8px] font-black text-white">
-                    +{favorites.length - 3}
-                  </div>
-                )}
+            <div className="flex items-center gap-6">
+              {!user?.phone && (
+                <button onClick={() => setShowPhoneModal(true)} className="flex items-center gap-2 px-4 py-2 bg-amber-50 dark:bg-amber-500/10 text-amber-600 rounded-xl font-black text-[10px] uppercase tracking-widest border border-amber-200">
+                  ⚠️ Link Phone for AI Bookings
+                </button>
+              )}
+              <div className="flex items-center gap-4">
+                <div className="flex -space-x-2">
+                  {favorites.slice(0, 3).map((fav, i) => (
+                    <div key={i} className="w-8 h-8 rounded-full border-2 border-white dark:border-gray-900 bg-gray-100 overflow-hidden" title={fav.name}>
+                      <img src={fav.image} className="w-full h-full object-cover" alt="" />
+                    </div>
+                  ))}
+                  {favorites.length > 3 && (
+                    <div className="w-8 h-8 rounded-full border-2 border-white dark:border-gray-900 bg-indigo-600 flex items-center justify-center text-[8px] font-black text-white">
+                      +{favorites.length - 3}
+                    </div>
+                  )}
+                </div>
+                <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Your Favorites</span>
               </div>
-              <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Your Favorites</span>
             </div>
           </div>
         </div>
