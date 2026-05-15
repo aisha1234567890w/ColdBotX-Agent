@@ -65,13 +65,13 @@ const TableCard = ({ table, theme, onUpdateStatus }) => {
           <TableIcon size={24} />
         </div>
         
-        <div className="flex items-center gap-2 relative">
+        <div className="flex flex-wrap items-center justify-end gap-1.5 relative max-w-[140px]">
           {isOccupied && (
-            <div className="flex items-center gap-1 text-[10px] font-black text-indigo-600 bg-indigo-50 px-2 py-1 rounded-full border border-indigo-100 animate-pulse">
+            <div className="flex items-center gap-1 text-[9px] font-black text-indigo-600 bg-indigo-50 dark:bg-indigo-500/10 px-2 py-1 rounded-full border border-indigo-100 dark:border-indigo-500/20 animate-pulse whitespace-nowrap">
               <Clock size={10} /> {getTimeOccupied()}
             </div>
           )}
-          <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
+          <span className={`px-2 py-1 rounded-full text-[9px] font-black uppercase tracking-wider whitespace-nowrap ${
             isOccupied ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400' : 
             isReserved ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400' : 
             'bg-emerald-500/10 text-emerald-600 dark:text-emerald-500'
@@ -80,7 +80,7 @@ const TableCard = ({ table, theme, onUpdateStatus }) => {
           </span>
           <button 
             onClick={() => setMenuOpen(!menuOpen)}
-            className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
+            className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 transition-colors ml-1"
           >
             <MoreVertical size={16} className="text-gray-500" />
           </button>
