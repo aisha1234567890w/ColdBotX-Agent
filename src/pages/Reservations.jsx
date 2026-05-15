@@ -93,18 +93,16 @@ const BookingForm = () => {
       }
 
       // 3. Save reservation to reservations_main
-      // SAFE MODE: Only use columns we are 100% sure about
+      // ULTRA-SAFE MODE: Only use columns confirmed by the error logs
       const payload = {
         customer_name: formData.name,
         phone_number: formData.phone,
         reservation_date: formData.date,
-        reservation_time: formData.time,
-        guests_count: guestCount,
-        source: 'Web Form',
-        status: 'confirmed'
+        // reservation_time: formData.time, // Commented out until confirmed
+        // guests_count: guestCount // Commented out until confirmed
       };
 
-      console.log("Attempting Safe Mode insert with payload:", payload);
+      console.log("Attempting ULTRA-SAFE Mode insert with payload:", payload);
 
       const { error: resError } = await supabase
         .from('reservations_main')
