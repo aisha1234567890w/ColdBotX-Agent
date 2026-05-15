@@ -107,14 +107,38 @@ export default function Overview() {
       
       const actualOccupied = Math.max(manualOccupied, arrivingToday.length);
 
+      const { count: unreadMessages } = await supabase
+        .from('contact_inquiries')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'unread');
+
+      // Alerts Engine
+      const alerts = [];
+      if (unreadMessages > 0) {
+        alerts.push({ 
+          type: 'warning', 
+          text: `You have ${unreadMessages} unread customer inquiry${unreadMessages > 1 ? 's' : ''}.` 
+        });
+      }
+      if (todayRes.length > 25) {
+        alerts.push({ type: 'warning', text: 'Exceptionally high booking volume today.' });
+      }
+      if (actualOccupied >= (totalTables * 0.8)) {
+        alerts.push({ type: 'critical', text: 'Restaurant capacity is nearly full!' });
+      }
+      
+      if (alerts.length === 0) {
+        alerts.push({ type: 'success', text: 'All operations running smoothly.' });
+      }
+
       setStats({
-        todayReservations: todayRes.length, // Count of bookings MADE today
-        upcomingReservations: upcomingArrivals.length, // Total scheduled arrivals
+        todayReservations: todayRes.length,
+        upcomingReservations: upcomingArrivals.length,
         occupiedTables: actualOccupied,
         availableTables: totalTables - actualOccupied,
         peakHour,
         todayRevenue,
-        alerts: todayRes.length > 20 ? [{ type: 'warning', text: 'High booking volume today.' }] : [{ type: 'success', text: 'All operations running smoothly.' }]
+        alerts
       });
 
     } catch (err) {

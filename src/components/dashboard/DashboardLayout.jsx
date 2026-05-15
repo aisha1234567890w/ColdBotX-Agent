@@ -47,7 +47,10 @@ export default function DashboardLayout() {
   const { theme, toggleTheme } = useTheme();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
-  
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+
   const user = JSON.parse(localStorage.getItem('user') || '{"name": "Admin", "email": "admin@aifur.com"}');
 
   const menuItems = [
@@ -61,12 +64,42 @@ export default function DashboardLayout() {
     { icon: Settings, label: 'Settings & Config', path: '/admin-ops/settings' }
   ];
 
+  useEffect(() => {
+    fetchUnread();
+    const interval = setInterval(fetchUnread, 30000); // Check every 30s
+    return () => clearInterval(interval);
+  }, []);
+
+  const fetchUnread = async () => {
+    try {
+      const { count, error } = await supabase
+        .from('contact_inquiries')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'unread');
+      if (!error) setUnreadCount(count || 0);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const handleLogout = async () => {
     localStorage.removeItem('user');
     localStorage.removeItem('supabase_session');
     await supabase.auth.signOut();
     navigate('/login');
   };
+
+  const handleSearch = (e) => {
+    if (e.key === 'Enter' && searchQuery.trim()) {
+      navigate(`/admin-ops/reservations?search=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
+
+  const notifications = [
+    { id: 1, title: 'New Customer Inquiry', time: 'Just now', type: 'message' },
+    { id: 2, title: 'Reservation Confirmed', time: '5m ago', type: 'booking' },
+    { id: 3, title: 'Peak Hour Warning', time: '10m ago', type: 'alert' },
+  ];
 
   return (
     <div className={`min-h-screen flex transition-colors duration-300 ${theme === 'dark' ? 'bg-[#030712] text-white' : 'bg-[#FAFAFA] text-gray-900'}`}>
@@ -137,7 +170,14 @@ export default function DashboardLayout() {
               theme === 'dark' ? 'bg-white/5 border border-white/5' : 'bg-gray-100 border border-transparent focus-within:bg-white focus-within:border-gray-200 focus-within:shadow-sm'
             }`}>
               <Search size={18} className="text-gray-400" />
-              <input type="text" placeholder="Search anything..." className="bg-transparent border-none outline-none text-sm w-full font-medium" />
+              <input 
+                type="text" 
+                placeholder="Search guests or bookings..." 
+                className="bg-transparent border-none outline-none text-sm w-full font-medium"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={handleSearch}
+              />
             </div>
 
             {/* Actions */}
@@ -145,10 +185,61 @@ export default function DashboardLayout() {
               <button onClick={toggleTheme} className="p-3 rounded-2xl bg-gray-100 dark:bg-white/5 text-gray-500 hover:text-indigo-600 transition-all">
                 {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
               </button>
-              <button className="relative p-3 rounded-2xl bg-gray-100 dark:bg-white/5 text-gray-500 hover:text-indigo-600 transition-all">
-                <Bell size={20} />
-                <span className="absolute top-3 right-3 w-2 h-2 bg-indigo-600 rounded-full ring-2 ring-white dark:ring-[#030712]" />
-              </button>
+              
+              <div className="relative">
+                <button 
+                  onClick={() => setShowNotifications(!showNotifications)}
+                  className="relative p-3 rounded-2xl bg-gray-100 dark:bg-white/5 text-gray-500 hover:text-indigo-600 transition-all"
+                >
+                  <Bell size={20} />
+                  {unreadCount > 0 && <span className="absolute top-3 right-3 w-2.5 h-2.5 bg-indigo-600 rounded-full ring-2 ring-white dark:ring-[#030712] animate-pulse" />}
+                </button>
+
+                {showNotifications && (
+                  <>
+                    <div className="fixed inset-0 z-10" onClick={() => setShowNotifications(false)} />
+                    <div className="absolute right-0 mt-4 w-80 bg-white dark:bg-[#030712] rounded-3xl shadow-2xl border border-gray-100 dark:border-white/5 p-6 z-20 animate-in slide-in-from-top-4 duration-300">
+                      <div className="flex items-center justify-between mb-6">
+                        <h4 className="text-lg font-black tracking-tight">Notifications</h4>
+                        <span className="text-[10px] bg-indigo-600 text-white px-2 py-0.5 rounded-full font-black uppercase">Live</span>
+                      </div>
+                      <div className="space-y-4">
+                        {notifications.map(n => (
+                          <div key={n.id} className="flex gap-4 p-3 hover:bg-gray-50 dark:hover:bg-white/5 rounded-2xl transition-colors cursor-pointer group">
+                            <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center text-indigo-600">
+                              {n.type === 'message' ? <MessageSquareCode size={18} /> : n.type === 'booking' ? <CalendarCheck size={18} /> : <AlertTriangle size={18} />}
+                            </div>
+                            <div className="flex-1">
+                              <div className="text-sm font-bold group-hover:text-indigo-600 transition-colors">{n.title}</div>
+                              <div className="text-[10px] text-gray-400 font-medium">{n.time}</div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <button 
+                        onClick={() => { navigate('/admin-ops/messages'); setShowNotifications(false); }}
+                        className="w-full mt-6 py-3 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-indigo-600 hover:text-white transition-all"
+                      >
+                        View All Activities
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              <div className="h-8 w-px bg-gray-200 dark:bg-white/10 mx-2" />
+              <div className="flex items-center gap-3">
+                 <div className="text-right hidden sm:block">
+                   <div className="text-sm font-black">{user.name}</div>
+                   <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Administrator</div>
+                 </div>
+                 <div className="w-12 h-12 rounded-2xl bg-indigo-600/10 border border-indigo-600/20 flex items-center justify-center p-0.5 overflow-hidden shadow-lg shadow-indigo-500/10">
+                   <img src={`https://ui-avatars.com/api/?name=${user.name}&background=4F46E5&color=fff&bold=true`} className="w-full h-full rounded-xl object-cover" alt="Profile" />
+                 </div>
+              </div>
+            </div>
+          </div>
+        </header>
               <div className="h-8 w-px bg-gray-200 dark:bg-white/10 mx-2" />
               <div className="flex items-center gap-3">
                  <div className="text-right hidden sm:block">
