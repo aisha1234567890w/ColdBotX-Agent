@@ -80,20 +80,25 @@ export default function Navbar() {
     <>
       {announcement && (
         <div className="bg-indigo-600 text-white py-2 overflow-hidden relative border-b border-indigo-500/30">
-          <div className="whitespace-nowrap animate-marquee flex items-center gap-8">
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-2 px-4">
-              <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></div>
-              {announcement}
-            </span>
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-2 px-4 opacity-50">
-              <div className="w-1.5 h-1.5 rounded-full bg-white"></div>
-              {announcement}
-            </span>
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-2 px-4 opacity-50">
-              <div className="w-1.5 h-1.5 rounded-full bg-white"></div>
-              {announcement}
-            </span>
+          <div className="whitespace-nowrap animate-marquee flex items-center gap-12">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <span key={i} className="text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-3 px-4">
+                <div className="w-2 h-2 rounded-full bg-white animate-pulse"></div>
+                {announcement}
+              </span>
+            ))}
           </div>
+          <style>{`
+            @keyframes marquee {
+              0% { transform: translateX(0); }
+              100% { transform: translateX(-50%); }
+            }
+            .animate-marquee {
+              animation: marquee 30s linear infinite;
+              display: flex;
+              width: max-content;
+            }
+          `}</style>
         </div>
       )}
       <header className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md shadow-sm sticky top-0 z-50 transition-colors duration-200 border-b border-gray-100 dark:border-gray-800">
