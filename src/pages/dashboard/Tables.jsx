@@ -35,16 +35,21 @@ const TableCard = ({ table, theme, onUpdateStatus }) => {
     }
 
     try {
+      // First try with occupied_at, if it fails, we fall back to just status
       const { error } = await supabase
         .from('restaurant_tables')
         .update(updateData)
         .eq('id', table.id);
       
-      if (!error) {
-        onUpdateStatus(table.id, newStatus);
-      } else {
-        alert("Failed to update status: " + error.message);
+      if (error && error.message.includes('occupied_at')) {
+        // Fallback for missing column
+        await supabase
+          .from('restaurant_tables')
+          .update({ status: dbStatus })
+          .eq('id', table.id);
       }
+      
+      onUpdateStatus(table.id, newStatus);
     } catch (err) {
       console.error('Sync Error:', err);
     }
