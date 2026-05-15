@@ -185,11 +185,11 @@ export default function Tables() {
 
       if (tablesData) {
         const mappedData = tablesData.map(t => {
-           // Infer status from available boolean and timestamps if status column is missing
+           // Default to Available unless explicitly blocked
            let inferredStatus = 'Available';
-           const isAvailable = t.available === true || t.available === 'true' || t.available === 1;
+           const isNotAvailable = t.available === false || t.available === 'false' || t.available === 0;
            
-           if (!isAvailable) {
+           if (isNotAvailable) {
              if (t.occupied_at) inferredStatus = 'Occupied';
              else if (t.reserved_date) inferredStatus = 'Reserved';
              else inferredStatus = 'Occupied';
@@ -203,7 +203,6 @@ export default function Tables() {
            return { 
              ...t, 
              status: inferredStatus,
-             // Merge with reservation info
              customer_name: matchingRes?.customer_name,
              reserved_date: t.reserved_date || matchingRes?.reservation_date,
              reserved_time: t.reserved_time || matchingRes?.reservation_time
