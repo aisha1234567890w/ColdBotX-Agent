@@ -1,3 +1,4 @@
+// Analytics Version 2.0 - Stable Build
 import { useState, useEffect } from 'react';
 import { supabase } from '../../utils/supabaseClient';
 import { motion } from 'framer-motion';
