@@ -169,33 +169,50 @@ export default function Tables() {
   const fetchTables = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      // 1. Fetch all tables
+      const { data: tablesData, error: tablesError } = await supabase
         .from('restaurant_tables')
         .select('*')
         .order('table_number', { ascending: true });
       
-      if (error) throw error;
+      if (tablesError) throw tablesError;
 
-      if (data && data.length > 0) {
-        const mappedData = data.map(t => {
-           const s = (t.status || '').toLowerCase();
-           let formattedStatus = 'Available';
-           if (s === 'occupied' || s === 'busy') formattedStatus = 'Occupied';
-           else if (s === 'reserved' || s === 'booked') formattedStatus = 'Reserved';
-           else if (s === 'free' || s === 'available') formattedStatus = 'Available';
+      // 2. Fetch active reservations to link info
+      const { data: resData } = await supabase
+        .from('reservations_main')
+        .select('*')
+        .neq('status', 'cancelled');
+
+      if (tablesData) {
+        const mappedData = tablesData.map(t => {
+           // Infer status from available boolean and timestamps if status column is missing
+           let inferredStatus = 'Available';
+           const isAvailable = t.available === true || t.available === 'true' || t.available === 1;
            
-           return { ...t, status: formattedStatus };
+           if (!isAvailable) {
+             if (t.occupied_at) inferredStatus = 'Occupied';
+             else if (t.reserved_date) inferredStatus = 'Reserved';
+             else inferredStatus = 'Occupied';
+           }
+
+           // Link with reservation data if table_number matches
+           const matchingRes = resData?.find(r => 
+             (r.table_id === t.id || r.table_number === t.table_number)
+           );
+
+           return { 
+             ...t, 
+             status: inferredStatus,
+             // Merge with reservation info
+             customer_name: matchingRes?.customer_name,
+             reserved_date: t.reserved_date || matchingRes?.reservation_date,
+             reserved_time: t.reserved_time || matchingRes?.reservation_time
+           };
         });
         setTables(mappedData);
-      } else {
-        // Only if table is actually empty in DB, we create 20 default rows
-        const localTables = Array.from({ length: 20 }, (_, i) => ({
-          id: i + 1, table_number: i + 1, capacity: 4, status: 'Available'
-        }));
-        setTables(localTables);
       }
     } catch (err) {
-      console.error('Supabase Table Fetch Error:', err);
+      console.error('Universal Sync Error:', err);
     } finally {
       setLoading(false);
     }
@@ -205,8 +222,10 @@ export default function Tables() {
     fetchTables();
   }, []);
 
-  const handleUpdateStatus = (id, newStatus) => {
-    setTables(prev => prev.map(t => t.id === id ? { ...t, status: newStatus } : t));
+  const handleUpdateStatus = (id, newStatus, occupiedAt = null) => {
+    setTables(prev => prev.map(t => t.id === id ? { ...t, status: newStatus, occupied_at: occupiedAt } : t));
+    // Re-fetch to pull in linked reservation data immediately
+    setTimeout(() => fetchTables(), 1000);
   };
 
   const handleAddTable = async () => {
