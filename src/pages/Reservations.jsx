@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { supabase } from '../utils/supabaseClient';
 import VapiAssistant from '../components/VapiAssistant';
 import N8nChat, { openN8nChat } from '../components/N8nChat';
 
@@ -25,8 +26,9 @@ const BookingForm = () => {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = "Please enter a valid email address";
     }
-    if (!/^\+?[0-9]{10,15}$/.test(formData.phone)) {
-      newErrors.phone = "Please enter a valid phone number (10-15 digits)";
+    // Strict phone validation for Pakistan and International
+    if (!/^(\+92|0)?3[0-9]{9}$/.test(formData.phone.replace(/[\s\-]/g, ''))) {
+      newErrors.phone = "Please enter a valid Pakistani phone number (e.g., 03001234567)";
     }
     if (!formData.date) {
       newErrors.date = "Please select a date";
@@ -51,34 +53,65 @@ const BookingForm = () => {
     if (!validateForm()) return;
 
     setStatus('sending');
-    const N8N_WEBHOOK_URL = "https://bokafynaveed.app.n8n.cloud/webhook/book-table"; 
     
-    // Mapping form fields to Supabase schema names found in the Admin Dashboard
-    const payload = {
-      ...formData,
-      customer_name: formData.name,
-      phone_number: formData.phone,
-      guests_count: formData.guests,
-      reservation_date: formData.date,
-      reservation_time: formData.time,
-      source: 'Web Form',
-      status: 'pending'
-    };
-
     try {
-      const response = await fetch(N8N_WEBHOOK_URL, {
+      // 1. Find an available table that fits the guest count
+      const guestCount = parseInt(formData.guests);
+      const { data: availableTables, error: tableError } = await supabase
+        .from('restaurant_tables')
+        .select('*')
+        .eq('status', 'free')
+        .gte('capacity', guestCount)
+        .order('capacity', { ascending: true }); // Get the smallest table that fits
+
+      if (tableError) throw tableError;
+
+      let assignedTableId = null;
+      let assignedTableNumber = 'TBD';
+
+      if (availableTables && availableTables.length > 0) {
+        const table = availableTables[0];
+        assignedTableId = table.id;
+        assignedTableNumber = table.table_number;
+
+        // 2. Mark the table as reserved
+        await supabase
+          .from('restaurant_tables')
+          .update({ status: 'reserved' })
+          .eq('id', assignedTableId);
+      }
+
+      // 3. Save reservation to reservations_main
+      const payload = {
+        customer_name: formData.name,
+        email: formData.email,
+        phone_number: formData.phone,
+        guests_count: guestCount,
+        reservation_date: formData.date,
+        reservation_time: formData.time,
+        special_requests: formData.requests,
+        table_id: assignedTableId,
+        table_number: assignedTableNumber,
+        source: 'Web Form',
+        status: 'confirmed'
+      };
+
+      const { error: resError } = await supabase
+        .from('reservations_main')
+        .insert([payload]);
+
+      if (resError) throw resError;
+
+      // 4. Optional: Notify n8n for email confirmation
+      fetch("https://bokafynaveed.app.n8n.cloud/webhook/book-table", {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
-      });
-      
-      if (response.ok) {
-        setStatus('success');
-      } else {
-        setStatus('error');
-      }
+      }).catch(e => console.warn("n8n notification failed", e));
+
+      setStatus('success');
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Reservation Error:', error);
       setStatus('error');
     }
   };
