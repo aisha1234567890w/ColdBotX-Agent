@@ -48,57 +48,51 @@ export default function Overview() {
 
   const fetchRealTimeData = async () => {
     try {
-      const today = new Date().toISOString().split('T')[0];
-      const now = new Date().toTimeString().split(' ')[0].substring(0, 5); // "HH:MM"
-
       const { data: reservations, error } = await supabase
         .from('reservations_main')
         .select('*');
 
       if (error) throw error;
 
-      // Calculate Today's Reservations using Local ISO string to avoid timezone shifts
+      // Robust Date Logic
       const localNow = new Date();
       const localTodayStr = new Date(localNow.getTime() - (localNow.getTimezoneOffset() * 60000))
         .toISOString()
-        .split('T')[0]; // "YYYY-MM-DD"
+        .split('T')[0];
 
-      const todayRes = reservations.filter(r => {
-        if (!r.reservation_date) return false;
-        // Match either YYYY-MM-DD or standard Date string
-        const rDate = r.reservation_date.includes('T') ? r.reservation_date.split('T')[0] : r.reservation_date;
-        return rDate === localTodayStr;
-      });
+      const todayRes = [];
+      const upcomingRes = [];
 
-      const upcomingRes = reservations.filter(r => {
-        if (!r.reservation_date) return false;
+      reservations.forEach(r => {
+        if (!r.reservation_date) return;
         const rDate = r.reservation_date.includes('T') ? r.reservation_date.split('T')[0] : r.reservation_date;
         
+        // Time parsing
+        const resTime = r.reservation_time || '';
+        let resHour = parseInt(resTime);
+        if (resTime.toLowerCase().includes('pm') && resHour < 12) resHour += 12;
+        if (resTime.toLowerCase().includes('am') && resHour === 12) resHour = 0;
+
         if (rDate === localTodayStr) {
-           // If today, check if time is in future
-           const resTime = r.reservation_time || '';
-           let resHour = parseInt(resTime);
-           if (resTime.toLowerCase().includes('pm') && resHour < 12) resHour += 12;
-           if (resTime.toLowerCase().includes('am') && resHour === 12) resHour = 0;
-           return resHour > localNow.getHours();
+          todayRes.push(r);
+          if (resHour > localNow.getHours()) {
+            upcomingRes.push(r);
+          }
+        } else if (rDate > localTodayStr) {
+          upcomingRes.push(r);
         }
-        return rDate > localTodayStr;
       });
 
-      // Calculate Revenue Estimate (Basis: Avg PKR 4,500 per guest)
+      // Stats calculation
       const todayRevenue = todayRes.reduce((acc, r) => acc + (parseInt(r.guests_count || 0) * 4500), 0);
 
-      // Calculate peak hour based on all historical reservations
       const timeFreq = {};
       reservations.forEach(r => {
         const timeStr = r.reservation_time || '';
         let hour = parseInt(timeStr);
         if (isNaN(hour)) return;
-        
-        // Handle AM/PM
         if (timeStr.toLowerCase().includes('pm') && hour < 12) hour += 12;
         if (timeStr.toLowerCase().includes('am') && hour === 12) hour = 0;
-        
         timeFreq[hour] = (timeFreq[hour] || 0) + 1;
       });
       
@@ -108,29 +102,13 @@ export default function Overview() {
       const hour12 = peakHourNum % 12 || 12;
       const peakHour = `${hour12} ${ampm}`;
 
-      const { data: tablesData, error: tablesError } = await supabase
-        .from('restaurant_tables')
-        .select('*');
-
-      if (tablesError) console.error(tablesError);
-
+      const { data: tablesData } = await supabase.from('restaurant_tables').select('*');
       const totalTables = tablesData ? tablesData.length : 20; 
-      
-      // Calculate real occupied tables
       const manualOccupied = tablesData ? tablesData.filter(t => 
-        t.status?.toLowerCase() !== 'available' && 
-        t.status?.toLowerCase() !== 'free' &&
-        t.status?.toLowerCase() !== ''
+        t.status?.toLowerCase() !== 'available' && t.status?.toLowerCase() !== 'free' && t.status?.toLowerCase() !== ''
       ).length : 0;
       
-      const bookedToday = todayRes.length;
-      const actualOccupied = Math.max(manualOccupied, bookedToday);
-
-      // Alerts
-      const alerts = [];
-      if (todayRes.length > 20) alerts.push({ type: 'warning', text: 'High volume expected today.' });
-      if (actualOccupied >= 15) alerts.push({ type: 'critical', text: 'Restaurant is nearing full capacity.' });
-      if (alerts.length === 0) alerts.push({ type: 'success', text: 'All operations running smoothly.' });
+      const actualOccupied = Math.max(manualOccupied, todayRes.length);
 
       setStats({
         todayReservations: todayRes.length,
@@ -139,11 +117,11 @@ export default function Overview() {
         availableTables: totalTables - actualOccupied,
         peakHour,
         todayRevenue,
-        alerts
+        alerts: todayRes.length > 20 ? [{ type: 'warning', text: 'High volume today.' }] : [{ type: 'success', text: 'All operations running smoothly.' }]
       });
 
     } catch (err) {
-      console.error("Error fetching overview data:", err);
+      console.error("Sync Error:", err);
     } finally {
       setLoading(false);
     }
