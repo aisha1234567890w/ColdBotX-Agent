@@ -285,27 +285,41 @@ export default function Tables() {
   };
 
   const handleDeleteTable = async (id) => {
+    if (!id) return;
+    const numericId = Number(id);
+    
     try {
       setLoading(true);
-      // 1. Unlink from reservations first (Fixes Foreign Key Violation)
+      console.log(`Starting delete process for table ID: ${numericId}`);
+      
+      const targetTable = tables.find(t => Number(t.id) === numericId);
+      const tNum = targetTable?.table_number || 0;
+
+      // 1. Broad Unlink: Clear both ID and Number references in reservations
       const { error: unlinkError } = await supabase
         .from('reservations_main')
         .update({ table_id: null })
-        .eq('table_id', id);
+        .or(`table_id.eq.${numericId},table_number.eq.${tNum}`);
       
       if (unlinkError) console.warn("Unlink warning:", unlinkError);
 
-      // 2. Delete the actual table
-      const { error } = await supabase.from('restaurant_tables').delete().eq('id', id);
+      // 2. The Final Deletion
+      const { error, count } = await supabase
+        .from('restaurant_tables')
+        .delete({ count: 'exact' })
+        .eq('id', numericId);
       
-      if (!error) {
-        setTables(prev => prev.filter(t => t.id !== id));
-      } else {
-        alert("🛑 Database Error: " + error.message);
+      if (error) {
+        throw error;
       }
+
+      // Success
+      setTables(prev => prev.filter(t => Number(t.id) !== numericId));
+      alert("✅ Success: Table has been permanently removed.");
+      
     } catch (err) {
-      alert("❌ System Error: " + err.message);
-      console.error(err);
+      alert("🛑 Deletion Failed: " + (err.message || "Unknown Database Error"));
+      console.error('Delete Error Detail:', err);
     } finally {
       setLoading(false);
     }
