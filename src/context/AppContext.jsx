@@ -56,6 +56,15 @@ export const AppProvider = ({ children }) => {
     localStorage.setItem('aifur_offer', code);
   };
 
+  const clearCart = () => {
+    setCart([]);
+    localStorage.removeItem('aifur_cart');
+  };
+
+  const getSubtotal = () => cart.reduce((acc, item) => acc + (item.price * (item.quantity || 1)), 0);
+  const getDiscount = () => appliedOffer === 'WELCOME20' ? getSubtotal() * 0.2 : 0;
+  const getTotal = () => getSubtotal() - getDiscount();
+
   return (
     <AppContext.Provider value={{ 
       cart, 
@@ -64,7 +73,11 @@ export const AppProvider = ({ children }) => {
       addToCart, 
       removeFromCart, 
       toggleFavorite, 
-      claimOffer 
+      claimOffer,
+      clearCart,
+      getSubtotal,
+      getDiscount,
+      getTotal
     }}>
       {children}
     </AppContext.Provider>

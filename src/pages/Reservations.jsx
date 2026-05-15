@@ -53,11 +53,23 @@ const BookingForm = () => {
     setStatus('sending');
     const N8N_WEBHOOK_URL = "https://bokafynaveed.app.n8n.cloud/webhook/book-table"; 
     
+    // Mapping form fields to Supabase schema names found in the Admin Dashboard
+    const payload = {
+      ...formData,
+      customer_name: formData.name,
+      phone_number: formData.phone,
+      guests_count: formData.guests,
+      reservation_date: formData.date,
+      reservation_time: formData.time,
+      source: 'Web Form',
+      status: 'pending'
+    };
+
     try {
       const response = await fetch(N8N_WEBHOOK_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(payload)
       });
       
       if (response.ok) {

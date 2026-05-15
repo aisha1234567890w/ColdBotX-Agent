@@ -28,12 +28,15 @@ import { motion, AnimatePresence } from "framer-motion";
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const { cart, favorites, appliedOffer, addToCart, removeFromCart, toggleFavorite, claimOffer } = useApp();
+  const { 
+    cart, favorites, appliedOffer, addToCart, removeFromCart, 
+    toggleFavorite, claimOffer, getSubtotal, getDiscount, getTotal, clearCart 
+  } = useApp();
   const [user, setUser] = useState(null);
   const [reservations, setReservations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isFirstTime, setIsFirstTime] = useState(true);
-  const [showOfferSuccess, setShowOfferSuccess] = useState(false);
+  const [showCheckoutSuccess, setShowCheckoutSuccess] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -42,15 +45,25 @@ export default function Dashboard() {
       setUser(storedUser);
 
       try {
-        // Fetching from Supabase based on logged-in user email
+        // Fetching from Supabase based on CUSTOMER NAME since email might not be in the table
+        // We try both name and customer_name to be safe with different schemas
         const { data, error } = await supabase
           .from('reservations_main')
           .select('*')
-          .eq('email', storedUser.email)
-          .order('date', { ascending: false });
+          .or(`customer_name.eq."${storedUser.name}",name.eq."${storedUser.name}"`)
+          .order('id', { ascending: false });
         
-        if (error) throw error;
-        setReservations(data || []);
+        if (error) {
+          console.warn("Supabase fetch error (schema mismatch?), falling back to email check...");
+          const { data: emailData } = await supabase
+            .from('reservations_main')
+            .select('*')
+            .eq('email', storedUser.email);
+          if (emailData) setReservations(emailData);
+        } else {
+          setReservations(data || []);
+        }
+        
         setIsFirstTime((data || []).length === 0);
       } catch (err) {
         console.error("Dashboard fetch error:", err);
@@ -69,8 +82,14 @@ export default function Dashboard() {
 
   const handleClaimOffer = () => {
     claimOffer('WELCOME20');
-    setShowOfferSuccess(true);
-    setTimeout(() => setShowOfferSuccess(false), 3000);
+  };
+
+  const handleCheckout = () => {
+    setShowCheckoutSuccess(true);
+    setTimeout(() => {
+      setShowCheckoutSuccess(false);
+      clearCart();
+    }, 3000);
   };
 
   // Real data from menuData for "Popular Picks"
@@ -94,6 +113,38 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 transition-colors duration-300">
       
+      {/* Checkout Success Overlay */}
+      <AnimatePresence>
+        {showCheckoutSuccess && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-6"
+          >
+            <motion.div 
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              className="bg-white dark:bg-gray-900 rounded-[3rem] p-12 text-center max-w-sm shadow-2xl border border-indigo-100 dark:border-indigo-500/20"
+            >
+              <div className="w-24 h-24 bg-emerald-100 dark:bg-emerald-500/10 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner">
+                <CheckCircle2 size={48} />
+              </div>
+              <h3 className="text-3xl font-black mb-4">Order Placed!</h3>
+              <p className="text-gray-500 font-medium mb-8">Your culinary journey has begun. We'll notify you when it's ready.</p>
+              <div className="h-1 w-full bg-gray-100 dark:bg-white/10 rounded-full overflow-hidden">
+                <motion.div 
+                  initial={{ width: 0 }}
+                  animate={{ width: "100%" }}
+                  transition={{ duration: 3 }}
+                  className="h-full bg-emerald-500"
+                />
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* 1. Welcome Banner */}
       <section className="bg-white dark:bg-gray-900 pt-32 pb-12 border-b border-gray-100 dark:border-gray-800">
         <div className="max-w-7xl mx-auto px-6">
@@ -188,20 +239,22 @@ export default function Dashboard() {
                     </div>
                     <div className="flex-1 space-y-2 text-center md:text-left">
                       <div className="text-3xl font-black text-indigo-600">
-                        {new Date(reservations[0].date).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })} <span className="text-gray-400 font-medium">@</span> {reservations[0].time}
+                        {new Date(reservations[0].reservation_date || reservations[0].date).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })} <span className="text-gray-400 font-medium">@</span> {reservations[0].reservation_time || reservations[0].time}
                       </div>
                       <div className="flex flex-wrap justify-center md:justify-start gap-4 text-xs font-bold text-gray-500 uppercase tracking-widest">
-                        <span className="flex items-center gap-1"><Users size={14} /> {reservations[0].guests} Guests</span>
+                        <span className="flex items-center gap-1"><Users size={14} /> {reservations[0].guests_count || reservations[0].guests} Guests</span>
                         <span className="flex items-center gap-1"><MapPin size={14} /> Main Lounge</span>
                       </div>
                       <div className="pt-4 flex gap-3 justify-center md:justify-start">
-                        <span className="px-3 py-1 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 text-[10px] font-black rounded-lg uppercase tracking-widest border border-emerald-100 dark:border-emerald-500/20">Confirmed</span>
+                        <span className={`px-3 py-1 ${reservations[0].status === 'confirmed' ? 'bg-emerald-50 text-emerald-600' : 'bg-orange-50 text-orange-600'} dark:bg-white/10 text-[10px] font-black rounded-lg uppercase tracking-widest border border-gray-100`}>
+                          {reservations[0].status || 'Confirmed'}
+                        </span>
                       </div>
                     </div>
                   </div>
                 ) : (
                   <div className="text-center py-12">
-                    <p className="text-gray-400 font-medium mb-4">No reservations found for {user?.email}</p>
+                    <p className="text-gray-400 font-medium mb-4">No reservations found for {user?.name}</p>
                     <Link to="/reservations" className="text-indigo-600 font-black text-xs uppercase tracking-widest border-b-2 border-indigo-600 pb-1">Book a Table Now</Link>
                   </div>
                 )}
@@ -299,7 +352,7 @@ export default function Dashboard() {
                  <div className="space-y-4">
                    <div className="max-h-[300px] overflow-y-auto space-y-3 pr-2 scrollbar-thin">
                      {cart.map((item, i) => (
-                       <div key={i} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-white/5 rounded-2xl group relative">
+                       <div key={i} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-white/5 rounded-2xl group relative text-gray-900 dark:text-white">
                          <img src={item.image} className="w-12 h-12 rounded-xl object-cover" alt="" />
                          <div className="flex-1 min-w-0">
                            <h5 className="text-[10px] font-black truncate uppercase tracking-widest">{item.name}</h5>
@@ -314,12 +367,27 @@ export default function Dashboard() {
                        </div>
                      ))}
                    </div>
-                   <div className="pt-4 border-t border-gray-100 dark:border-gray-800 space-y-4">
+                   <div className="pt-4 border-t border-gray-100 dark:border-gray-800 space-y-2">
                      <div className="flex justify-between items-center">
-                       <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Total</span>
-                       <span className="text-lg font-black">PKR {cart.reduce((acc, item) => acc + (item.price * (item.quantity || 1)), 0).toLocaleString()}</span>
+                       <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Subtotal</span>
+                       <span className="text-sm font-bold">PKR {getSubtotal().toLocaleString()}</span>
                      </div>
-                     <button className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-500/20">Checkout Now</button>
+                     {getDiscount() > 0 && (
+                       <div className="flex justify-between items-center text-emerald-500">
+                         <span className="text-[10px] font-black uppercase tracking-widest">Discount (20%)</span>
+                         <span className="text-sm font-bold">- PKR {getDiscount().toLocaleString()}</span>
+                       </div>
+                     )}
+                     <div className="flex justify-between items-center pt-2">
+                       <span className="text-[10px] font-black uppercase tracking-widest text-gray-900 dark:text-white">Total</span>
+                       <span className="text-lg font-black text-indigo-600">PKR {getTotal().toLocaleString()}</span>
+                     </div>
+                     <button 
+                       onClick={handleCheckout}
+                       className="w-full mt-4 py-4 bg-indigo-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-500/20"
+                     >
+                       Checkout Now
+                     </button>
                    </div>
                  </div>
                ) : (
