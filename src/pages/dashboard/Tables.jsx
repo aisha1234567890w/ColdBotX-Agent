@@ -307,7 +307,7 @@ export default function Tables() {
       const { error: unlinkError } = await supabase
         .from('reservations_main')
         .update({ table_id: null })
-        .or(`table_id.eq.${tableId}${tNum ? `,table_number.eq.${tNum}` : ''}`);
+        .or(`table_id.eq.${tableId}${tNum != null ? `,table_number.eq.${tNum}` : ''}`);
       
       if (unlinkError) {
         console.warn("Reservation unlink warning:", unlinkError.message);
