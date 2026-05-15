@@ -14,12 +14,13 @@ const COLORS = ['#4F46E5', '#10B981', '#8B5CF6', '#F59E0B', '#EC4899'];
 
 export default function Analytics() {
   const [loading, setLoading] = useState(true);
+  const [timeRange, setTimeRange] = useState('30'); // '30' or 'all'
   const [metrics, setMetrics] = useState({
     totalRevenue: 0,
     totalGuests: 0,
     avgCheck: 0,
-    retentionRate: 0,
-    growth: 12.5 // Simulated growth trend
+    peakOccupancy: 0,
+    growth: 8.2
   });
   const [data, setData] = useState({
     peakHours: [],
@@ -30,64 +31,66 @@ export default function Analytics() {
 
   useEffect(() => {
     fetchAnalytics();
-  }, []);
+  }, [timeRange]);
 
   const fetchAnalytics = async () => {
+    setLoading(true);
     try {
-      // Fetch Reservations
-      const { data: reservations, error: resError } = await supabase
-        .from('reservations_main')
-        .select('*');
+      // Build Query
+      let query = supabase.from('reservations_main').select('*');
+      
+      if (timeRange === '30') {
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        query = query.gte('reservation_date', thirtyDaysAgo.toISOString().split('T')[0]);
+      }
 
-      // Fetch Menu Overrides for price calculation
-      const { data: menuItems, error: menuError } = await supabase
-        .from('menu_overrides')
-        .select('price');
+      const { data: reservations, error: resError } = await query;
+      const { data: menuItems } = await supabase.from('menu_overrides').select('price');
 
       if (resError) throw resError;
+      if (!reservations) return;
 
-      // 1. Calculate Revenue (Estimated)
-      // We take avg menu price or a default (e.g., 1500 PKR)
-      const avgPrice = menuItems && menuItems.length > 0 
+      // 1. Calculations
+      const avgPrice = menuItems?.length > 0 
         ? menuItems.reduce((a, b) => a + (b.price || 0), 0) / menuItems.length 
         : 1500;
       
       const totalGuests = reservations.reduce((sum, r) => sum + (parseInt(r.guests_count) || 0), 0);
       const estimatedRevenue = totalGuests * avgPrice;
 
-      // 2. Loyalty Breakdown
+      // 2. Loyalty & Trends
+      const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const dayCounts = { Mon: 0, Tue: 0, Wed: 0, Thu: 0, Fri: 0, Sat: 0, Sun: 0 };
+      const hourCounts = {};
       const phoneVisits = {};
+
       reservations.forEach(r => {
+        // Day Trend
+        const dayName = days[new Date(r.reservation_date).getDay()];
+        dayCounts[dayName] += 1;
+
+        // Hour Peak
+        if (r.reservation_time) {
+          const hour = r.reservation_time.substring(0, 2) + ':00';
+          hourCounts[hour] = (hourCounts[hour] || 0) + (parseInt(r.guests_count) || 1);
+        }
+
+        // Phone for Loyalty
         const phone = r.phone_number || 'unknown';
         phoneVisits[phone] = (phoneVisits[phone] || 0) + 1;
       });
+
       const vips = Object.values(phoneVisits).filter(v => v >= 3).length;
       const regulars = Object.values(phoneVisits).filter(v => v === 2).length;
       const newcomers = Object.values(phoneVisits).filter(v => v === 1).length;
-
-      // 3. Day-wise Trends
-      const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-      const dayCounts = { Mon: 0, Tue: 0, Wed: 0, Thu: 0, Fri: 0, Sat: 0, Sun: 0 };
-      reservations.forEach(r => {
-        const dayName = days[new Date(r.reservation_date).getDay()];
-        dayCounts[dayName] += 1;
-      });
-
-      // 4. Peak Hours
-      const hourCounts = {};
-      reservations.forEach(r => {
-        if (r.reservation_time) {
-          const hour = r.reservation_time.substring(0, 2) + ':00';
-          hourCounts[hour] = (hourCounts[hour] || 0) + 1;
-        }
-      });
 
       setMetrics({
         totalRevenue: estimatedRevenue,
         totalGuests,
         avgCheck: avgPrice,
-        retentionRate: ((vips + regulars) / Object.keys(phoneVisits).length * 100).toFixed(1),
-        growth: 8.2
+        peakOccupancy: Math.max(...Object.values(hourCounts), 0),
+        growth: timeRange === '30' ? 12.5 : 0
       });
 
       setData({
@@ -142,8 +145,18 @@ export default function Analytics() {
           </p>
         </div>
         <div className="flex bg-white dark:bg-white/5 p-1.5 rounded-2xl border border-gray-100 dark:border-white/10">
-          <button className="px-6 py-2 bg-indigo-600 text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-lg shadow-indigo-500/20">Last 30 Days</button>
-          <button className="px-6 py-2 text-gray-500 rounded-xl text-xs font-black uppercase tracking-widest hover:text-indigo-600 transition-colors">Lifetime</button>
+          <button 
+            onClick={() => setTimeRange('30')}
+            className={`px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${timeRange === '30' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'text-gray-500 hover:text-indigo-600'}`}
+          >
+            Last 30 Days
+          </button>
+          <button 
+            onClick={() => setTimeRange('all')}
+            className={`px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${timeRange === 'all' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'text-gray-500 hover:text-indigo-600'}`}
+          >
+            Lifetime
+          </button>
         </div>
       </div>
 

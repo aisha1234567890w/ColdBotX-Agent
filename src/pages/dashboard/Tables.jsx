@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { 
-  Plus, MoreVertical, Clock, Check, X, Bell, Trash2
+  Plus, MoreVertical, Clock, Check, X, Bell, Trash2, Users, RefreshCcw, Maximize2, LayoutGrid
 } from 'lucide-react';
 import { supabase } from '../../utils/supabaseClient';
 import { useTheme } from '../../context/ThemeContext';
@@ -101,7 +101,7 @@ const TableCard = ({ table, theme, onUpdateStatus, onDelete }) => {
           isReserved ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400' : 
           'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
         }`}>
-          <TableIcon size={24} />
+          <LayoutGrid size={24} />
         </div>
         
         <div className="flex flex-wrap items-center justify-end gap-1.5 relative max-w-[140px]">
