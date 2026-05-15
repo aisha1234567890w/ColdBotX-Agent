@@ -42,6 +42,15 @@ const BookingForm = () => {
     }
     if (!formData.time) {
       newErrors.time = "Please select a time";
+    } else {
+      const [hours, minutes] = formData.time.split(':').map(Number);
+      const totalMinutes = hours * 60 + minutes;
+      const openTime = 11 * 60; // 11:00 AM
+      const closeTime = 23 * 60; // 11:00 PM
+      
+      if (totalMinutes < openTime || totalMinutes > closeTime) {
+        newErrors.time = "We are open from 11:00 AM to 11:00 PM only";
+      }
     }
 
     setErrors(newErrors);
@@ -57,57 +66,60 @@ const BookingForm = () => {
     try {
       // 1. Find an available table that fits the guest count
       const guestCount = parseInt(formData.guests);
-      const { data: availableTables, error: tableError } = await supabase
-        .from('restaurant_tables')
-        .select('*')
-        .eq('status', 'free')
-        .gte('capacity', guestCount)
-        .order('capacity', { ascending: true }); // Get the smallest table that fits
-
-      if (tableError) throw tableError;
-
       let assignedTableId = null;
       let assignedTableNumber = 'TBD';
 
-      if (availableTables && availableTables.length > 0) {
-        const table = availableTables[0];
-        assignedTableId = table.id;
-        assignedTableNumber = table.table_number;
-
-        // 2. Mark the table as reserved
-        await supabase
+      try {
+        const { data: availableTables, error: tableError } = await supabase
           .from('restaurant_tables')
-          .update({ status: 'reserved' })
-          .eq('id', assignedTableId);
+          .select('*')
+          .eq('status', 'free')
+          .gte('capacity', guestCount)
+          .order('capacity', { ascending: true });
+
+        if (!tableError && availableTables && availableTables.length > 0) {
+          const table = availableTables[0];
+          assignedTableId = table.id;
+          assignedTableNumber = table.table_number;
+
+          // 2. Mark the table as reserved
+          await supabase
+            .from('restaurant_tables')
+            .update({ status: 'reserved' })
+            .eq('id', assignedTableId);
+        }
+      } catch (err) {
+        console.warn("Table assignment failed but continuing with reservation", err);
       }
 
       // 3. Save reservation to reservations_main
       const payload = {
-        // Primary Columns (from screenshot/dashboard)
+        // Primary Columns
         customer_name: formData.name,
         name: formData.name,
         phone_number: formData.phone,
         phone: formData.phone,
         email: formData.email,
         
-        // Date/Time variations to be safe
+        // Date/Time
         reservation_date: formData.date,
         date: formData.date,
         reservation_time: formData.time,
         time: formData.time,
         
-        // Guest count variations
+        // Guest count
         guests_count: guestCount,
         guests: guestCount,
         
-        // Table info
-        table_id: assignedTableId,
-        table_number: assignedTableNumber,
-        special_requests: formData.requests,
-        
+        // Source & Status
         source: 'Web Form',
-        status: 'confirmed'
+        status: 'confirmed',
+        special_requests: formData.requests
       };
+
+      // Add table info only if we found one
+      if (assignedTableId) payload.table_id = assignedTableId;
+      if (assignedTableNumber) payload.table_number = assignedTableNumber;
 
       const { error: resError } = await supabase
         .from('reservations_main')
