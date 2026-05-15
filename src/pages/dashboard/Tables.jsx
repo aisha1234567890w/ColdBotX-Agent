@@ -131,33 +131,33 @@ export default function Tables() {
   const fetchTables = async () => {
     setLoading(true);
     try {
-      let query = supabase.from('restaurant_tables').select('*');
-      const { data, error } = await query.order('table_number', { ascending: true });
+      const { data, error } = await supabase
+        .from('restaurant_tables')
+        .select('*')
+        .order('table_number', { ascending: true });
       
-      if (error || !data || data.length === 0) {
-        // Fallback to local 20 tables if Supabase fails or is empty, so UI is perfectly functional
-        const localTables = Array.from({ length: 20 }, (_, i) => ({
-          id: i + 1,
-          table_number: i + 1,
-          capacity: i % 3 === 0 ? 6 : i % 2 === 0 ? 2 : 4,
-          status: 'Available'
-        }));
-        setTables(localTables);
-      } else {
+      if (error) throw error;
+
+      if (data && data.length > 0) {
         const mappedData = data.map(t => {
+           const s = (t.status || '').toLowerCase();
            let formattedStatus = 'Available';
-           if (t.status === 'occupied') formattedStatus = 'Occupied';
-           if (t.status === 'reserved') formattedStatus = 'Reserved';
+           if (s === 'occupied' || s === 'busy') formattedStatus = 'Occupied';
+           else if (s === 'reserved' || s === 'booked') formattedStatus = 'Reserved';
+           else if (s === 'free' || s === 'available') formattedStatus = 'Available';
+           
            return { ...t, status: formattedStatus };
         });
         setTables(mappedData);
+      } else {
+        // Only if table is actually empty in DB, we create 20 default rows
+        const localTables = Array.from({ length: 20 }, (_, i) => ({
+          id: i + 1, table_number: i + 1, capacity: 4, status: 'Available'
+        }));
+        setTables(localTables);
       }
     } catch (err) {
-      console.warn('Falling back to local tables');
-      const localTables = Array.from({ length: 20 }, (_, i) => ({
-        id: i + 1, table_number: i + 1, capacity: 4, status: 'Available'
-      }));
-      setTables(localTables);
+      console.error('Supabase Table Fetch Error:', err);
     } finally {
       setLoading(false);
     }
