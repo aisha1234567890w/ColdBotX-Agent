@@ -117,7 +117,7 @@ export default function DashboardLayout() {
                <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-xl shadow-indigo-500/20">
                  <UtensilsCrossed size={20} />
                </div>
-               <span className="text-xl font-black tracking-tighter">Aifur Admin Pro</span>
+               <span className="text-xl font-black tracking-tighter text-indigo-600">Aifur Admin v1.5</span>
             </Link>
           ) : (
             <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center mx-auto text-white shadow-xl">
