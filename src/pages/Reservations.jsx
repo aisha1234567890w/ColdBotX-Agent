@@ -83,15 +83,28 @@ const BookingForm = () => {
 
       // 3. Save reservation to reservations_main
       const payload = {
+        // Primary Columns (from screenshot/dashboard)
         customer_name: formData.name,
-        email: formData.email,
+        name: formData.name,
         phone_number: formData.phone,
-        guests_count: guestCount,
+        phone: formData.phone,
+        email: formData.email,
+        
+        // Date/Time variations to be safe
         reservation_date: formData.date,
+        date: formData.date,
         reservation_time: formData.time,
-        special_requests: formData.requests,
+        time: formData.time,
+        
+        // Guest count variations
+        guests_count: guestCount,
+        guests: guestCount,
+        
+        // Table info
         table_id: assignedTableId,
         table_number: assignedTableNumber,
+        special_requests: formData.requests,
+        
         source: 'Web Form',
         status: 'confirmed'
       };
@@ -100,7 +113,10 @@ const BookingForm = () => {
         .from('reservations_main')
         .insert([payload]);
 
-      if (resError) throw resError;
+      if (resError) {
+        console.error("Supabase Insertion Error Detail:", resError);
+        throw resError;
+      }
 
       // 4. Optional: Notify n8n for email confirmation
       fetch("https://bokafynaveed.app.n8n.cloud/webhook/book-table", {
