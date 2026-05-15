@@ -52,16 +52,32 @@ const TableCard = ({ table, theme, onUpdateStatus }) => {
     }
 
     try {
-      // 1. Core Table Status Update (Fast)
+      // 1. Core Table Status Update
       const { error } = await supabase
         .from('restaurant_tables')
         .update(updateData)
         .eq('id', table.id);
       
-      if (!error) {
-        onUpdateStatus(table.id, newStatus, dbStatus === 'occupied' ? nowStr : null);
+      if (error) {
+        // Fallback: If status column is missing, update only known columns
+        console.warn("Retrying safe update...");
+        const safeData = { 
+          available: updateData.available, 
+          occupied_at: updateData.occupied_at,
+          reserved_date: updateData.reserved_date,
+          reserved_time: updateData.reserved_time,
+          seated_at: updateData.seated_at
+        };
+        const { error: secondError } = await supabase
+          .from('restaurant_tables')
+          .update(safeData)
+          .eq('id', table.id);
+        
+        if (secondError) throw secondError;
       }
-
+      
+      onUpdateStatus(table.id, newStatus, updateData.occupied_at);
+      
       // 2. Secondary Reservation Update (Non-blocking)
       if (dbStatus === 'free') {
         supabase
@@ -74,6 +90,7 @@ const TableCard = ({ table, theme, onUpdateStatus }) => {
           });
       }
     } catch (err) {
+      alert('Update Failed: ' + (err.message || 'Unknown error'));
       console.error('Update Error:', err);
     }
   };
