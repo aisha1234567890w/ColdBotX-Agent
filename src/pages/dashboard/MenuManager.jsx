@@ -113,57 +113,10 @@ export default function MenuManagement() {
     return baseItems;
   };
 
-  const handleDelete = (itemId) => {
-    if (!confirm('Are you sure you want to delete this dish? It will be removed from the main website.')) return;
-    
-    const newState = JSON.parse(JSON.stringify(menuState));
-    if (activeCategory === 'deals') {
-      newState.deals = newState.deals.filter(i => i.id !== itemId);
-    } else {
-      newState[activeCategory][activeSub] = newState[activeCategory][activeSub].filter(i => i.id !== itemId);
-    }
-    saveMenu(newState);
-  };
-
   const handleEdit = (item) => {
     setEditingItem(item);
     setFormData(item);
     setIsModalOpen(true);
-  };
-
-  const handleAddNew = () => {
-    setEditingItem(null);
-    setFormData({
-      id: `item_${Date.now()}`,
-      name: '', description: '', price: 0, 
-      image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c', 
-      isAvailable: true, spiceLevel: 0
-    });
-    setIsModalOpen(true);
-  };
-
-  const handleSaveModal = () => {
-    const newState = JSON.parse(JSON.stringify(menuState));
-    
-    if (editingItem) {
-      // Update existing
-      if (activeCategory === 'deals') {
-        newState.deals = newState.deals.map(i => i.id === formData.id ? formData : i);
-      } else {
-        newState[activeCategory][activeSub] = newState[activeCategory][activeSub].map(i => i.id === formData.id ? formData : i);
-      }
-    } else {
-      // Add new
-      if (activeCategory === 'deals') {
-        newState.deals.push(formData);
-      } else {
-        if (!newState[activeCategory][activeSub]) newState[activeCategory][activeSub] = [];
-        newState[activeCategory][activeSub].push(formData);
-      }
-    }
-    
-    saveMenu(newState);
-    setIsModalOpen(false);
   };
 
   const items = getItems().map((item, idx) => ({
