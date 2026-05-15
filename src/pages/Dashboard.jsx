@@ -129,11 +129,12 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 transition-colors duration-300 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-gray-950 dark:via-gray-900 dark:to-indigo-950 transition-colors duration-300 relative overflow-hidden">
       
-      {/* Decorative background blobs for "Color Pop" */}
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-500/10 dark:bg-indigo-500/5 rounded-full blur-[120px] -mr-64 -mt-64 animate-pulse"></div>
-      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-purple-500/10 dark:bg-purple-500/5 rounded-full blur-[120px] -ml-64 -mb-64"></div>
+      {/* Decorative Mesh Gradients */}
+      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-500/10 rounded-full blur-[120px] animate-pulse"></div>
+      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-500/10 rounded-full blur-[120px]"></div>
+      <div className="absolute top-[20%] right-[10%] w-[30%] h-[30%] bg-pink-500/5 rounded-full blur-[100px] animate-bounce-slow"></div>
       
       {/* Phone Number Modal */}
       <AnimatePresence>
@@ -190,8 +191,8 @@ export default function Dashboard() {
         )}
       </AnimatePresence>
 
-      {/* 1. Welcome Banner */}
-      <section className="bg-white dark:bg-gray-900 pt-32 pb-12 border-b border-gray-100 dark:border-gray-800">
+      {/* 1. Welcome Banner - Mesh Gradient Backdrop */}
+      <section className="bg-white/40 dark:bg-gray-900/40 backdrop-blur-3xl pt-32 pb-16 border-b border-white/20 dark:border-white/5 relative">
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
             <motion.div 
@@ -275,12 +276,8 @@ export default function Dashboard() {
               <div className="absolute bottom-0 left-0 w-96 h-96 bg-indigo-400/20 rounded-full blur-[100px] -ml-32 -mb-32"></div>
             </motion.div>
           ) : (
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="grid grid-cols-1 lg:grid-cols-3 gap-8"
-            >
-              <div className="lg:col-span-2 bg-white dark:bg-gray-900 rounded-[2.5rem] p-8 border border-gray-100 dark:border-gray-800 shadow-sm relative overflow-hidden group">
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="lg:col-span-2 bg-indigo-50/30 dark:bg-indigo-500/5 backdrop-blur-xl rounded-[3rem] p-10 border border-white/50 dark:border-white/5 shadow-2xl relative overflow-hidden group">
                 <div className="flex justify-between items-center mb-8 relative z-10">
                   <h3 className="text-xl font-black flex items-center gap-3">
                     <Calendar className="text-indigo-600" /> Recent Reservation
@@ -354,7 +351,7 @@ export default function Dashboard() {
                 <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50 dark:bg-indigo-500/5 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-700"></div>
               </div>
 
-              <div className="bg-white dark:bg-gray-900 rounded-[2.5rem] p-8 border border-gray-100 dark:border-gray-800 shadow-sm flex flex-col justify-center items-center text-center space-y-6">
+              <div className="bg-indigo-50/30 dark:bg-indigo-500/5 backdrop-blur-xl rounded-[3rem] p-8 border border-white/50 dark:border-white/5 shadow-2xl flex flex-col justify-center items-center text-center space-y-6">
                 <div className="w-20 h-20 rounded-full bg-amber-50 dark:bg-amber-500/10 flex items-center justify-center text-amber-600 shadow-xl shadow-amber-500/10">
                   <Star size={32} />
                 </div>
@@ -385,7 +382,7 @@ export default function Dashboard() {
             <Link 
               key={action.label} 
               to={action.to}
-              className="bg-white dark:bg-gray-900 p-8 rounded-[2.5rem] border border-gray-100 dark:border-white/5 shadow-sm hover:shadow-[0_20px_50px_rgba(0,0,0,0.1)] hover:-translate-y-2 transition-all group flex flex-col items-center gap-6 text-center"
+              className="bg-indigo-50/30 dark:bg-indigo-500/5 backdrop-blur-xl p-8 rounded-[2.5rem] border border-white/50 dark:border-white/5 shadow-sm hover:shadow-[0_20px_50px_rgba(0,0,0,0.1)] hover:-translate-y-2 transition-all group flex flex-col items-center gap-6 text-center"
             >
               <div className={`p-6 rounded-[2rem] bg-gradient-to-br ${action.color} text-white shadow-2xl ${action.shadow} group-hover:scale-110 transition-transform duration-500`}>
                 <action.icon size={32} />
@@ -412,7 +409,7 @@ export default function Dashboard() {
               {popularPicks.map((item, idx) => {
                 const isFav = favorites.some(f => f.name === item.name);
                 return (
-                  <div key={idx} className="bg-white dark:bg-gray-900 rounded-[2rem] overflow-hidden border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-xl transition-all group">
+                  <div key={idx} className="bg-indigo-50/30 dark:bg-indigo-500/5 backdrop-blur-xl rounded-[2.5rem] overflow-hidden border border-white/50 dark:border-white/5 shadow-sm hover:shadow-2xl transition-all group">
                     <div className="h-32 overflow-hidden relative">
                       <img src={item.image} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt={item.name} />
                       <button 
@@ -442,10 +439,10 @@ export default function Dashboard() {
           </div>
 
           <div className="space-y-8">
-            <h3 className="text-2xl font-black tracking-tight mb-8 flex items-center gap-3">
-              <ShoppingBag className="text-indigo-600" /> Your Cart {cart.length > 0 && <span className="bg-indigo-600 text-white text-[10px] px-2 py-0.5 rounded-full">{cart.length}</span>}
+            <h3 className="text-3xl font-black tracking-tighter flex items-center gap-4">
+               Cart {cart.length > 0 && <span className="bg-indigo-600 text-white text-xs px-3 py-1 rounded-full shadow-lg shadow-indigo-500/20">{cart.length}</span>}
             </h3>
-            <div className="bg-white dark:bg-gray-900 rounded-[2.5rem] p-6 border border-gray-100 dark:border-gray-800 shadow-sm">
+            <div className="bg-indigo-50/30 dark:bg-indigo-500/5 backdrop-blur-xl rounded-[3rem] p-8 border border-white/50 dark:border-white/5 shadow-2xl relative overflow-hidden">
                {cart.length > 0 ? (
                  <div className="space-y-4">
                    <div className="max-h-[300px] overflow-y-auto space-y-3 pr-2 scrollbar-thin">
