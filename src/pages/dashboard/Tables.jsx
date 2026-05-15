@@ -25,29 +25,48 @@ const TableCard = ({ table, theme, onUpdateStatus }) => {
     setMenuOpen(false);
     
     const dbStatus = newStatus === 'Available' ? 'free' : newStatus.toLowerCase();
-    const now = new Date().toISOString();
-    const updateData = { status: dbStatus };
+    const now = new Date();
+    const nowStr = now.toISOString();
+    const todayDate = nowStr.split('T')[0];
+    const currentTime = now.toLocaleTimeString('en-GB', { hour12: false }); // 24h format for DB
+
+    // Deep Sync with Supabase schema
+    const updateData = { 
+      status: dbStatus,
+      available: dbStatus === 'free'
+    };
     
     if (dbStatus === 'occupied') {
-      updateData.occupied_at = now;
+      updateData.occupied_at = nowStr;
+      updateData.seated_at = nowStr; // Filling seated_at as well
+    } else if (dbStatus === 'reserved') {
+      updateData.reserved_date = todayDate;
+      updateData.reserved_time = currentTime;
+      updateData.occupied_at = null;
     } else {
       updateData.occupied_at = null;
+      updateData.reserved_date = null;
+      updateData.reserved_time = null;
+      updateData.seated_at = null;
     }
 
     try {
+      // Direct update using table.id
       const { error } = await supabase
         .from('restaurant_tables')
         .update(updateData)
         .eq('id', table.id);
       
-      if (error && error.message.includes('occupied_at')) {
-        await supabase.from('restaurant_tables').update({ status: dbStatus }).eq('id', table.id);
+      if (!error) {
+        onUpdateStatus(table.id, newStatus, dbStatus === 'occupied' ? nowStr : null);
+      } else {
+        // Fallback: If status column is missing, try updating other columns only
+        const safeData = { available: updateData.available, occupied_at: updateData.occupied_at };
+        await supabase.from('restaurant_tables').update(safeData).eq('id', table.id);
+        onUpdateStatus(table.id, newStatus, dbStatus === 'occupied' ? nowStr : null);
       }
-      
-      // Update local state with both status AND timestamp so timer starts instantly
-      onUpdateStatus(table.id, newStatus, dbStatus === 'occupied' ? now : null);
     } catch (err) {
-      console.error('Sync Error:', err);
+      console.error('Deep Sync Error:', err);
     }
   };
 
