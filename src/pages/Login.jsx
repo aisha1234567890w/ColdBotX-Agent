@@ -51,8 +51,12 @@ export default function Login() {
 
       setIsLoading(false);
       
-      // Always redirect to User Dashboard first as requested
-      navigate("/user-dashboard");
+      // Redirect based on role
+      if (userProfile.role === 'manager') {
+        navigate("/admin-ops");
+      } else {
+        navigate("/user-dashboard");
+      }
 
     } catch (err) {
       console.error("Login error:", err);
