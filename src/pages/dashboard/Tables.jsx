@@ -128,8 +128,21 @@ const TableCard = ({ table, theme, onUpdateStatus }) => {
 
       <div className="mb-4">
         <h3 className="text-xl font-black mb-1">Table {table.table_number || table.id}</h3>
-        <div className="text-[10px] text-gray-500 font-bold uppercase tracking-widest flex items-center gap-2">
-          <Users size={10} /> {table.capacity || 4} Persons Max
+        <div className="space-y-1">
+          <div className="text-[10px] text-gray-500 font-bold uppercase tracking-widest flex items-center gap-2">
+            <Users size={10} /> {table.capacity || 4} Persons Max
+          </div>
+          {table.customer_name && (
+            <div className="text-[11px] font-black text-indigo-600 dark:text-indigo-400 flex items-center gap-2 bg-indigo-50/50 dark:bg-white/5 px-2 py-1 rounded-lg w-fit">
+              <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse"></span>
+              {table.customer_name}
+            </div>
+          )}
+          {table.reserved_time && (
+            <div className="text-[10px] text-gray-400 font-bold flex items-center gap-2">
+              <Clock size={10} /> {table.reserved_time} {table.reserved_date ? `(${table.reserved_date})` : ''}
+            </div>
+          )}
         </div>
       </div>
 
