@@ -17,7 +17,8 @@ import {
   LogOut,
   Menu as MenuIcon,
   X,
-  Plus
+  Plus,
+  AlertTriangle
 } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { supabase } from '../../utils/supabaseClient';
