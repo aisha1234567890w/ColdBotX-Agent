@@ -4,6 +4,7 @@ export const isManager = (userEmail) => {
     const managers = [
         'aishasadiqa441@gmail.com', 
         'ijazwajeeha6@gmail.com',
+        'naveedk09@gmail.com',
         'admin@aifur.com', 
         'manager@aifur.com',
         'aishaaltaf@gmail.com',

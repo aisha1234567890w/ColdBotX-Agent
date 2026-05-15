@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Navigate, Outlet } from 'react-router-dom';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { supabase } from '../utils/supabaseClient';
 import { isManager } from '../utils/auth';
 
 export default function ManagerRoute({ children }) {
     const [isAuth, setIsAuth] = useState(null); // null = loading
     const [isManagerUser, setIsManagerUser] = useState(false);
+    const location = useLocation();
 
     useEffect(() => {
         const checkAuth = async () => {
@@ -32,7 +33,8 @@ export default function ManagerRoute({ children }) {
     }
 
     if (!isAuth || !isManagerUser) {
-        return <Navigate to="/login" replace />;
+        // Redirect to login but save the current location so we can redirect back
+        return <Navigate to="/login" state={{ from: location }} replace />;
     }
 
     return children ? children : <Outlet />;

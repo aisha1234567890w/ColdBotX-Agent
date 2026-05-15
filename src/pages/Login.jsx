@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "../utils/supabaseClient";
 import { isManager } from "../utils/auth";
 
@@ -8,6 +8,7 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -35,8 +36,16 @@ export default function Login() {
 
       setIsLoading(false);
       
-      // Always redirect to User Dashboard first so managers can see the customer experience too
-      navigate("/user-dashboard");
+      // Determine destination: check if we came from a specific page (like /admin-ops)
+      const from = location.state?.from?.pathname || "/user-dashboard";
+      
+      // Managers get redirected to their intended destination (like /admin-ops)
+      // Customers always go to their dashboard
+      if (userProfile.role === 'manager') {
+        navigate(from, { replace: true });
+      } else {
+        navigate("/user-dashboard", { replace: true });
+      }
 
     } catch (err) {
       console.error("Login error:", err);
