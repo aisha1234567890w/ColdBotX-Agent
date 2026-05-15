@@ -261,11 +261,13 @@ export default function Tables() {
            else if (s === 'booked') inferredStatus = 'Reserved';
            else inferredStatus = 'Available';
 
-           // Link only with ACTIVE reservations (Confirmed or Occupied)
-           const matchingRes = resData?.find(r => 
-             (r.table_id?.toString() === t.id?.toString() || r.table_number === t.table_number) &&
-             (r.status === 'confirmed' || r.status === 'occupied' || r.status === 'confirmed')
-           );
+           // Link only with the NEWEST active reservation
+           const matchingRes = [...(resData || [])]
+             .sort((a, b) => new Date(b.created_at) - new Date(a.created_at)) // Get the most recent one first
+             .find(r => 
+               (Number(r.table_id) === Number(t.id)) &&
+               (['confirmed', 'occupied', 'pending'].includes(r.status))
+             );
 
            return { 
              ...t, 
