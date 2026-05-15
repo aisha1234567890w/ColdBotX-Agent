@@ -85,10 +85,6 @@ export default function Menu() {
   const [localMenuData, setLocalMenuData] = useState(menuData);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    fetchMenuOverrides();
-  }, []);
-
   const fetchMenuOverrides = async () => {
     try {
       const { data: overrides, error } = await supabase
@@ -123,6 +119,10 @@ export default function Menu() {
       setError("Unable to sync latest prices. Showing standard menu.");
     }
   };
+
+  useEffect(() => {
+    fetchMenuOverrides();
+  }, []);
 
   const resetMenu = () => {
     localStorage.removeItem('aifur_menu_override');

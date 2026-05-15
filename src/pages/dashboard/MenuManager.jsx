@@ -23,41 +23,49 @@ export default function MenuManagement() {
   });
   const [announcement, setAnnouncement] = useState('Welcome to Aifur!');
 
+  const fetchAnnouncement = async () => {
+    try {
+      const { data } = await supabase.from('restaurant_config').select('value').eq('key', 'site_announcement').single();
+      if (data) setAnnouncement(data.value);
+    } catch (e) {
+      console.error("Announcement fetch error:", e);
+    }
+  };
+
+  const fetchOverrides = async () => {
+    try {
+      const { data: overrides } = await supabase.from('menu_overrides').select('*');
+      
+      const mergedMenu = JSON.parse(JSON.stringify(defaultMenuData));
+      
+      if (overrides) {
+        overrides.forEach(ov => {
+          Object.keys(mergedMenu).forEach(cat => {
+            if (cat === 'deals') {
+              mergedMenu.deals = mergedMenu.deals.map(item => 
+                item.name === ov.dish_name ? { ...item, price: ov.price, isAvailable: ov.is_available } : item
+              );
+            } else {
+              Object.keys(mergedMenu[cat]).forEach(sub => {
+                mergedMenu[cat][sub] = mergedMenu[cat][sub].map(item => 
+                  item.name === ov.dish_name ? { ...item, price: ov.price, isAvailable: ov.is_available } : item
+                );
+              });
+            }
+          });
+        });
+      }
+      setMenuState(mergedMenu);
+    } catch (e) {
+      console.error("Menu overrides fetch error:", e);
+      setMenuState(defaultMenuData);
+    }
+  };
+
   useEffect(() => {
     fetchOverrides();
     fetchAnnouncement();
   }, []);
-
-  const fetchAnnouncement = async () => {
-    const { data } = await supabase.from('restaurant_config').select('value').eq('key', 'site_announcement').single();
-    if (data) setAnnouncement(data.value);
-  };
-
-  const fetchOverrides = async () => {
-    const { data: overrides } = await supabase.from('menu_overrides').select('*');
-    
-    const mergedMenu = JSON.parse(JSON.stringify(defaultMenuData));
-    
-    if (overrides) {
-      overrides.forEach(ov => {
-        // Search through all categories/subs to apply overrides
-        Object.keys(mergedMenu).forEach(cat => {
-          if (cat === 'deals') {
-            mergedMenu.deals = mergedMenu.deals.map(item => 
-              item.name === ov.dish_name ? { ...item, price: ov.price, isAvailable: ov.is_available } : item
-            );
-          } else {
-            Object.keys(mergedMenu[cat]).forEach(sub => {
-              mergedMenu[cat][sub] = mergedMenu[cat][sub].map(item => 
-                item.name === ov.dish_name ? { ...item, price: ov.price, isAvailable: ov.is_available } : item
-              );
-            });
-          }
-        });
-      });
-    }
-    setMenuState(mergedMenu);
-  };
 
   const saveAnnouncement = async (val) => {
     await supabase.from('restaurant_config').upsert({ key: 'site_announcement', value: val });
