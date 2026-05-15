@@ -89,6 +89,63 @@ export default function Analytics() {
         growth: 8.2
       });
 
+      setData({
+        dayTrends: Object.keys(dayCounts).map(day => ({ name: day, bookings: dayCounts[day] })),
+        peakHours: Object.keys(hourCounts).sort().map(h => ({ hour: h, count: hourCounts[h] })),
+        loyaltyData: [
+          { name: 'VIPs', value: vips },
+          { name: 'Regulars', value: regulars },
+          { name: 'New Guests', value: newcomers }
+        ],
+        statusBreakdown: [
+          { name: 'Completed', value: reservations.filter(r => r.status === 'completed').length },
+          { name: 'Confirmed', value: reservations.filter(r => r.status === 'confirmed').length },
+          { name: 'Cancelled', value: reservations.filter(r => r.status === 'cancelled').length }
+        ]
+      });
+
+    } catch (err) {
+      console.error("Analytics Error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const Card = ({ title, children, className = "" }) => (
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className={`bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-[2.5rem] p-8 shadow-sm ${className}`}
+    >
+      <h3 className="text-xs font-black uppercase tracking-[0.2em] text-gray-400 mb-8">{title}</h3>
+      {children}
+    </motion.div>
+  );
+
+  if (loading) return (
+    <div className="h-[70vh] flex flex-col items-center justify-center gap-6">
+      <div className="w-16 h-16 border-4 border-indigo-600/10 border-t-indigo-600 rounded-full animate-spin" />
+      <div className="text-gray-400 font-black uppercase tracking-widest text-xs animate-pulse">Computing Insights...</div>
+    </div>
+  );
+
+  return (
+    <div className="space-y-10 pb-20">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+        <div>
+          <h1 className="text-4xl font-black tracking-tight mb-2">Performance Analytics</h1>
+          <p className="text-gray-500 font-bold flex items-center gap-2">
+            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+            Real-time business intelligence from Aifur operational data
+          </p>
+        </div>
+        <div className="flex bg-white dark:bg-white/5 p-1.5 rounded-2xl border border-gray-100 dark:border-white/10">
+          <button className="px-6 py-2 bg-indigo-600 text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-lg shadow-indigo-500/20">Last 30 Days</button>
+          <button className="px-6 py-2 text-gray-500 rounded-xl text-xs font-black uppercase tracking-widest hover:text-indigo-600 transition-colors">Lifetime</button>
+        </div>
+      </div>
+
       {/* Top Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
         {[
