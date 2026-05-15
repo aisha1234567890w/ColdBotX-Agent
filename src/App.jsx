@@ -13,6 +13,7 @@ import Profile from './pages/Profile';
 import ProtectedRoute from './components/ProtectedRoute';
 import { supabase } from './utils/supabaseClient';
 import { useEffect } from 'react';
+import { AppProvider } from './context/AppContext';
 
 import DashboardLayout from "./components/dashboard/DashboardLayout";
 import Overview from "./pages/dashboard/Overview";
@@ -54,35 +55,37 @@ function App() {
   }, []);
 
   return (
-    <Router>
-      <Routes>
-        {/* Operations Dashboard (Manager Side) - PROTECTED */}
-        <Route path="/admin-ops" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
-          <Route index element={<Overview />} />
-          <Route path="reservations" element={<DashboardReservations />} />
-          <Route path="tables" element={<TableManagement />} />
-          <Route path="menu" element={<MenuManager />} />
-          <Route path="analytics" element={<Analytics />} />
-          <Route path="customers" element={<Customers />} />
-          <Route path="settings" element={<Settings />} />
-        </Route>
+    <AppProvider>
+      <Router>
+        <Routes>
+          {/* Operations Dashboard (Manager Side) - PROTECTED */}
+          <Route path="/admin-ops" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
+            <Route index element={<Overview />} />
+            <Route path="reservations" element={<DashboardReservations />} />
+            <Route path="tables" element={<TableManagement />} />
+            <Route path="menu" element={<MenuManager />} />
+            <Route path="analytics" element={<Analytics />} />
+            <Route path="customers" element={<Customers />} />
+            <Route path="settings" element={<Settings />} />
+          </Route>
 
-        {/* Public Website & User Side */}
-        <Route path="/" element={<><Navbar /><Landing /><Footer /></>} />
-        <Route path="/menu" element={<><Navbar /><Menu /><Footer /></>} />
-        <Route path="/reservations" element={<><Navbar /><Reservations /><Footer /></>} />
-        <Route path="/about" element={<><Navbar /><About /><Footer /></>} />
-        <Route path="/contact" element={<><Navbar /><Contact /><Footer /></>} />
-        <Route path="/signup" element={<><Navbar /><Signup /><Footer /></>} />
-        <Route path="/login" element={<><Navbar /><Login /><Footer /></>} />
-        
-        {/* User Dashboard (Customer Side) */}
-        <Route path="/profile" element={<ProtectedRoute><><Navbar /><Profile /><Footer /></></ProtectedRoute>} />
-        <Route path="/user-dashboard" element={<ProtectedRoute><><Navbar /><Dashboard /><Footer /></></ProtectedRoute>} />
+          {/* Public Website & User Side */}
+          <Route path="/" element={<><Navbar /><Landing /><Footer /></>} />
+          <Route path="/menu" element={<><Navbar /><Menu /><Footer /></>} />
+          <Route path="/reservations" element={<><Navbar /><Reservations /><Footer /></>} />
+          <Route path="/about" element={<><Navbar /><About /><Footer /></>} />
+          <Route path="/contact" element={<><Navbar /><Contact /><Footer /></>} />
+          <Route path="/signup" element={<><Navbar /><Signup /><Footer /></>} />
+          <Route path="/login" element={<><Navbar /><Login /><Footer /></>} />
+          
+          {/* User Dashboard (Customer Side) */}
+          <Route path="/profile" element={<ProtectedRoute><><Navbar /><Profile /><Footer /></></ProtectedRoute>} />
+          <Route path="/user-dashboard" element={<ProtectedRoute><><Navbar /><Dashboard /><Footer /></></ProtectedRoute>} />
 
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </Router>
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Router>
+    </AppProvider>
   );
 }
 

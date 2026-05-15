@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "../utils/supabaseClient";
 import { menuData } from "../data/menu";
+import { useApp } from "../context/AppContext";
 import { 
   Calendar, 
   MapPin, 
@@ -19,16 +20,20 @@ import {
   Truck,
   CreditCard,
   CheckCircle2,
-  ChevronRight
+  ChevronRight,
+  Heart,
+  X
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const { cart, favorites, appliedOffer, addToCart, removeFromCart, toggleFavorite, claimOffer } = useApp();
   const [user, setUser] = useState(null);
   const [reservations, setReservations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isFirstTime, setIsFirstTime] = useState(true);
+  const [showOfferSuccess, setShowOfferSuccess] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -37,6 +42,7 @@ export default function Dashboard() {
       setUser(storedUser);
 
       try {
+        // Fetching from Supabase based on logged-in user email
         const { data, error } = await supabase
           .from('reservations_main')
           .select('*')
@@ -59,6 +65,12 @@ export default function Dashboard() {
     localStorage.clear();
     await supabase.auth.signOut();
     navigate('/login');
+  };
+
+  const handleClaimOffer = () => {
+    claimOffer('WELCOME20');
+    setShowOfferSuccess(true);
+    setTimeout(() => setShowOfferSuccess(false), 3000);
   };
 
   // Real data from menuData for "Popular Picks"
@@ -97,14 +109,21 @@ export default function Dashboard() {
               <p className="text-gray-500 font-medium">Let's get you started with a premium dining experience.</p>
             </motion.div>
             
-            {user?.role === 'manager' && (
-              <Link 
-                to="/admin-ops" 
-                className="flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-indigo-700 shadow-xl shadow-indigo-500/20 transition-all"
-              >
-                <Sparkles size={16} /> Enter Ops Center
-              </Link>
-            )}
+            <div className="flex items-center gap-4">
+              <div className="flex -space-x-2">
+                {favorites.slice(0, 3).map((fav, i) => (
+                  <div key={i} className="w-8 h-8 rounded-full border-2 border-white dark:border-gray-900 bg-gray-100 overflow-hidden" title={fav.name}>
+                    <img src={fav.image} className="w-full h-full object-cover" alt="" />
+                  </div>
+                ))}
+                {favorites.length > 3 && (
+                  <div className="w-8 h-8 rounded-full border-2 border-white dark:border-gray-900 bg-indigo-600 flex items-center justify-center text-[8px] font-black text-white">
+                    +{favorites.length - 3}
+                  </div>
+                )}
+              </div>
+              <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Your Favorites</span>
+            </div>
           </div>
         </div>
       </section>
@@ -122,16 +141,30 @@ export default function Dashboard() {
               <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-8">
                 <div className="max-w-xl text-center md:text-left">
                   <span className="inline-block px-4 py-1.5 bg-white/20 backdrop-blur-md rounded-full text-[10px] font-black uppercase tracking-[0.2em] mb-6">First Order Reward</span>
-                  <h2 className="text-4xl md:text-5xl font-black tracking-tight mb-4 leading-tight">🎉 Get 20% OFF your first culinary journey!</h2>
-                  <p className="text-indigo-100 text-lg font-medium mb-8">Use code <span className="bg-white/20 px-3 py-1 rounded-lg font-mono">WELCOME20</span> at checkout.</p>
-                  <button className="px-10 py-4 bg-white text-indigo-600 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:scale-105 active:scale-95 transition-all shadow-xl">Claim Your Offer</button>
+                  <h2 className="text-4xl md:text-5xl font-black tracking-tight mb-4 leading-tight">
+                    {appliedOffer ? "🎉 Offer Applied Successfully!" : "🎉 Get 20% OFF your first culinary journey!"}
+                  </h2>
+                  <p className="text-indigo-100 text-lg font-medium mb-8">
+                    {appliedOffer ? "Your 20% discount will be applied at checkout." : "Use code WELCOME20 at checkout."}
+                  </p>
+                  {!appliedOffer ? (
+                    <button 
+                      onClick={handleClaimOffer}
+                      className="px-10 py-4 bg-white text-indigo-600 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:scale-105 active:scale-95 transition-all shadow-xl"
+                    >
+                      Claim Your Offer
+                    </button>
+                  ) : (
+                    <div className="flex items-center gap-2 text-emerald-300 font-black uppercase tracking-widest text-xs">
+                      <CheckCircle2 size={20} /> WELCOME20 ACTIVE
+                    </div>
+                  )}
                 </div>
                 <div className="hidden lg:block relative">
                    <div className="w-64 h-64 bg-white/10 rounded-full animate-pulse blur-3xl absolute -inset-4"></div>
-                   <Gift size={180} className="text-white/20 relative" />
+                   <Gift size={180} className={`relative transition-all duration-500 ${appliedOffer ? 'scale-110 text-emerald-300' : 'text-white/20'}`} />
                 </div>
               </div>
-              {/* Decorative shapes */}
               <div className="absolute -top-12 -right-12 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
               <div className="absolute -bottom-12 -left-12 w-64 h-64 bg-indigo-400/20 rounded-full blur-3xl"></div>
             </motion.div>
@@ -148,7 +181,7 @@ export default function Dashboard() {
                   </h3>
                   <Link to="/reservations" className="text-[10px] font-black uppercase tracking-widest text-indigo-600 hover:underline">View All</Link>
                 </div>
-                {reservations[0] && (
+                {reservations[0] ? (
                   <div className="flex flex-col md:flex-row gap-8 items-center relative z-10">
                     <div className="w-full md:w-48 h-32 rounded-2xl overflow-hidden shadow-lg">
                       <img src="https://images.unsplash.com/photo-1550966841-3ecfcdac896a?auto=format&fit=crop&q=80&w=400" className="w-full h-full object-cover" alt="Table" />
@@ -165,6 +198,11 @@ export default function Dashboard() {
                         <span className="px-3 py-1 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 text-[10px] font-black rounded-lg uppercase tracking-widest border border-emerald-100 dark:border-emerald-500/20">Confirmed</span>
                       </div>
                     </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <p className="text-gray-400 font-medium mb-4">No reservations found for {user?.email}</p>
+                    <Link to="/reservations" className="text-indigo-600 font-black text-xs uppercase tracking-widest border-b-2 border-indigo-600 pb-1">Book a Table Now</Link>
                   </div>
                 )}
                 <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50 dark:bg-indigo-500/5 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-700"></div>
@@ -212,7 +250,7 @@ export default function Dashboard() {
             <div className="flex justify-between items-end">
               <div>
                 <h3 className="text-2xl font-black tracking-tight mb-1">🔥 Popular Right Now</h3>
-                <p className="text-gray-500 text-sm font-medium">Most ordered by our regular patrons.</p>
+                <p className="text-gray-500 text-sm font-medium">Click heart to save, plus to add to cart.</p>
               </div>
               <Link to="/menu" className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-indigo-600 hover:translate-x-1 transition-transform">
                 Browse Full Menu <ChevronRight size={14} />
@@ -220,35 +258,79 @@ export default function Dashboard() {
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {popularPicks.map((item, idx) => (
-                <div key={idx} className="bg-white dark:bg-gray-900 rounded-[2rem] overflow-hidden border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-xl transition-all group">
-                  <div className="h-32 overflow-hidden relative">
-                    <img src={item.image} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt={item.name} />
-                    <div className="absolute top-3 right-3 px-2 py-1 bg-white/90 dark:bg-gray-900/90 backdrop-blur shadow-sm rounded-lg text-[8px] font-black uppercase tracking-widest text-indigo-600">
-                      {item.category}
+              {popularPicks.map((item, idx) => {
+                const isFav = favorites.some(f => f.name === item.name);
+                return (
+                  <div key={idx} className="bg-white dark:bg-gray-900 rounded-[2rem] overflow-hidden border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-xl transition-all group">
+                    <div className="h-32 overflow-hidden relative">
+                      <img src={item.image} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt={item.name} />
+                      <button 
+                        onClick={() => toggleFavorite(item)}
+                        className={`absolute top-3 right-3 p-2 rounded-xl backdrop-blur-md transition-all ${isFav ? 'bg-red-500 text-white' : 'bg-white/90 text-gray-400 hover:text-red-500'}`}
+                      >
+                        <Heart size={14} fill={isFav ? "currentColor" : "none"} />
+                      </button>
+                      <div className="absolute top-3 left-3 px-2 py-1 bg-white/90 dark:bg-gray-900/90 backdrop-blur shadow-sm rounded-lg text-[8px] font-black uppercase tracking-widest text-indigo-600">
+                        {item.category}
+                      </div>
+                    </div>
+                    <div className="p-5">
+                      <h4 className="font-black text-sm mb-1 truncate">{item.name}</h4>
+                      <div className="text-indigo-600 dark:text-indigo-400 font-bold text-xs mb-4">PKR {item.price.toLocaleString()}</div>
+                      <button 
+                        onClick={() => addToCart(item)}
+                        className="w-full py-2 bg-gray-50 dark:bg-white/5 hover:bg-indigo-600 hover:text-white dark:hover:bg-indigo-600 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2"
+                      >
+                        <ShoppingBag size={14} /> Add to Cart
+                      </button>
                     </div>
                   </div>
-                  <div className="p-5">
-                    <h4 className="font-black text-sm mb-1 truncate">{item.name}</h4>
-                    <div className="text-indigo-600 dark:text-indigo-400 font-bold text-xs mb-4">PKR {item.price.toLocaleString()}</div>
-                    <button className="w-full py-2 bg-gray-50 dark:bg-white/5 hover:bg-indigo-600 hover:text-white dark:hover:bg-indigo-600 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all">Add to Favorites</button>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 
           <div className="space-y-8">
             <h3 className="text-2xl font-black tracking-tight mb-8 flex items-center gap-3">
-              <ShoppingBag className="text-indigo-600" /> Your Cart
+              <ShoppingBag className="text-indigo-600" /> Your Cart {cart.length > 0 && <span className="bg-indigo-600 text-white text-[10px] px-2 py-0.5 rounded-full">{cart.length}</span>}
             </h3>
-            <div className="bg-white dark:bg-gray-900 rounded-[2.5rem] p-8 border border-gray-100 dark:border-gray-800 shadow-sm text-center py-16">
-               <div className="w-16 h-16 bg-gray-50 dark:bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6 text-gray-300">
-                 <ShoppingBag size={32} />
-               </div>
-               <h4 className="text-sm font-black mb-2 uppercase tracking-widest">Your cart is empty</h4>
-               <p className="text-xs text-gray-500 font-medium mb-8">Ready to taste the fusion?</p>
-               <Link to="/menu" className="inline-block px-8 py-3 bg-indigo-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-lg shadow-indigo-500/20">👉 Browse Menu</Link>
+            <div className="bg-white dark:bg-gray-900 rounded-[2.5rem] p-6 border border-gray-100 dark:border-gray-800 shadow-sm">
+               {cart.length > 0 ? (
+                 <div className="space-y-4">
+                   <div className="max-h-[300px] overflow-y-auto space-y-3 pr-2 scrollbar-thin">
+                     {cart.map((item, i) => (
+                       <div key={i} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-white/5 rounded-2xl group relative">
+                         <img src={item.image} className="w-12 h-12 rounded-xl object-cover" alt="" />
+                         <div className="flex-1 min-w-0">
+                           <h5 className="text-[10px] font-black truncate uppercase tracking-widest">{item.name}</h5>
+                           <p className="text-[10px] font-bold text-indigo-600">PKR {item.price.toLocaleString()} x {item.quantity || 1}</p>
+                         </div>
+                         <button 
+                           onClick={() => removeFromCart(item.name)}
+                           className="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                         >
+                           <X size={14} />
+                         </button>
+                       </div>
+                     ))}
+                   </div>
+                   <div className="pt-4 border-t border-gray-100 dark:border-gray-800 space-y-4">
+                     <div className="flex justify-between items-center">
+                       <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Total</span>
+                       <span className="text-lg font-black">PKR {cart.reduce((acc, item) => acc + (item.price * (item.quantity || 1)), 0).toLocaleString()}</span>
+                     </div>
+                     <button className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-500/20">Checkout Now</button>
+                   </div>
+                 </div>
+               ) : (
+                 <div className="text-center py-12">
+                    <div className="w-16 h-16 bg-gray-50 dark:bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6 text-gray-300">
+                      <ShoppingBag size={32} />
+                    </div>
+                    <h4 className="text-sm font-black mb-2 uppercase tracking-widest">Your cart is empty</h4>
+                    <Link to="/menu" className="inline-block px-8 py-3 bg-indigo-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-lg shadow-indigo-500/20">👉 Browse Menu</Link>
+                 </div>
+               )}
             </div>
           </div>
         </section>
