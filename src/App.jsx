@@ -23,6 +23,7 @@ import MenuManager from "./pages/dashboard/MenuManager";
 import Analytics from "./pages/dashboard/Analytics";
 import Customers from "./pages/dashboard/Customers";
 import Settings from "./pages/dashboard/Settings";
+import { isManager } from "./utils/auth";
 import './dashboard.css';
 
 function App() {
@@ -31,18 +32,16 @@ function App() {
       (event, session) => {
         if (event === 'SIGNED_IN' && session) {
           localStorage.setItem('supabase_session', JSON.stringify(session));
-          // Store basic user info if not already there
-          if (!localStorage.getItem('user')) {
-            const meta = session.user.user_metadata || {};
-            const profile = {
-              id: session.user.id,
-              name: meta.name || meta.full_name || session.user.email.split('@')[0],
-              email: session.user.email,
-              avatar: meta.avatar_url,
-              role: meta.role || 'customer'
-            };
-            localStorage.setItem('user', JSON.stringify(profile));
-          }
+          
+          const meta = session.user.user_metadata || {};
+          const profile = {
+            id: session.user.id,
+            name: meta.name || meta.full_name || session.user.email.split('@')[0],
+            email: session.user.email,
+            avatar: meta.avatar_url,
+            role: isManager(session.user.email) ? 'manager' : 'customer'
+          };
+          localStorage.setItem('user', JSON.stringify(profile));
         } else if (event === 'SIGNED_OUT') {
           localStorage.removeItem('supabase_session');
           localStorage.removeItem('user');

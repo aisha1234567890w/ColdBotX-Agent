@@ -1,34 +1,19 @@
 import { useEffect, useState } from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { supabase } from '../utils/supabaseClient';
+import { isManager } from '../utils/auth';
 
 export default function ManagerRoute({ children }) {
     const [isAuth, setIsAuth] = useState(null); // null = loading
-    const [isManager, setIsManager] = useState(false);
+    const [isManagerUser, setIsManagerUser] = useState(false);
 
     useEffect(() => {
         const checkAuth = async () => {
             const { data: { session } } = await supabase.auth.getSession();
             
             if (session) {
-                const email = session.user.email?.toLowerCase();
-                const managers = [
-                    'aishasadiqa441@gmail.com', 
-                    'ijazwajeeha6@gmail.com',
-                    'admin@aifur.com', 
-                    'manager@aifur.com',
-                    'aishaaltaf@gmail.com',
-                    'pmls@gmail.com'
-                ];
-
-                const hasManagerRole = managers.includes(email) || 
-                                     email.endsWith('@aifur.com') ||
-                                     email.includes('admin') ||
-                                     email.includes('manager') ||
-                                     email.includes('ops') ||
-                                     email.includes('agent');
-
-                setIsManager(hasManagerRole);
+                const hasManagerRole = isManager(session.user.email);
+                setIsManagerUser(hasManagerRole);
                 setIsAuth(true);
             } else {
                 setIsAuth(false);
@@ -46,7 +31,7 @@ export default function ManagerRoute({ children }) {
         );
     }
 
-    if (!isAuth || !isManager) {
+    if (!isAuth || !isManagerUser) {
         return <Navigate to="/login" replace />;
     }
 

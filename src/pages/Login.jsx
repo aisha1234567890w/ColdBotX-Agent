@@ -1,32 +1,13 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "../utils/supabaseClient";
+import { isManager } from "../utils/auth";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-
-  // Simple manager check - can be moved to a separate utility or database
-  const isManager = (userEmail) => {
-    const managers = [
-      'aishasadiqa441@gmail.com', 
-      'ijazwajeeha6@gmail.com',
-      'admin@aifur.com', 
-      'manager@aifur.com',
-      'aishaaltaf@gmail.com',
-      'pmls@gmail.com'
-    ];
-    const isMgr = managers.includes(userEmail?.toLowerCase()) || 
-                 userEmail?.toLowerCase().endsWith('@aifur.com') ||
-                 userEmail?.toLowerCase().includes('admin') ||
-                 userEmail?.toLowerCase().includes('manager') ||
-                 userEmail?.toLowerCase().includes('ops') ||
-                 userEmail?.toLowerCase().includes('agent');
-    console.log(`Checking role for ${userEmail}: ${isMgr ? 'manager' : 'customer'}`);
-    return isMgr;
-  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
