@@ -82,6 +82,7 @@ const ReservationRow = ({ reservation, theme, onUpdateStatus }) => {
         <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
           status.toLowerCase() === 'confirmed' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-500' : 
           status.toLowerCase() === 'pending' ? 'bg-orange-500/10 text-orange-600 dark:text-orange-500' : 
+          status.toLowerCase() === 'completed' ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-500' :
           status.toLowerCase() === 'cancelled' || status.toLowerCase() === 'canceled' ? 'bg-red-500/10 text-red-600 dark:text-red-500' :
           'bg-gray-500/10 text-gray-500'
         }`}>
@@ -106,9 +107,10 @@ const ReservationRow = ({ reservation, theme, onUpdateStatus }) => {
               className="absolute top-12 right-12 w-40 bg-white dark:bg-gray-900 border border-gray-100 dark:border-white/10 shadow-xl rounded-2xl overflow-hidden z-20 text-left"
             >
               <div className="p-2 space-y-1">
-                <button onClick={() => handleStatusChange('confirmed')} className="w-full text-left px-3 py-2 text-xs font-bold hover:bg-emerald-50 dark:hover:bg-white/5 rounded-xl text-emerald-600">Mark Confirmed</button>
-                <button onClick={() => handleStatusChange('pending')} className="w-full text-left px-3 py-2 text-xs font-bold hover:bg-orange-50 dark:hover:bg-white/5 rounded-xl text-orange-600">Mark Pending</button>
-                <button onClick={() => handleStatusChange('cancelled')} className="w-full text-left px-3 py-2 text-xs font-bold hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl text-red-500">Cancel Booking</button>
+                <button onClick={() => handleStatusChange('confirmed')} className="w-full text-left px-3 py-2 text-xs font-bold hover:bg-emerald-50 dark:hover:bg-white/5 rounded-xl text-emerald-600 font-bold">Mark Confirmed</button>
+                <button onClick={() => handleStatusChange('completed')} className="w-full text-left px-3 py-2 text-xs font-bold hover:bg-indigo-50 dark:hover:bg-white/5 rounded-xl text-indigo-600 font-bold">Mark Completed</button>
+                <button onClick={() => handleStatusChange('pending')} className="w-full text-left px-3 py-2 text-xs font-bold hover:bg-orange-50 dark:hover:bg-white/5 rounded-xl text-orange-600 font-bold">Mark Pending</button>
+                <button onClick={() => handleStatusChange('cancelled')} className="w-full text-left px-3 py-2 text-xs font-bold hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl text-red-500 font-bold">Cancel Booking</button>
               </div>
             </motion.div>
           )}
@@ -223,7 +225,7 @@ export default function Reservations() {
         </div>
         
         <div className="flex gap-2 w-full md:w-auto overflow-x-auto pb-2 md:pb-0">
-          {['All', 'Pending', 'Confirmed', 'Cancelled'].map(filter => (
+          {['All', 'Pending', 'Confirmed', 'Completed', 'Cancelled'].map(filter => (
             <button
               key={filter}
               onClick={() => setActiveFilter(filter)}
