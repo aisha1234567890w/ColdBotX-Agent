@@ -124,8 +124,21 @@ const TableCard = ({ table, theme, onUpdateStatus }) => {
                   <button onClick={() => handleStatusChange('Available')} className="w-full text-left px-3 py-2 text-xs font-bold hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl flex items-center gap-2 text-emerald-600 font-bold"><Check size={14} /> Available</button>
                   <button onClick={() => handleStatusChange('Occupied')} className="w-full text-left px-3 py-2 text-xs font-bold hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl flex items-center gap-2 text-indigo-600 font-bold"><Users size={14} /> Occupied</button>
                   <button onClick={() => handleStatusChange('Reserved')} className="w-full text-left px-3 py-2 text-xs font-bold hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl flex items-center gap-2 text-amber-600 font-bold"><Clock size={14} /> Reserved</button>
+                  <button 
+                    onClick={() => {
+                      if (isOccupied || isReserved) {
+                        alert("Cannot delete a busy table! Please free it first.");
+                      } else if (confirm(`Are you sure you want to delete Table ${table.table_number}?`)) {
+                        onDelete(table.id);
+                      }
+                      setMenuOpen(false);
+                    }}
+                    className="w-full text-left px-3 py-2 text-xs font-bold hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl flex items-center gap-2 text-red-600"
+                  >
+                    <X size={14} /> Delete Table
+                  </button>
                   <div className="h-px bg-gray-100 dark:bg-white/10 my-1" />
-                  <button onClick={() => setMenuOpen(false)} className="w-full text-left px-3 py-2 text-xs font-bold hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl flex items-center gap-2 text-red-500 font-bold"><X size={14} /> Close Menu</button>
+                  <button onClick={() => setMenuOpen(false)} className="w-full text-left px-3 py-2 text-xs font-bold hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl flex items-center gap-2 text-gray-500"><X size={14} /> Close Menu</button>
                 </div>
               </motion.div>
             )}
@@ -264,6 +277,19 @@ export default function Tables() {
         fetchTables();
       } else {
         alert("Error adding table: " + error.message);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleDeleteTable = async (id) => {
+    try {
+      const { error } = await supabase.from('restaurant_tables').delete().eq('id', id);
+      if (!error) {
+        setTables(prev => prev.filter(t => t.id !== id));
+      } else {
+        alert("Error deleting table: " + error.message);
       }
     } catch (err) {
       console.error(err);
@@ -420,7 +446,7 @@ export default function Tables() {
                 </div>
                 {filteredTables.filter(t => t.position === 'window').map((table, idx) => (
                   <motion.div layout key={table.id} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: idx * 0.1 }}>
-                    <TableCard table={table} theme={theme} onUpdateStatus={handleUpdateStatus} />
+                    <TableCard table={table} theme={theme} onUpdateStatus={handleUpdateStatus} onDelete={handleDeleteTable} />
                   </motion.div>
                 ))}
               </div>
@@ -432,7 +458,7 @@ export default function Tables() {
                 </div>
                 {filteredTables.filter(t => t.position === 'center' || !['window', 'bar'].includes(t.position)).map((table, idx) => (
                   <motion.div layout key={table.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.1 }}>
-                    <TableCard table={table} theme={theme} onUpdateStatus={handleUpdateStatus} />
+                    <TableCard table={table} theme={theme} onUpdateStatus={handleUpdateStatus} onDelete={handleDeleteTable} />
                   </motion.div>
                 ))}
               </div>
@@ -444,14 +470,14 @@ export default function Tables() {
                 </div>
                 {filteredTables.filter(t => t.position === 'bar' || t.position === 'corner').map((table, idx) => (
                   <motion.div layout key={table.id} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: idx * 0.1 }}>
-                    <TableCard table={table} theme={theme} onUpdateStatus={handleUpdateStatus} />
+                    <TableCard table={table} theme={theme} onUpdateStatus={handleUpdateStatus} onDelete={handleDeleteTable} />
                   </motion.div>
                 ))}
               </div>
             </div>
           ) : (
             filteredTables.map(table => (
-              <TableCard key={table.id} table={table} theme={theme} onUpdateStatus={handleUpdateStatus} />
+              <TableCard key={table.id} table={table} theme={theme} onUpdateStatus={handleUpdateStatus} onDelete={handleDeleteTable} />
             ))
           )}
         </div>
