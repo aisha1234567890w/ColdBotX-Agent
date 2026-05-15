@@ -286,14 +286,28 @@ export default function Tables() {
 
   const handleDeleteTable = async (id) => {
     try {
+      setLoading(true);
+      // 1. Unlink from reservations first (Fixes Foreign Key Violation)
+      const { error: unlinkError } = await supabase
+        .from('reservations_main')
+        .update({ table_id: null })
+        .eq('table_id', id);
+      
+      if (unlinkError) console.warn("Unlink warning:", unlinkError);
+
+      // 2. Delete the actual table
       const { error } = await supabase.from('restaurant_tables').delete().eq('id', id);
+      
       if (!error) {
         setTables(prev => prev.filter(t => t.id !== id));
       } else {
-        alert("Error deleting table: " + error.message);
+        alert("🛑 Database Error: " + error.message);
       }
     } catch (err) {
+      alert("❌ System Error: " + err.message);
       console.error(err);
+    } finally {
+      setLoading(false);
     }
   };
 
