@@ -57,10 +57,19 @@ const TableCard = ({ table, theme, onUpdateStatus }) => {
         .update(updateData)
         .eq('id', table.id);
       
+      // If we are freeing the table, mark the reservation as completed too
+      if (dbStatus === 'free') {
+        await supabase
+          .from('reservations_main')
+          .update({ status: 'completed' })
+          .or(`table_id.eq.${table.id},table_number.eq.${table.table_number || table.id}`)
+          .neq('status', 'cancelled');
+      }
+
       if (!error) {
         onUpdateStatus(table.id, newStatus, dbStatus === 'occupied' ? nowStr : null);
       } else {
-        // Fallback: If status column is missing, try updating other columns only
+        // Fallback
         const safeData = { available: updateData.available, occupied_at: updateData.occupied_at };
         await supabase.from('restaurant_tables').update(safeData).eq('id', table.id);
         onUpdateStatus(table.id, newStatus, dbStatus === 'occupied' ? nowStr : null);
