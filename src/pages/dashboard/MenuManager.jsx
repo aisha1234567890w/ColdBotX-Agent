@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { 
-  UtensilsCrossed, Search, Plus, MoreVertical, Edit2, Trash2, Eye, 
-  Flame, RefreshCcw, Save, X
+  UtensilsCrossed, Search, Edit2, 
+  Flame, Save, X
 } from 'lucide-react';
 import { menuData as defaultMenuData } from '../../data/menu';
 import { useTheme } from '../../context/ThemeContext';
+import { supabase } from '../../utils/supabaseClient';
 
 export default function MenuManagement() {
   const { theme } = useTheme();
