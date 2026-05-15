@@ -1,3 +1,4 @@
+// Heartbeat v1.3.2 - Master Control Active
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Landing from "./pages/Landing";
 import Signup from "./pages/Signup";
