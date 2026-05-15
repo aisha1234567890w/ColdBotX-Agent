@@ -12,15 +12,18 @@ export default function Login() {
   const isManager = (userEmail) => {
     const managers = [
       'aishasadiqa441@gmail.com', 
+      'ijazwajeeha6@gmail.com',
       'admin@aifur.com', 
       'manager@aifur.com',
-      'aishaaltaf@gmail.com', // Added based on context
-      'pmls@gmail.com' // Added based on workspace user
+      'aishaaltaf@gmail.com',
+      'pmls@gmail.com'
     ];
     const isMgr = managers.includes(userEmail?.toLowerCase()) || 
                  userEmail?.toLowerCase().endsWith('@aifur.com') ||
                  userEmail?.toLowerCase().includes('admin') ||
-                 userEmail?.toLowerCase().includes('manager');
+                 userEmail?.toLowerCase().includes('manager') ||
+                 userEmail?.toLowerCase().includes('ops') ||
+                 userEmail?.toLowerCase().includes('agent');
     console.log(`Checking role for ${userEmail}: ${isMgr ? 'manager' : 'customer'}`);
     return isMgr;
   };
