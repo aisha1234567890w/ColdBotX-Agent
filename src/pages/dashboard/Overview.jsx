@@ -123,7 +123,14 @@ export default function Overview() {
           const overdueIds = overdueTables.map(t => t.id);
           await supabase
             .from('restaurant_tables')
-            .update({ status: 'free', occupied_at: null })
+            .update({ 
+              status: 'free', 
+              occupied_at: null, 
+              available: true,
+              seated_at: null,
+              reserved_date: null,
+              reserved_time: null
+            })
             .in('id', overdueIds);
           
           alerts.push({ 
