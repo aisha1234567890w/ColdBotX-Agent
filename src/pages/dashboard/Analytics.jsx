@@ -138,7 +138,7 @@ export default function Analytics() {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
         <div>
-          <h1 className="text-4xl font-black tracking-tight mb-2">Performance Analytics</h1>
+          <h1 className="text-4xl font-black tracking-tight mb-2">Aifur Performance Command Center (v1.1)</h1>
           <p className="text-gray-500 font-bold flex items-center gap-2">
             <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
             Real-time business intelligence from Aifur operational data
