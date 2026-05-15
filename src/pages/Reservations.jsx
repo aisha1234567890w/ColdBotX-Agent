@@ -67,7 +67,7 @@ const BookingForm = () => {
       const guestCount = parseInt(formData.guests);
       let assignedTableId = null;
 
-      // 1. Find an available table that fits the guest count
+      // 1. Find an available table
       const { data: availableTables, error: tableError } = await supabase
         .from('restaurant_tables')
         .select('*')
@@ -75,12 +75,16 @@ const BookingForm = () => {
         .gte('capacity', guestCount)
         .order('capacity', { ascending: true });
 
-      if (!tableError && availableTables && availableTables.length > 0) {
+      if (tableError) {
+        console.error("Error fetching tables:", tableError);
+      }
+
+      if (availableTables && availableTables.length > 0) {
         const table = availableTables[0];
         assignedTableId = table.id;
 
-        // 2. Mark the table as booked and store reservation info
-        await supabase
+        // 2. Mark table as booked
+        const { error: updateError } = await supabase
           .from('restaurant_tables')
           .update({ 
             status: 'booked',
@@ -88,9 +92,16 @@ const BookingForm = () => {
             reserved_time: formData.time
           })
           .eq('id', assignedTableId);
+
+        if (updateError) {
+          console.error("Error updating table status:", updateError);
+          assignedTableId = null; // Don't try to link if update failed
+        }
+      } else {
+        console.warn("No available tables found for guest count:", guestCount);
       }
 
-      // 3. Save reservation to reservations_main with EXACT schema columns
+      // 3. Save reservation
       const payload = {
         customer_name: formData.name,
         phone_number: formData.phone,
@@ -102,14 +113,20 @@ const BookingForm = () => {
         status: 'confirmed'
       };
 
-      console.log("Submitting reservation with assigned table:", payload);
-
       const { error: resError } = await supabase
         .from('reservations_main')
         .insert([payload]);
 
       if (resError) {
-        console.error("Supabase Final Insertion Error:", resError.message);
+        console.error("Reservation Insert Failed:", resError.message);
+        
+        // ROLLBACK: If reservation failed but we booked a table, free the table!
+        if (assignedTableId) {
+          await supabase
+            .from('restaurant_tables')
+            .update({ status: 'free', reserved_date: null, reserved_time: null })
+            .eq('id', assignedTableId);
+        }
         throw resError;
       }
 
@@ -122,7 +139,7 @@ const BookingForm = () => {
 
       setStatus('success');
     } catch (error) {
-      console.error('Reservation Error:', error);
+      console.error('Final Reservation Error:', error);
       setStatus('error');
     }
   };
