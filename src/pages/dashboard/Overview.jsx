@@ -109,7 +109,8 @@ export default function Overview() {
 
       // 2-Hour Occupancy Check & Auto-Free (Safe Mode)
       const overdueTables = tablesData ? tablesData.filter(t => {
-        if (t.status?.toLowerCase() === 'occupied' && t.occupied_at) {
+        const s = (t.status || 'free').toLowerCase();
+        if (s === 'occupied' && t.occupied_at) {
           const occupiedTime = new Date(t.occupied_at).getTime();
           const limit = 2 * 60 * 60 * 1000; // 2 hours
           return (Date.now() - occupiedTime) > limit;
@@ -126,7 +127,6 @@ export default function Overview() {
             .update({ 
               status: 'free', 
               occupied_at: null, 
-              available: true,
               seated_at: null,
               reserved_date: null,
               reserved_time: null
@@ -138,7 +138,7 @@ export default function Overview() {
             text: `Auto-cleaned ${overdueTables.length} table${overdueTables.length > 1 ? 's' : ''} that exceeded the 2-hour limit.` 
           });
         } catch (err) {
-          console.warn("Auto-cleanup skipped: occupied_at column missing.");
+          console.warn("Auto-cleanup skipped: check schema.");
         }
       }
 

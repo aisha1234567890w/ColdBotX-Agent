@@ -25,22 +25,22 @@ const TableCard = ({ table, theme, onUpdateStatus }) => {
   const handleStatusChange = async (newStatus) => {
     setMenuOpen(false);
     
-    const dbStatus = newStatus === 'Available' ? 'free' : newStatus.toLowerCase();
+    // Exact mapping to match SQL CHECK constraints
+    let dbStatus = 'free';
+    if (newStatus === 'Occupied') dbStatus = 'occupied';
+    else if (newStatus === 'Reserved') dbStatus = 'booked';
+
     const now = new Date();
     const nowStr = now.toISOString();
     const todayDate = nowStr.split('T')[0];
-    const currentTime = now.toLocaleTimeString('en-GB', { hour12: false }); // 24h format for DB
+    const currentTime = now.toLocaleTimeString('en-GB', { hour12: false });
 
-    // Deep Sync with Supabase schema
-    const updateData = { 
-      status: dbStatus,
-      available: dbStatus === 'free'
-    };
+    const updateData = { status: dbStatus };
     
     if (dbStatus === 'occupied') {
       updateData.occupied_at = nowStr;
-      updateData.seated_at = nowStr; // Filling seated_at as well
-    } else if (dbStatus === 'reserved') {
+      updateData.seated_at = nowStr;
+    } else if (dbStatus === 'booked') {
       updateData.reserved_date = todayDate;
       updateData.reserved_time = currentTime;
       updateData.occupied_at = null;
@@ -52,33 +52,15 @@ const TableCard = ({ table, theme, onUpdateStatus }) => {
     }
 
     try {
-      // 1. Core Table Status Update
       const { error } = await supabase
         .from('restaurant_tables')
         .update(updateData)
         .eq('id', table.id);
       
-      if (error) {
-        // Fallback: If status column is missing, update only known columns
-        console.warn("Retrying safe update...");
-        const safeData = { 
-          available: updateData.available, 
-          occupied_at: updateData.occupied_at,
-          reserved_date: updateData.reserved_date,
-          reserved_time: updateData.reserved_time,
-          seated_at: updateData.seated_at
-        };
-        const { error: secondError } = await supabase
-          .from('restaurant_tables')
-          .update(safeData)
-          .eq('id', table.id);
-        
-        if (secondError) throw secondError;
-      }
+      if (error) throw error;
       
       onUpdateStatus(table.id, newStatus, updateData.occupied_at);
       
-      // 2. Secondary Reservation Update (Non-blocking)
       if (dbStatus === 'free') {
         supabase
           .from('reservations_main')
@@ -90,7 +72,7 @@ const TableCard = ({ table, theme, onUpdateStatus }) => {
           });
       }
     } catch (err) {
-      alert('Update Failed: ' + (err.message || 'Unknown error'));
+      alert('Sync Error: ' + err.message);
       console.error('Update Error:', err);
     }
   };
@@ -223,18 +205,13 @@ export default function Tables() {
 
       if (tablesData) {
         const mappedData = tablesData.map(t => {
-           // Refined Priority Inference
+           // Refined Priority Inference based on official SQL status
            let inferredStatus = 'Available';
+           const s = (t.status || 'free').toLowerCase();
            
-           if (t.occupied_at) {
-             inferredStatus = 'Occupied';
-           } else if (t.reserved_date || t.reserved_time) {
-             inferredStatus = 'Reserved';
-           } else if (t.available === false || t.available === 'false' || t.available === 0) {
-             inferredStatus = 'Occupied'; // Fallback for unavailable but no time set
-           } else {
-             inferredStatus = 'Available';
-           }
+           if (s === 'occupied') inferredStatus = 'Occupied';
+           else if (s === 'booked') inferredStatus = 'Reserved';
+           else inferredStatus = 'Available';
 
            // Link with reservation data if table_number matches
            const matchingRes = resData?.find(r => 
