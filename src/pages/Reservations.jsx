@@ -219,7 +219,6 @@ const BookingForm = () => {
             onChange={(e) => setFormData({ ...formData, guests: e.target.value })}
           >
             {[1, 2, 3, 4, 5, 6, 7, 8].map(n => <option key={n} value={n}>{n} Persons</option>)}
-            <option value="9+">9+ Persons</option>
           </select>
         </div>
         <div className="space-y-2 md:col-span-2">
