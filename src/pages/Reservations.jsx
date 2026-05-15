@@ -64,59 +64,56 @@ const BookingForm = () => {
     setStatus('sending');
     
     try {
-      // 1. Find an available table that fits the guest count
       const guestCount = parseInt(formData.guests);
       let assignedTableId = null;
-      let assignedTableNumber = 'TBD';
 
-      try {
-        const { data: availableTables, error: tableError } = await supabase
+      // 1. Find an available table that fits the guest count
+      const { data: availableTables, error: tableError } = await supabase
+        .from('restaurant_tables')
+        .select('*')
+        .eq('status', 'free')
+        .gte('capacity', guestCount)
+        .order('capacity', { ascending: true });
+
+      if (!tableError && availableTables && availableTables.length > 0) {
+        const table = availableTables[0];
+        assignedTableId = table.id;
+
+        // 2. Mark the table as booked and store reservation info
+        await supabase
           .from('restaurant_tables')
-          .select('*')
-          .eq('status', 'free')
-          .gte('capacity', guestCount)
-          .order('capacity', { ascending: true });
-
-        if (!tableError && availableTables && availableTables.length > 0) {
-          const table = availableTables[0];
-          assignedTableId = table.id;
-          assignedTableNumber = table.table_number;
-
-          // 2. Mark the table as reserved
-          await supabase
-            .from('restaurant_tables')
-            .update({ status: 'reserved' })
-            .eq('id', assignedTableId);
-        }
-      } catch (err) {
-        console.warn("Table assignment failed but continuing with reservation", err);
+          .update({ 
+            status: 'booked',
+            reserved_date: formData.date,
+            reserved_time: formData.time
+          })
+          .eq('id', assignedTableId);
       }
 
-      // 3. Save reservation to reservations_main
-      // REFINED MODE: Adding columns confirmed by Not-Null constraints
+      // 3. Save reservation to reservations_main with EXACT schema columns
       const payload = {
         customer_name: formData.name,
         phone_number: formData.phone,
         reservation_date: formData.date,
         reservation_time: formData.time,
-        guests_count: guestCount
+        guests_count: guestCount,
+        special_requirements: formData.requests || 'None',
+        table_id: assignedTableId,
+        status: 'confirmed'
       };
 
-      console.log("Attempting REFINED Mode insert with payload:", payload);
+      console.log("Submitting reservation with assigned table:", payload);
 
       const { error: resError } = await supabase
         .from('reservations_main')
         .insert([payload]);
 
       if (resError) {
-        console.error("CRITICAL: Supabase Insert Failed!");
-        console.error("Error Message:", resError.message);
-        console.error("Error Code:", resError.code);
-        console.error("Error Details:", resError.details);
+        console.error("Supabase Final Insertion Error:", resError.message);
         throw resError;
       }
 
-      // 4. Optional: Notify n8n for email confirmation
+      // 4. Notify n8n
       fetch("https://bokafynaveed.app.n8n.cloud/webhook/book-table", {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
