@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Users, 
   Calendar, 
@@ -17,6 +18,7 @@ import { supabase } from '../../utils/supabaseClient';
 import { motion } from 'framer-motion';
 
 export default function Overview() {
+  const navigate = useNavigate();
   const [stats, setStats] = useState({
     todayReservations: 0,
     upcomingReservations: 0,
@@ -55,12 +57,14 @@ export default function Overview() {
 
       if (error) throw error;
 
-      // Calculate Today's Reservations
-      const todayRes = reservations.filter(r => r.date === today);
-      const upcomingRes = reservations.filter(r => r.date > today || (r.date === today && r.time > now));
+      // Calculate Today's Reservations using correct column names
+      const todayRes = reservations.filter(r => r.reservation_date === today);
+      const upcomingRes = reservations.filter(r => 
+        r.reservation_date > today || (r.reservation_date === today && (r.reservation_time || '').substring(0,5) > now)
+      );
 
       // Calculate Revenue Estimate (Assuming average spend per guest is PKR 4500)
-      const todayRevenue = todayRes.reduce((acc, r) => acc + (parseInt(r.guests || 0) * 4500), 0);
+      const todayRevenue = todayRes.reduce((acc, r) => acc + (parseInt(r.guests_count || 0) * 4500), 0);
 
       // Calculate peak hour based on all historical reservations
       const timeFreq = {};
@@ -225,19 +229,18 @@ export default function Overview() {
         </div>
 
         {/* Quick Actions */}
-        {/* Quick Actions */}
         <div className="bg-white dark:bg-white/5 rounded-[2rem] border border-gray-100 dark:border-white/5 shadow-sm p-8">
           <h3 className="text-lg font-black tracking-tight mb-6">Quick Actions</h3>
           <div className="space-y-3">
-            <button onClick={() => window.location.href = '/admin-ops'} className="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-white/5 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-2xl font-bold transition-all group">
+            <button onClick={() => navigate('/admin-ops/reservations')} className="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-white/5 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-2xl font-bold transition-all group">
               <span className="flex items-center gap-3"><Calendar size={18} /> Manage Today's Bookings</span>
               <ChevronRight size={18} className="opacity-0 group-hover:opacity-100 transform group-hover:translate-x-1 transition-all" />
             </button>
-            <button onClick={() => window.location.href = '/admin-ops'} className="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-white/5 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-2xl font-bold transition-all group">
+            <button onClick={() => navigate('/admin-ops/tables')} className="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-white/5 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-2xl font-bold transition-all group">
               <span className="flex items-center gap-3"><TableProperties size={18} /> Reassign Tables</span>
               <ChevronRight size={18} className="opacity-0 group-hover:opacity-100 transform group-hover:translate-x-1 transition-all" />
             </button>
-            <button onClick={() => window.location.href = '/admin-ops'} className="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-white/5 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-2xl font-bold transition-all group">
+            <button onClick={() => navigate('/admin-ops/customers')} className="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-white/5 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-2xl font-bold transition-all group">
               <span className="flex items-center gap-3"><Users size={18} /> View VIP Guests</span>
               <ChevronRight size={18} className="opacity-0 group-hover:opacity-100 transform group-hover:translate-x-1 transition-all" />
             </button>
