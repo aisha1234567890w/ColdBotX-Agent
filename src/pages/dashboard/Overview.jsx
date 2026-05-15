@@ -60,31 +60,28 @@ export default function Overview() {
         .toISOString()
         .split('T')[0];
 
-      const todayRes = [];
-      const upcomingRes = [];
+      // "Today's Bookings" = Bookings CREATED today
+      const todayRes = reservations.filter(r => {
+        if (!r.created_at) return false;
+        return r.created_at.split('T')[0] === localTodayStr;
+      });
 
-      reservations.forEach(r => {
-        if (!r.reservation_date) return;
+      // "Upcoming" = Reservations for FUTURE dates (arrivals)
+      const upcomingArrivals = reservations.filter(r => {
+        if (!r.reservation_date) return false;
         const rDate = r.reservation_date.includes('T') ? r.reservation_date.split('T')[0] : r.reservation_date;
-        
-        // Time parsing
-        const resTime = r.reservation_time || '';
-        let resHour = parseInt(resTime);
-        if (resTime.toLowerCase().includes('pm') && resHour < 12) resHour += 12;
-        if (resTime.toLowerCase().includes('am') && resHour === 12) resHour = 0;
+        return rDate >= localTodayStr;
+      });
 
-        if (rDate === localTodayStr) {
-          todayRes.push(r);
-          if (resHour > localNow.getHours()) {
-            upcomingRes.push(r);
-          }
-        } else if (rDate > localTodayStr) {
-          upcomingRes.push(r);
-        }
+      // Guests Arriving Today (for table occupancy)
+      const arrivingToday = reservations.filter(r => {
+        if (!r.reservation_date) return false;
+        const rDate = r.reservation_date.includes('T') ? r.reservation_date.split('T')[0] : r.reservation_date;
+        return rDate === localTodayStr;
       });
 
       // Stats calculation
-      const todayRevenue = todayRes.reduce((acc, r) => acc + (parseInt(r.guests_count || 0) * 4500), 0);
+      const todayRevenue = arrivingToday.reduce((acc, r) => acc + (parseInt(r.guests_count || 0) * 4500), 0);
 
       const timeFreq = {};
       reservations.forEach(r => {
@@ -108,16 +105,16 @@ export default function Overview() {
         t.status?.toLowerCase() !== 'available' && t.status?.toLowerCase() !== 'free' && t.status?.toLowerCase() !== ''
       ).length : 0;
       
-      const actualOccupied = Math.max(manualOccupied, todayRes.length);
+      const actualOccupied = Math.max(manualOccupied, arrivingToday.length);
 
       setStats({
-        todayReservations: todayRes.length,
-        upcomingReservations: upcomingRes.length,
+        todayReservations: todayRes.length, // Count of bookings MADE today
+        upcomingReservations: upcomingArrivals.length, // Total scheduled arrivals
         occupiedTables: actualOccupied,
         availableTables: totalTables - actualOccupied,
         peakHour,
         todayRevenue,
-        alerts: todayRes.length > 20 ? [{ type: 'warning', text: 'High volume today.' }] : [{ type: 'success', text: 'All operations running smoothly.' }]
+        alerts: todayRes.length > 20 ? [{ type: 'warning', text: 'High booking volume today.' }] : [{ type: 'success', text: 'All operations running smoothly.' }]
       });
 
     } catch (err) {
