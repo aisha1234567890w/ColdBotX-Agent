@@ -284,8 +284,11 @@ export default function Tables() {
   }, []);
 
   const handleUpdateStatus = (id, newStatus, occupiedAt = null) => {
+    // Immediate local update for zero-latency feel
     setTables(prev => prev.map(t => t.id === id ? { ...t, status: newStatus, occupied_at: occupiedAt } : t));
-    setTimeout(() => fetchTables(), 1000);
+    
+    // Immediate refetch to ensure we have the latest customer names/reservation IDs linked
+    fetchTables();
   };
 
   const handleAddTable = async () => {
