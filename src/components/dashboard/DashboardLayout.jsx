@@ -206,7 +206,16 @@ export default function DashboardLayout() {
                       </div>
                       <div className="space-y-4">
                         {notifications.map(n => (
-                          <div key={n.id} className="flex gap-4 p-3 hover:bg-gray-50 dark:hover:bg-white/5 rounded-2xl transition-colors cursor-pointer group">
+                          <div 
+                            key={n.id} 
+                            onClick={() => {
+                              if (n.type === 'message') navigate('/admin-ops/messages');
+                              else if (n.type === 'booking') navigate('/admin-ops/reservations');
+                              else navigate('/admin-ops/analytics');
+                              setShowNotifications(false);
+                            }}
+                            className="flex gap-4 p-3 hover:bg-gray-50 dark:hover:bg-white/5 rounded-2xl transition-colors cursor-pointer group"
+                          >
                             <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center text-indigo-600">
                               {n.type === 'message' ? <MessageSquareCode size={18} /> : n.type === 'booking' ? <CalendarCheck size={18} /> : <AlertTriangle size={18} />}
                             </div>
