@@ -198,14 +198,17 @@ export default function Tables() {
 
       if (tablesData) {
         const mappedData = tablesData.map(t => {
-           // Default to Available unless explicitly blocked
+           // Refined Priority Inference
            let inferredStatus = 'Available';
-           const isNotAvailable = t.available === false || t.available === 'false' || t.available === 0;
            
-           if (isNotAvailable) {
-             if (t.occupied_at) inferredStatus = 'Occupied';
-             else if (t.reserved_date) inferredStatus = 'Reserved';
-             else inferredStatus = 'Occupied';
+           if (t.occupied_at) {
+             inferredStatus = 'Occupied';
+           } else if (t.reserved_date || t.reserved_time) {
+             inferredStatus = 'Reserved';
+           } else if (t.available === false || t.available === 'false' || t.available === 0) {
+             inferredStatus = 'Occupied'; // Fallback for unavailable but no time set
+           } else {
+             inferredStatus = 'Available';
            }
 
            // Link with reservation data if table_number matches
@@ -224,7 +227,7 @@ export default function Tables() {
         setTables(mappedData);
       }
     } catch (err) {
-      console.error('Universal Sync Error:', err);
+      console.error('Bulletproof Sync Error:', err);
     } finally {
       setLoading(false);
     }
