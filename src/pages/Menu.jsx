@@ -96,17 +96,20 @@ export default function Menu() {
         const mergedMenu = JSON.parse(JSON.stringify(menuData));
         
         overrides.forEach(ov => {
-          // Sync all categories
+          if (!ov.dish_name) return;
+          
           Object.keys(mergedMenu).forEach(cat => {
-            if (cat === 'deals') {
+            if (cat === 'deals' && Array.isArray(mergedMenu.deals)) {
               mergedMenu.deals = mergedMenu.deals.map(item => 
                 item.name === ov.dish_name ? { ...item, price: ov.price, isAvailable: ov.is_available } : item
               );
-            } else {
+            } else if (mergedMenu[cat] && typeof mergedMenu[cat] === 'object') {
               Object.keys(mergedMenu[cat]).forEach(sub => {
-                mergedMenu[cat][sub] = mergedMenu[cat][sub].map(item => 
-                  item.name === ov.dish_name ? { ...item, price: ov.price, isAvailable: ov.is_available } : item
-                );
+                if (Array.isArray(mergedMenu[cat][sub])) {
+                  mergedMenu[cat][sub] = mergedMenu[cat][sub].map(item => 
+                    item.name === ov.dish_name ? { ...item, price: ov.price, isAvailable: ov.is_available } : item
+                  );
+                }
               });
             }
           });
@@ -116,6 +119,7 @@ export default function Menu() {
     } catch (err) {
       console.error("Failed to sync menu from server:", err);
       setError("Unable to sync latest prices. Showing standard menu.");
+      setLocalMenuData(menuData); // Fallback to default on error
     }
   };
 
@@ -178,40 +182,40 @@ export default function Menu() {
 
         {/* Menu Content */}
         <div className="animate-fade-in min-h-[400px]">
-          {activeTab === 'swedish' && localMenuData.swedish && (
+          {activeTab === 'swedish' && (
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-              <CategorySection title="Starters" items={localMenuData.swedish.starters} />
-              <CategorySection title="Mains" items={localMenuData.swedish.mains} />
-              <CategorySection title="Desserts" items={localMenuData.swedish.desserts} />
-              <CategorySection title="Beverages" items={localMenuData.swedish.beverages} />
+              <CategorySection title="Starters" items={localMenuData?.swedish?.starters || []} />
+              <CategorySection title="Mains" items={localMenuData?.swedish?.mains || []} />
+              <CategorySection title="Desserts" items={localMenuData?.swedish?.desserts || []} />
+              <CategorySection title="Beverages" items={localMenuData?.swedish?.beverages || []} />
             </motion.div>
           )}
 
-          {activeTab === 'pakistani' && localMenuData.pakistani && (
+          {activeTab === 'pakistani' && (
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-              <CategorySection title="Starters" items={localMenuData.pakistani.starters} />
-              <CategorySection title="BBQ" items={localMenuData.pakistani.bbq} />
-              <CategorySection title="Mains" items={localMenuData.pakistani.mains} />
-              <CategorySection title="Rice" items={localMenuData.pakistani.rice} />
-              <CategorySection title="Bread" items={localMenuData.pakistani.bread} />
-              <CategorySection title="Desserts" items={localMenuData.pakistani.desserts} />
-              <CategorySection title="Beverages" items={localMenuData.pakistani.beverages} />
+              <CategorySection title="Starters" items={localMenuData?.pakistani?.starters || []} />
+              <CategorySection title="BBQ" items={localMenuData?.pakistani?.bbq || []} />
+              <CategorySection title="Mains" items={localMenuData?.pakistani?.mains || []} />
+              <CategorySection title="Rice" items={localMenuData?.pakistani?.rice || []} />
+              <CategorySection title="Bread" items={localMenuData?.pakistani?.bread || []} />
+              <CategorySection title="Desserts" items={localMenuData?.pakistani?.desserts || []} />
+              <CategorySection title="Beverages" items={localMenuData?.pakistani?.beverages || []} />
             </motion.div>
           )}
 
-          {activeTab === 'fusion' && localMenuData.fusion && (
+          {activeTab === 'fusion' && (
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-              <CategorySection title="Starters" items={localMenuData.fusion.starters} />
-              <CategorySection title="Mains" items={localMenuData.fusion.mains} />
-              <CategorySection title="Rice" items={localMenuData.fusion.rice} />
-              <CategorySection title="Desserts" items={localMenuData.fusion.desserts} />
-              <CategorySection title="Beverages" items={localMenuData.fusion.beverages} />
+              <CategorySection title="Starters" items={localMenuData?.fusion?.starters || []} />
+              <CategorySection title="Mains" items={localMenuData?.fusion?.mains || []} />
+              <CategorySection title="Rice" items={localMenuData?.fusion?.rice || []} />
+              <CategorySection title="Desserts" items={localMenuData?.fusion?.desserts || []} />
+              <CategorySection title="Beverages" items={localMenuData?.fusion?.beverages || []} />
             </motion.div>
           )}
 
           {activeTab === 'deals' && (
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-              <CategorySection title="Value Deals" items={localMenuData.deals} />
+              <CategorySection title="Value Deals" items={localMenuData?.deals || []} />
             </motion.div>
           )}
         </div>
