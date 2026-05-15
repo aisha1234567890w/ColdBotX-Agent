@@ -241,19 +241,6 @@ export default function DashboardLayout() {
             </div>
           </div>
         </header>
-              <div className="h-8 w-px bg-gray-200 dark:bg-white/10 mx-2" />
-              <div className="flex items-center gap-3">
-                 <div className="text-right hidden sm:block">
-                   <div className="text-sm font-black">{user.name}</div>
-                   <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Administrator</div>
-                 </div>
-                 <div className="w-12 h-12 rounded-2xl bg-indigo-600/10 border border-indigo-600/20 flex items-center justify-center p-0.5 overflow-hidden shadow-lg shadow-indigo-500/10">
-                   <img src={`https://ui-avatars.com/api/?name=${user.name}&background=4F46E5&color=fff&bold=true`} className="w-full h-full rounded-xl object-cover" alt="Profile" />
-                 </div>
-              </div>
-            </div>
-          </div>
-        </header>
 
         {/* Page Content Overlay */}
         <main className="p-8 pb-32">
