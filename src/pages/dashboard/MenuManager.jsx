@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { 
-  UtensilsCrossed, Search, Edit2, 
-  Flame, Save, X
+  Search, Edit2, Save, X
 } from 'lucide-react';
 import { menuData as defaultMenuData } from '../../data/menu';
 import { useTheme } from '../../context/ThemeContext';

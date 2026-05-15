@@ -2,7 +2,6 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useTheme } from '../context/ThemeContext';
 import { supabase } from '../utils/supabaseClient';
-import { ShieldCheck } from 'lucide-react';
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { 
-  Users, Table as TableIcon, RefreshCcw, Plus, Maximize2, MoreVertical, Clock, Check, X, Bell, Trash2
+  Plus, MoreVertical, Clock, Check, X, Bell, Trash2
 } from 'lucide-react';
 import { supabase } from '../../utils/supabaseClient';
 import { useTheme } from '../../context/ThemeContext';
