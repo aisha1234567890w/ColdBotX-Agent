@@ -57,26 +57,32 @@ export default function Overview() {
 
       if (error) throw error;
 
-      // Calculate Today's Reservations using a more robust date check
-      const todayDateStr = new Date().toDateString();
+      // Calculate Today's Reservations using Local ISO string to avoid timezone shifts
+      const localNow = new Date();
+      const localTodayStr = new Date(localNow.getTime() - (localNow.getTimezoneOffset() * 60000))
+        .toISOString()
+        .split('T')[0]; // "YYYY-MM-DD"
+
       const todayRes = reservations.filter(r => {
         if (!r.reservation_date) return false;
-        return new Date(r.reservation_date).toDateString() === todayDateStr;
+        // Match either YYYY-MM-DD or standard Date string
+        const rDate = r.reservation_date.includes('T') ? r.reservation_date.split('T')[0] : r.reservation_date;
+        return rDate === localTodayStr;
       });
 
-      const currentDateObj = new Date();
       const upcomingRes = reservations.filter(r => {
         if (!r.reservation_date) return false;
-        const resDate = new Date(r.reservation_date);
-        if (resDate.toDateString() === todayDateStr) {
+        const rDate = r.reservation_date.includes('T') ? r.reservation_date.split('T')[0] : r.reservation_date;
+        
+        if (rDate === localTodayStr) {
            // If today, check if time is in future
            const resTime = r.reservation_time || '';
            let resHour = parseInt(resTime);
            if (resTime.toLowerCase().includes('pm') && resHour < 12) resHour += 12;
            if (resTime.toLowerCase().includes('am') && resHour === 12) resHour = 0;
-           return resHour > currentDateObj.getHours();
+           return resHour > localNow.getHours();
         }
-        return resDate > currentDateObj;
+        return rDate > localTodayStr;
       });
 
       // Calculate Revenue Estimate (Basis: Avg PKR 4,500 per guest)
