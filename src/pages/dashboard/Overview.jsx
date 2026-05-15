@@ -69,13 +69,16 @@ export default function Overview() {
       // Calculate peak hour based on all historical reservations
       const timeFreq = {};
       reservations.forEach(r => {
-        const hour = r.time?.split(':')[0];
+        const hour = r.reservation_time?.split(':')[0];
         if (hour) {
           timeFreq[hour] = (timeFreq[hour] || 0) + 1;
         }
       });
       const peakHourRaw = Object.keys(timeFreq).sort((a, b) => timeFreq[b] - timeFreq[a])[0] || "20";
-      const peakHour = `${peakHourRaw}:00 - ${parseInt(peakHourRaw)+1}:00`;
+      const peakHourNum = parseInt(peakHourRaw);
+      const ampm = peakHourNum >= 12 ? 'PM' : 'AM';
+      const hour12 = peakHourNum % 12 || 12;
+      const peakHour = `${hour12} ${ampm}`;
 
       const { data: tablesData, error: tablesError } = await supabase
         .from('restaurant_tables')
@@ -83,10 +86,13 @@ export default function Overview() {
 
       if (tablesError) console.error(tablesError);
 
-      const totalTables = tablesData ? tablesData.length : 20; // Fallback to 20 if failed
+      const totalTables = tablesData ? tablesData.length : 20; 
       
-      // Calculate real occupied tables based on status
-      const actualOccupied = tablesData ? tablesData.filter(t => t.status?.toLowerCase() === 'occupied').length : 0;
+      // Calculate real occupied tables based on BOTH manual status AND today's bookings
+      const manualOccupied = tablesData ? tablesData.filter(t => t.status?.toLowerCase() === 'occupied').length : 0;
+      const bookedToday = todayRes.length;
+      // We take the higher of the two to ensure we don't under-report occupancy
+      const actualOccupied = Math.max(manualOccupied, bookedToday);
 
       // Alerts
       const alerts = [];
@@ -180,7 +186,7 @@ export default function Overview() {
             </div>
           </div>
           <div className="text-xs font-bold text-gray-400 flex items-center gap-1">
-            <TrendingUp size={14} className="text-emerald-500" /> Based on today's guests
+            <TrendingUp size={14} className="text-emerald-500" /> Based on PKR 4,500 / Guest
           </div>
         </motion.div>
 
@@ -196,7 +202,7 @@ export default function Overview() {
             </div>
           </div>
           <div className="text-xs font-bold text-gray-400 flex items-center gap-1">
-            Historical highest volume
+            Historical popular hour
           </div>
         </motion.div>
       </div>
