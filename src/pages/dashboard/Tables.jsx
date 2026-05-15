@@ -186,6 +186,10 @@ export default function Tables() {
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState('All');
 
+  const [isAdding, setIsAdding] = useState(false);
+  const [isFloorView, setIsFloorView] = useState(false);
+  const [newTableData, setNewTableData] = useState({ capacity: 4, position: 'center' });
+
   const fetchTables = async () => {
     setLoading(true);
     try {
@@ -241,18 +245,25 @@ export default function Tables() {
 
   const handleUpdateStatus = (id, newStatus, occupiedAt = null) => {
     setTables(prev => prev.map(t => t.id === id ? { ...t, status: newStatus, occupied_at: occupiedAt } : t));
-    // Re-fetch to pull in linked reservation data immediately
     setTimeout(() => fetchTables(), 1000);
   };
 
   const handleAddTable = async () => {
-    const newNum = tables.length > 0 ? Math.max(...tables.map(t => t.table_number || 0)) + 1 : 1;
-    const newTable = { table_number: newNum, capacity: 4, status: 'free' };
+    const nextNum = tables.length > 0 ? Math.max(...tables.map(t => t.table_number || 0)) + 1 : 1;
+    const newTable = { 
+      table_number: nextNum, 
+      capacity: newTableData.capacity, 
+      position: newTableData.position,
+      status: 'free' 
+    };
     
     try {
       const { data, error } = await supabase.from('restaurant_tables').insert([newTable]).select();
       if (!error && data) {
-        setTables([...tables, { ...data[0], status: 'Available' }]);
+        setIsAdding(false);
+        fetchTables();
+      } else {
+        alert("Error adding table: " + error.message);
       }
     } catch (err) {
       console.error(err);
@@ -277,16 +288,71 @@ export default function Tables() {
         </div>
         
         <div className="flex gap-4">
-          <button onClick={() => alert("Floor View layout mode activated")} className="px-6 py-3 text-sm font-black flex items-center gap-2 rounded-2xl bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10 hover:bg-gray-50 transition-all">
+          <button 
+            onClick={() => setIsFloorView(!isFloorView)} 
+            className={`px-6 py-3 text-sm font-black flex items-center gap-2 rounded-2xl border transition-all ${
+              isFloorView 
+                ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-500/20' 
+                : 'bg-white dark:bg-white/5 border-gray-100 dark:border-white/10 hover:bg-gray-50'
+            }`}
+          >
             <Maximize2 size={16} />
-            Floor View
+            {isFloorView ? 'Grid View' : 'Floor Map'}
           </button>
-          <button onClick={handleAddTable} className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-2xl text-sm font-black flex items-center gap-2 shadow-xl shadow-indigo-500/20 active:scale-95 transition-all">
+          <button 
+            onClick={() => setIsAdding(true)} 
+            className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-2xl text-sm font-black flex items-center gap-2 shadow-xl shadow-indigo-500/20 active:scale-95 transition-all"
+          >
             <Plus size={16} />
             Add Table
           </button>
         </div>
       </div>
+
+      <AnimatePresence>
+        {isAdding && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
+          >
+            <motion.div 
+              initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }}
+              className="bg-white dark:bg-[#0f1115] w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl"
+            >
+              <h2 className="text-2xl font-black mb-6">Add New Table</h2>
+              <div className="space-y-6">
+                <div>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 block">Capacity (Persons)</label>
+                  <div className="grid grid-cols-4 gap-2">
+                    {[2, 4, 6, 8].map(c => (
+                      <button 
+                        key={c} onClick={() => setNewTableData({...newTableData, capacity: c})}
+                        className={`py-3 rounded-xl font-black text-sm transition-all ${newTableData.capacity === c ? 'bg-indigo-600 text-white shadow-lg' : 'bg-gray-50 dark:bg-white/5'}`}
+                      >{c}</button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 block">Position / Section</label>
+                  <select 
+                    value={newTableData.position} onChange={(e) => setNewTableData({...newTableData, position: e.target.value})}
+                    className="w-full bg-gray-50 dark:bg-white/5 border-none rounded-xl py-3 px-4 font-bold text-sm focus:ring-2 focus:ring-indigo-500"
+                  >
+                    <option value="center">Center Area</option>
+                    <option value="window">Window Side</option>
+                    <option value="corner">Corner</option>
+                    <option value="bar">Bar Section</option>
+                  </select>
+                </div>
+                <div className="flex gap-3 pt-4">
+                  <button onClick={() => setIsAdding(false)} className="flex-1 py-3 font-black text-sm text-gray-500 hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl transition-all">Cancel</button>
+                  <button onClick={handleAddTable} className="flex-2 bg-indigo-600 text-white px-8 py-3 rounded-xl font-black text-sm shadow-lg shadow-indigo-500/20 active:scale-95 transition-all">Create Table</button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
@@ -333,9 +399,22 @@ export default function Tables() {
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 lg:grid-cols-5 gap-6">
-          {filteredTables.map(table => (
-            <TableCard key={table.id} table={table} theme={theme} onUpdateStatus={handleUpdateStatus} />
+        <div className={`transition-all duration-700 ${
+          isFloorView 
+            ? 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-12 p-8 bg-gray-50/50 dark:bg-white/[0.02] rounded-[3rem] border border-dashed border-gray-200 dark:border-white/10' 
+            : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 lg:grid-cols-5 gap-6'
+        }`}>
+          {filteredTables.map((table, idx) => (
+            <motion.div 
+              layout key={table.id}
+              initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: idx * 0.05 }}
+              style={isFloorView ? { 
+                marginTop: table.position === 'window' ? '-20px' : table.position === 'corner' ? '40px' : '0' 
+              } : {}}
+            >
+              <TableCard table={table} theme={theme} onUpdateStatus={handleUpdateStatus} />
+            </motion.div>
           ))}
         </div>
       )}
