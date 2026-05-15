@@ -141,13 +141,24 @@ export default function DashboardLayout() {
         {/* Sidebar Footer */}
         <div className="p-6 border-t border-gray-50 dark:border-white/5 space-y-4">
            {!isCollapsed && (
-             <div className="bg-indigo-50 dark:bg-indigo-500/10 p-4 rounded-2xl mb-4 relative overflow-hidden group">
-               <div className="relative z-10">
-                 <h4 className="text-xs font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest mb-1">Aifur AI</h4>
-                 <p className="text-[10px] text-gray-500 dark:text-gray-400 font-bold mb-3">Upgrade to Pro for deep insights.</p>
-                 <button className="w-full py-2 bg-indigo-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-transform">Upgrade Now</button>
-               </div>
-               <Plus size={40} className="absolute -bottom-4 -right-4 text-indigo-500/10 group-hover:rotate-90 transition-transform duration-500" />
+             <div className="bg-black text-white p-6 rounded-[2.5rem] mb-6 relative overflow-hidden group border border-white/10 shadow-2xl">
+                <div className="relative z-10">
+                  <div className="flex justify-between items-center mb-4">
+                     <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">System Load</span>
+                     <div className="flex items-center gap-1">
+                        <div className="w-1 h-1 bg-emerald-500 rounded-full animate-ping"></div>
+                        <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Live</span>
+                     </div>
+                  </div>
+                  <div className="text-3xl font-black italic mb-1 tracking-tighter">68.4%</div>
+                  <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden mb-4">
+                     <div className="h-full bg-indigo-500 w-[68%]" />
+                  </div>
+                  <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest leading-relaxed">
+                    Peak hour protection active. Turnover speed +15%.
+                  </p>
+                </div>
+                <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-indigo-600/10 blur-[60px] rounded-full"></div>
              </div>
            )}
            <button 
