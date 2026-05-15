@@ -3,7 +3,7 @@ import { supabase } from '../../utils/supabaseClient';
 import { motion } from 'framer-motion';
 import { 
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
-  LineChart, Line, PieChart, Pie, Cell
+  LineChart, Line, PieChart, Pie, Cell, AreaChart, Area
 } from 'recharts';
 import { 
   TrendingUp, Users, Clock, Smartphone, Phone, MessageSquare, ArrowUpRight, ArrowDownRight
@@ -233,5 +233,4 @@ export default function Analytics() {
   );
 }
 
-// Ensure AreaChart is imported
-import { AreaChart, Area } from 'recharts';
+
