@@ -167,10 +167,10 @@ export default function Analytics() {
       {/* Top Stats - More "Interesting" */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
         {[
-          { label: 'Revenue Forecast', value: `PKR ${metrics.totalRevenue.toLocaleString()}`, icon: TrendingUp, color: 'text-emerald-500', trend: metrics.growth > 0 ? `+${metrics.growth}%` : 'Stable', desc: 'Projected income based on guest volume' },
-          { label: 'Network Reach', value: metrics.totalGuests, icon: Users, color: 'text-indigo-500', trend: '+5.2%', desc: 'Unique guests serviced in this period' },
-          { label: 'Spending Power', value: `PKR ${Math.round(metrics.avgCheck).toLocaleString()}`, icon: Clock, color: 'text-amber-500', trend: 'Healthy', desc: 'Average guest contribution value' },
-          { label: 'Peak Capacity', value: `${metrics.peakOccupancy}p`, icon: ArrowUpRight, color: 'text-purple-500', trend: 'High', desc: 'Max simultaneous guests recorded' }
+          { label: 'Revenue Forecast', value: `PKR ${metrics.totalRevenue.toLocaleString()}`, icon: TrendingUp, color: 'text-emerald-500', trend: metrics.growth > 0 ? `+${metrics.growth}%` : 'Stable', desc: 'LOGIC: (Total Guests) x (Average Price of Menu Items). Since we don\'t have a POS yet, this estimates your potential earnings.' },
+          { label: 'Network Reach', value: metrics.totalGuests, icon: Users, color: 'text-indigo-500', trend: '+5.2%', desc: 'LOGIC: Sum of all "guests_count" from reservations. This tells you how many mouths you have fed.' },
+          { label: 'Spending Power', value: `PKR ${Math.round(metrics.avgCheck).toLocaleString()}`, icon: Clock, color: 'text-amber-500', trend: 'Healthy', desc: 'LOGIC: The average price of all items in your menu. Higher = Premium offering.' },
+          { label: 'Peak Capacity', value: `${metrics.peakOccupancy}p`, icon: ArrowUpRight, color: 'text-purple-500', trend: 'High', desc: 'LOGIC: The highest number of people recorded sitting in the restaurant at once.' }
         ].map((stat, i) => (
           <motion.div 
             key={i}
@@ -230,9 +230,8 @@ export default function Analytics() {
               </AreaChart>
             </ResponsiveContainer>
           </div>
-          <div className="mt-8 flex items-center justify-between">
-             <div className="text-[10px] font-black text-red-500 uppercase tracking-widest opacity-80">* Activity spikes detected on weekend cycles</div>
-             <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Live Sync: Active</div>
+          <div className="mt-6 text-[10px] font-bold text-red-500 uppercase tracking-widest leading-relaxed opacity-80">
+            * LOGIC: This chart tracks "Confirmed" bookings over the last 30 days. It helps you see if your business is growing or slowing down week-by-week.
           </div>
         </Card>
 
@@ -305,11 +304,11 @@ export default function Analytics() {
                 <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500"><Clock size={20} /></div>
                 <div>
                    <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Busiest Hour</div>
-                   <div className="text-sm font-black uppercase">{data.peakHours.sort((a,b)=>b.count-a.count)[0]?.hour || '--:--'}</div>
+                   <div className="text-sm font-black uppercase">{[...data.peakHours].sort((a,b)=>b.count-a.count)[0]?.hour || '--:--'}</div>
                 </div>
              </div>
-             <div className="col-span-2 text-[10px] font-bold text-red-500 uppercase tracking-widest flex items-center">
-                * Real-time distribution of arrival density. Peaks indicate high staff demand periods.
+             <div className="col-span-2 text-[10px] font-bold text-red-500 uppercase tracking-widest flex items-center leading-relaxed">
+                * LOGIC: This chart aggregates every guest from your history and maps them to their arrival time. High peaks represent your "Rush Hour" where staffing needs are highest.
              </div>
           </div>
         </Card>

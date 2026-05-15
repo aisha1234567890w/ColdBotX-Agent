@@ -261,9 +261,10 @@ export default function Tables() {
            else if (s === 'booked') inferredStatus = 'Reserved';
            else inferredStatus = 'Available';
 
-           // Link with reservation data if table_number matches
+           // Link only with ACTIVE reservations (Confirmed or Occupied)
            const matchingRes = resData?.find(r => 
-             (r.table_id === t.id || r.table_number === t.table_number)
+             (r.table_id?.toString() === t.id?.toString() || r.table_number === t.table_number) &&
+             (r.status === 'confirmed' || r.status === 'occupied' || r.status === 'confirmed')
            );
 
            return { 
