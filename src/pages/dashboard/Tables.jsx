@@ -1,13 +1,18 @@
 import { useState, useEffect } from 'react';
 import { 
-  Users, Table as TableIcon, RefreshCcw, Plus, Maximize2, MoreVertical, Clock, Check, X, Bell
+  Users, Table as TableIcon, RefreshCcw, Plus, Maximize2, MoreVertical, Clock, Check, X, Bell, Trash2
 } from 'lucide-react';
 import { supabase } from '../../utils/supabaseClient';
 import { useTheme } from '../../context/ThemeContext';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const TableCard = ({ table, theme, onUpdateStatus }) => {
+const TableCard = ({ table, theme, onUpdateStatus, onDelete }) => {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
+  useEffect(() => {
+    if (!menuOpen) setConfirmDelete(false);
+  }, [menuOpen]);
 
   const isOccupied = table.status === 'occupied' || table.status === 'Occupied';
   const isReserved = table.status === 'reserved' || table.status === 'Reserved';
@@ -128,15 +133,15 @@ const TableCard = ({ table, theme, onUpdateStatus }) => {
                   <button 
                     onClick={() => {
                       if (isOccupied || isReserved) {
-                        alert("⚠️ Safety Block: This table is currently busy! Please free it before deleting.");
-                      } else if (confirm(`🛑 Permanent Action: Are you sure you want to delete Table ${table.table_number}? This cannot be undone.`)) {
+                        alert("⚠️ Safety Block: This table is currently busy! Please free it (set to Available) before deleting.");
+                      } else if (confirm(`🛑 Permanent Action: Are you sure you want to delete Table ${table.table_number}? This will permanently remove it from the database.`)) {
                         onDelete(table.id);
                       }
                       setMenuOpen(false);
                     }}
                     className="w-full text-left px-3 py-2 text-xs font-black hover:bg-red-500/10 rounded-xl flex items-center gap-2 text-red-500 transition-colors"
                   >
-                    <X size={14} className="opacity-70" /> Delete This Table
+                    <Trash2 size={14} className="opacity-70" /> Delete Table
                   </button>
                   <div className="h-px bg-gray-100 dark:bg-white/10 my-1" />
                   <button onClick={() => setMenuOpen(false)} className="w-full text-left px-3 py-2 text-xs font-bold hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl flex items-center gap-2 text-gray-400 opacity-60">Close Menu</button>
@@ -286,40 +291,45 @@ export default function Tables() {
 
   const handleDeleteTable = async (id) => {
     if (!id) return;
-    const numericId = Number(id);
+    
+    // Safety: Ensure we use the string ID for Supabase BigInt compatibility
+    const tableId = id.toString();
     
     try {
       setLoading(true);
-      console.log(`Starting delete process for table ID: ${numericId}`);
       
-      const targetTable = tables.find(t => Number(t.id) === numericId);
-      const tNum = targetTable?.table_number || 0;
+      const targetTable = tables.find(t => t.id.toString() === tableId);
+      const tNum = targetTable?.table_number;
 
-      // 1. Broad Unlink: Clear both ID and Number references in reservations
+      console.log(`Cleaning up dependencies for Table ${tNum} (ID: ${tableId})...`);
+
+      // 1. Unlink Reservations: Clear references in reservations_main to avoid Foreign Key violations
       const { error: unlinkError } = await supabase
         .from('reservations_main')
         .update({ table_id: null })
-        .or(`table_id.eq.${numericId},table_number.eq.${tNum}`);
+        .or(`table_id.eq.${tableId}${tNum ? `,table_number.eq.${tNum}` : ''}`);
       
-      if (unlinkError) console.warn("Unlink warning:", unlinkError);
+      if (unlinkError) {
+        console.warn("Reservation unlink warning:", unlinkError.message);
+      }
 
-      // 2. The Final Deletion
+      // 2. Perform the actual deletion from restaurant_tables
       const { error, count } = await supabase
         .from('restaurant_tables')
         .delete({ count: 'exact' })
-        .eq('id', numericId);
+        .eq('id', tableId);
       
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
-      // Success
-      setTables(prev => prev.filter(t => Number(t.id) !== numericId));
-      alert("✅ Success: Table has been permanently removed.");
+      // 3. Update local state for immediate UI feedback
+      setTables(prev => prev.filter(t => t.id.toString() !== tableId));
       
+      // Optional: Small delay then refetch to ensure total sync
+      setTimeout(() => fetchTables(), 500);
+
     } catch (err) {
-      alert("🛑 Deletion Failed: " + (err.message || "Unknown Database Error"));
-      console.error('Delete Error Detail:', err);
+      console.error('Delete Error:', err);
+      alert("🛑 Deletion Failed: " + (err.message || "Database connection error"));
     } finally {
       setLoading(false);
     }
