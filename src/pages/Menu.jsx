@@ -1,8 +1,12 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { menuData } from '../data/menu';
+import { useApp } from '../context/AppContext';
+import { Heart, ShoppingBag } from 'lucide-react';
 
 const CategorySection = ({ title, items = [] }) => {
+  const { favorites, toggleFavorite, addToCart } = useApp();
+  
   if (!items || items.length === 0) return null;
   
   return (
@@ -11,42 +15,65 @@ const CategorySection = ({ title, items = [] }) => {
         {title}
       </h3>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {items.map((item, index) => (
-          <div 
-            key={`${item.name}-${index}`} 
-            className="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100 dark:border-gray-700"
-          >
-            <div className="h-48 overflow-hidden relative">
-              <img 
-                src={item.image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c'} 
-                alt={item.name} 
-                className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
-              />
-              {item.spiceLevel > 0 && (
-                <div className="absolute top-4 right-4 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
-                  Spice: {item.spiceLevel}/5
+        {items.map((item, index) => {
+          const isFav = favorites.some(f => f.name === item.name);
+          return (
+            <div 
+              key={`${item.name}-${index}`} 
+              className="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100 dark:border-gray-700 group flex flex-col"
+            >
+              <div className="h-48 overflow-hidden relative">
+                <img 
+                  src={item.image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c'} 
+                  alt={item.name} 
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                />
+                
+                <button 
+                  onClick={() => toggleFavorite(item)}
+                  className={`absolute top-4 left-4 p-2.5 rounded-xl backdrop-blur-md transition-all duration-300 shadow-lg ${
+                    isFav 
+                      ? 'bg-red-500 text-white scale-110' 
+                      : 'bg-white/90 dark:bg-gray-900/90 text-gray-400 hover:text-red-500'
+                  }`}
+                >
+                  <Heart size={18} fill={isFav ? "currentColor" : "none"} />
+                </button>
+
+                {item.spiceLevel > 0 && (
+                  <div className="absolute top-4 right-4 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
+                    Spice: {item.spiceLevel}/5
+                  </div>
+                )}
+              </div>
+              <div className="p-6 flex-1 flex flex-col">
+                <div className="flex justify-between items-start mb-2">
+                  <h4 className="text-xl font-bold text-gray-900 dark:text-white">{item.name}</h4>
+                  <span className="text-indigo-600 dark:text-indigo-400 font-bold">
+                    PKR {(item.price || 0).toLocaleString()}
+                  </span>
                 </div>
-              )}
-            </div>
-            <div className="p-6">
-              <div className="flex justify-between items-start mb-2">
-                <h4 className="text-xl font-bold text-gray-900 dark:text-white">{item.name}</h4>
-                <span className="text-indigo-600 dark:text-indigo-400 font-bold">
-                  PKR {(item.price || 0).toLocaleString()}
-                </span>
+                <p className="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-2">
+                  {item.description}
+                </p>
+                <div className="flex flex-wrap gap-2 mb-6">
+                  {item.isGlutenFree && <span className="text-[10px] bg-green-100 dark:bg-green-500/10 text-green-700 dark:text-green-400 px-2 py-1 rounded uppercase font-bold">Gluten Free</span>}
+                  {item.isLactoseFree && <span className="text-[10px] bg-blue-100 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 px-2 py-1 rounded uppercase font-bold">Lactose Free</span>}
+                  {item.containsDairy && <span className="text-[10px] bg-yellow-100 dark:bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 px-2 py-1 rounded uppercase font-bold">Contains Dairy</span>}
+                  {item.containsNuts && <span className="text-[10px] bg-red-100 dark:bg-red-500/10 text-red-700 dark:text-red-400 px-2 py-1 rounded uppercase font-bold">Contains Nuts</span>}
+                </div>
+                
+                <button 
+                  onClick={() => addToCart(item)}
+                  className="mt-auto w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-black text-xs uppercase tracking-widest transition-all shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2 group/btn"
+                >
+                  <ShoppingBag size={18} className="transition-transform group-hover/btn:scale-110" /> 
+                  Add to Cart
+                </button>
               </div>
-              <p className="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-2">
-                {item.description}
-              </p>
-              <div className="flex flex-wrap gap-2 mt-auto">
-                {item.isGlutenFree && <span className="text-[10px] bg-green-100 text-green-700 px-2 py-1 rounded uppercase font-bold">Gluten Free</span>}
-                {item.isLactoseFree && <span className="text-[10px] bg-blue-100 text-blue-700 px-2 py-1 rounded uppercase font-bold">Lactose Free</span>}
-                {item.containsDairy && <span className="text-[10px] bg-yellow-100 text-yellow-700 px-2 py-1 rounded uppercase font-bold">Contains Dairy</span>}
-                {item.containsNuts && <span className="text-[10px] bg-red-100 text-red-700 px-2 py-1 rounded uppercase font-bold">Contains Nuts</span>}
-              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </section>
   );
@@ -62,7 +89,6 @@ export default function Menu() {
       const saved = localStorage.getItem('aifur_menu_override');
       if (saved) {
         const parsed = JSON.parse(saved);
-        // Basic validation to ensure structure exists
         if (parsed && typeof parsed === 'object') {
           setLocalMenuData(parsed);
         }
