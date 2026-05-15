@@ -18,14 +18,22 @@ const TableCard = ({ table, theme, onUpdateStatus, onDelete }) => {
   const isReserved = table.status === 'reserved' || table.status === 'Reserved';
   const isAvailable = table.status === 'Available' || table.status === 'free';
 
-  const getTimeOccupied = () => {
-    if (!table.occupied_at) return null;
+  const getTimeOccupiedInfo = () => {
+    if (!table.occupied_at) return { text: null, isOverdue: false, isWarning: false };
     const diff = Date.now() - new Date(table.occupied_at).getTime();
     const mins = Math.floor(diff / 60000);
-    if (mins < 60) return `${mins}m`;
-    const hrs = Math.floor(mins / 60);
-    return `${hrs}h ${mins % 60}m`;
+    
+    const isOverdue = mins >= 120; // 2 hours
+    const isWarning = mins >= 105; // 1h 45m
+    
+    let text = "";
+    if (mins < 60) text = `${mins}m`;
+    else text = `${Math.floor(mins / 60)}h ${mins % 60}m`;
+    
+    return { text, isOverdue, isWarning };
   };
+
+  const timeInfo = getTimeOccupiedInfo();
 
   const handleStatusChange = async (newStatus) => {
     setMenuOpen(false);
@@ -98,8 +106,14 @@ const TableCard = ({ table, theme, onUpdateStatus, onDelete }) => {
         
         <div className="flex flex-wrap items-center justify-end gap-1.5 relative max-w-[140px]">
           {isOccupied && (
-            <div className="flex items-center gap-1 text-[9px] font-black text-indigo-600 bg-indigo-50 dark:bg-indigo-500/10 px-2 py-1 rounded-full border border-indigo-100 dark:border-indigo-500/20 animate-pulse whitespace-nowrap">
-              <Clock size={10} /> {getTimeOccupied()}
+            <div className={`flex items-center gap-1 text-[9px] font-black px-2 py-1 rounded-full border animate-pulse whitespace-nowrap ${
+              timeInfo.isOverdue 
+                ? 'bg-red-500 text-white border-red-400 shadow-lg shadow-red-500/20' 
+                : timeInfo.isWarning 
+                  ? 'bg-amber-500 text-white border-amber-400' 
+                  : 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 border-indigo-100 dark:border-indigo-500/20'
+            }`}>
+              <Clock size={10} /> {timeInfo.text} {timeInfo.isOverdue && '• OVERDUE'}
             </div>
           )}
           <span className={`px-2 py-1 rounded-full text-[9px] font-black uppercase tracking-wider whitespace-nowrap ${
@@ -153,7 +167,14 @@ const TableCard = ({ table, theme, onUpdateStatus, onDelete }) => {
       </div>
 
       <div className="mb-4">
-        <h3 className="text-xl font-black mb-1">Table {table.table_number || table.id}</h3>
+        <div className="flex items-center gap-2 mb-1">
+          <h3 className="text-xl font-black">Table {table.table_number || table.id}</h3>
+          {timeInfo.isOverdue && (
+            <span className="flex items-center gap-1 bg-red-500 text-[8px] text-white px-2 py-0.5 rounded-lg font-black uppercase tracking-tighter animate-bounce">
+              <Bell size={8} /> Rotate
+            </span>
+          )}
+        </div>
         <div className="space-y-1">
           <div className="text-[10px] text-gray-500 font-bold uppercase tracking-widest flex items-center gap-2">
             <Users size={10} /> {table.capacity || 4} Persons Max

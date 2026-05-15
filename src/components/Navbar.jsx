@@ -11,8 +11,34 @@ export default function Navbar() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
 
+  const [announcement, setAnnouncement] = useState('');
+
   useEffect(() => {
-    // Initial load
+    const fetchAnnouncement = async () => {
+      const { data } = await supabase
+        .from('restaurant_config')
+        .select('value')
+        .eq('key', 'site_announcement')
+        .single();
+      if (data) setAnnouncement(data.value);
+    };
+
+    fetchAnnouncement();
+
+    // Real-time subscription for changes
+    const channel = supabase
+      .channel('config_changes')
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'restaurant_config' }, 
+        (payload) => {
+          if (payload.new.key === 'site_announcement') setAnnouncement(payload.new.value);
+        })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, []);
+
+  // Initial load for user
+  useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem('user') || 'null');
     setUser(storedUser);
 
@@ -52,7 +78,26 @@ export default function Navbar() {
   ];
 
   return (
-    <header className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md shadow-sm sticky top-0 z-50 transition-colors duration-200 border-b border-gray-100 dark:border-gray-800">
+    <>
+      {announcement && (
+        <div className="bg-indigo-600 text-white py-2 overflow-hidden relative border-b border-indigo-500/30">
+          <div className="whitespace-nowrap animate-marquee flex items-center gap-8">
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-2 px-4">
+              <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></div>
+              {announcement}
+            </span>
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-2 px-4 opacity-50">
+              <div className="w-1.5 h-1.5 rounded-full bg-white"></div>
+              {announcement}
+            </span>
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-2 px-4 opacity-50">
+              <div className="w-1.5 h-1.5 rounded-full bg-white"></div>
+              {announcement}
+            </span>
+          </div>
+        </div>
+      )}
+      <header className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md shadow-sm sticky top-0 z-50 transition-colors duration-200 border-b border-gray-100 dark:border-gray-800">
       <div className="max-w-7xl mx-auto px-4 md:px-6 py-3 md:py-4 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Link to="/" className="text-2xl font-black tracking-tighter text-gray-900 dark:text-white hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">

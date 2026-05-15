@@ -17,29 +17,66 @@ export default function MenuManagement() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [formData, setFormData] = useState({
-    name: '', description: '', price: 0, image: '', isAvailable: true, spiceLevel: 0
+    name: '', description: '', price: 0, image: '', isAvailable: true, spiceLevel: 0,
+    siteAnnouncement: ''
   });
+  const [announcement, setAnnouncement] = useState('Welcome to Aifur!');
 
   useEffect(() => {
-    // Load from localStorage or fallback to default
-    const saved = localStorage.getItem('aifur_menu_override');
-    if (saved) {
-      try {
-        setMenuState(JSON.parse(saved));
-      } catch (e) {
-        console.error("Corrupted menu data in localStorage", e);
-        localStorage.removeItem('aifur_menu_override');
-        setMenuState(defaultMenuData);
-      }
-    } else {
-      setMenuState(defaultMenuData);
-      localStorage.setItem('aifur_menu_override', JSON.stringify(defaultMenuData));
-    }
+    fetchOverrides();
+    fetchAnnouncement();
   }, []);
 
-  const saveMenu = (newState) => {
-    setMenuState(newState);
-    localStorage.setItem('aifur_menu_override', JSON.stringify(newState));
+  const fetchAnnouncement = async () => {
+    const { data } = await supabase.from('restaurant_config').select('value').eq('key', 'site_announcement').single();
+    if (data) setAnnouncement(data.value);
+  };
+
+  const fetchOverrides = async () => {
+    const { data: overrides } = await supabase.from('menu_overrides').select('*');
+    
+    const mergedMenu = JSON.parse(JSON.stringify(defaultMenuData));
+    
+    if (overrides) {
+      overrides.forEach(ov => {
+        // Search through all categories/subs to apply overrides
+        Object.keys(mergedMenu).forEach(cat => {
+          if (cat === 'deals') {
+            mergedMenu.deals = mergedMenu.deals.map(item => 
+              item.name === ov.dish_name ? { ...item, price: ov.price, isAvailable: ov.is_available } : item
+            );
+          } else {
+            Object.keys(mergedMenu[cat]).forEach(sub => {
+              mergedMenu[cat][sub] = mergedMenu[cat][sub].map(item => 
+                item.name === ov.dish_name ? { ...item, price: ov.price, isAvailable: ov.is_available } : item
+              );
+            });
+          }
+        });
+      });
+    }
+    setMenuState(mergedMenu);
+  };
+
+  const saveAnnouncement = async (val) => {
+    await supabase.from('restaurant_config').upsert({ key: 'site_announcement', value: val });
+    setAnnouncement(val);
+    setIsModalOpen(false);
+  };
+
+  const saveOverride = async (item) => {
+    const { error } = await supabase.from('menu_overrides').upsert({
+      dish_name: item.name,
+      price: parseInt(formData.price),
+      is_available: formData.isAvailable
+    });
+    
+    if (!error) {
+      fetchOverrides();
+      setIsModalOpen(false);
+    } else {
+      alert("Error syncing with website: " + error.message);
+    }
   };
 
   const categories = [
@@ -139,18 +176,23 @@ export default function MenuManagement() {
     <div className="space-y-8 pb-20 animate-in fade-in duration-500 relative">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
-          <h1 className="text-3xl font-black tracking-tight mb-2">Live Specials & Availability</h1>
-          <p className="text-gray-500 font-medium">Control pricing and stock in real-time. Changes sync to the website instantly.</p>
+          <h1 className="text-3xl font-black tracking-tight mb-2">Site & Inventory Status</h1>
+          <p className="text-gray-500 font-medium">Manage site-wide announcements and real-time stock availability.</p>
         </div>
         <div className="flex gap-4">
-          <button onClick={() => {
-            setEditingItem({ id: 'special', name: 'Today\'s Special', isSpecial: true });
-            setFormData({ name: 'Special Announcement', content: 'Tonight: 20% off on all Swedish Meatballs!', type: 'special' });
-            setIsModalOpen(true);
-          }} className="bg-amber-500 hover:bg-amber-600 text-white px-6 py-3 rounded-2xl text-sm font-black flex items-center gap-2 shadow-xl shadow-amber-500/20 active:scale-95 transition-all">
-            <Flame size={16} />
-            Update Daily Special
-          </button>
+          <div className="bg-white dark:bg-white/5 border border-indigo-100 dark:border-indigo-500/20 px-6 py-3 rounded-2xl flex items-center gap-4 shadow-sm">
+             <div className="flex flex-col">
+               <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Active Banner</span>
+               <span className="text-xs font-bold text-indigo-600 truncate max-w-[200px]">{announcement}</span>
+             </div>
+             <button onClick={() => {
+               setEditingItem({ isAnnouncement: true });
+               setFormData({ siteAnnouncement: announcement, isAnnouncement: true });
+               setIsModalOpen(true);
+             }} className="bg-indigo-600 hover:bg-indigo-700 text-white p-2 rounded-xl transition-all">
+               <Edit2 size={16} />
+             </button>
+          </div>
         </div>
       </div>
 
@@ -254,27 +296,33 @@ export default function MenuManagement() {
               <button onClick={() => setIsModalOpen(false)} className="p-2 text-gray-400 hover:text-gray-900 dark:hover:text-white rounded-xl bg-gray-50 dark:bg-white/5"><X size={20} /></button>
             </div>
             <div className="p-6 space-y-4">
-              {formData.isSpecial ? (
+              {formData.isAnnouncement ? (
                 <div>
-                  <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Special Announcement Text</label>
-                  <textarea value={formData.content} onChange={e => setFormData({...formData, content: e.target.value})} className="w-full p-3 rounded-xl bg-gray-50 dark:bg-white/5 border-none outline-none text-sm h-32 font-bold" placeholder="e.g. Happy Hour: 50% off on all mocktails!" />
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Site-Wide Announcement (Top Banner)</label>
+                  <textarea 
+                    value={formData.siteAnnouncement} 
+                    onChange={e => setFormData({...formData, siteAnnouncement: e.target.value})} 
+                    className="w-full p-4 rounded-2xl bg-gray-50 dark:bg-white/5 border-none outline-none text-sm h-32 font-bold ring-2 ring-indigo-500/10 focus:ring-indigo-500 transition-all" 
+                    placeholder="e.g. We are closed today for a private event. See you tomorrow!" 
+                  />
+                  <p className="mt-2 text-[10px] text-gray-400 font-medium">This will appear at the top of every page on the main website.</p>
                 </div>
               ) : (
                 <>
-                  <div className="bg-gray-50 dark:bg-white/5 p-4 rounded-2xl mb-4">
-                    <h4 className="font-black text-indigo-600 mb-1">{formData.name}</h4>
-                    <p className="text-[10px] text-gray-500 leading-tight">{formData.description}</p>
+                  <div className="bg-gray-50 dark:bg-white/5 p-5 rounded-3xl mb-4 border border-indigo-50 dark:border-white/5">
+                    <h4 className="font-black text-indigo-600 text-lg mb-1">{formData.name}</h4>
+                    <p className="text-xs text-gray-500 leading-tight">{formData.description}</p>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Price (PKR)</label>
-                      <input type="number" value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} className="w-full p-3 rounded-xl bg-gray-50 dark:bg-white/5 border-none outline-none font-bold" />
+                      <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Current Price (PKR)</label>
+                      <input type="number" value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} className="w-full p-4 rounded-2xl bg-gray-50 dark:bg-white/5 border-none outline-none font-bold ring-2 ring-indigo-500/5 focus:ring-indigo-500" />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Availability</label>
-                      <select value={formData.isAvailable} onChange={e => setFormData({...formData, isAvailable: e.target.value === 'true'})} className="w-full p-3 rounded-xl bg-gray-50 dark:bg-white/5 border-none outline-none font-bold text-xs">
-                        <option value="true">In Stock</option>
-                        <option value="false">Out of Stock</option>
+                      <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Stock Availability</label>
+                      <select value={formData.isAvailable} onChange={e => setFormData({...formData, isAvailable: e.target.value === 'true'})} className="w-full p-4 rounded-2xl bg-gray-50 dark:bg-white/5 border-none outline-none font-bold text-xs ring-2 ring-indigo-500/5 focus:ring-indigo-500">
+                        <option value="true">In Stock (Available)</option>
+                        <option value="false">Out of Stock (Sold Out)</option>
                       </select>
                     </div>
                   </div>
@@ -282,8 +330,10 @@ export default function MenuManagement() {
               )}
             </div>
             <div className="p-6 border-t border-gray-100 dark:border-white/5 bg-gray-50 dark:bg-white/[0.02] flex justify-end gap-3">
-              <button onClick={() => setIsModalOpen(false)} className="px-6 py-3 rounded-xl text-sm font-bold text-gray-500 hover:text-gray-900 dark:hover:text-white">Cancel</button>
-              <button onClick={handleSaveModal} className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-black flex items-center gap-2"><Save size={16} /> Save Dish</button>
+              <button onClick={() => setIsModalOpen(false)} className="px-6 py-3 rounded-xl text-sm font-bold text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors">Cancel</button>
+              <button onClick={() => formData.isAnnouncement ? saveAnnouncement(formData.siteAnnouncement) : saveOverride(formData)} className="px-8 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-black flex items-center gap-2 shadow-lg shadow-indigo-500/20 active:scale-95 transition-all">
+                <Save size={16} /> {formData.isAnnouncement ? 'Update Banner' : 'Sync to Website'}
+              </button>
             </div>
           </div>
         </div>

@@ -1,18 +1,44 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import heroImage from '../assets/hero.png';
 import { menuData } from '../data/menu';
+import { supabase } from '../utils/supabaseClient';
 
 export default function RestaurantHero() {
-  // Get all main dishes from all categories
+  const [localMenuData, setLocalMenuData] = useState(menuData);
+
+  useEffect(() => {
+    const fetchOverrides = async () => {
+      const { data: overrides } = await supabase.from('menu_overrides').select('*');
+      if (overrides) {
+        const mergedMenu = JSON.parse(JSON.stringify(menuData));
+        overrides.forEach(ov => {
+          Object.keys(mergedMenu).forEach(cat => {
+            if (cat !== 'deals') {
+              Object.keys(mergedMenu[cat]).forEach(sub => {
+                mergedMenu[cat][sub] = mergedMenu[cat][sub].map(item => 
+                  item.name === ov.dish_name ? { ...item, price: ov.price, isAvailable: ov.is_available } : item
+                );
+              });
+            }
+          });
+        });
+        setLocalMenuData(mergedMenu);
+      }
+    };
+    fetchOverrides();
+  }, []);
+
+  // Get all main dishes that are actually AVAILABLE
   const allMains = [
-    ...menuData.swedish.mains,
-    ...menuData.pakistani.mains,
-    ...menuData.fusion.mains
-  ];
+    ...(localMenuData.swedish?.mains || []),
+    ...(localMenuData.pakistani?.mains || []),
+    ...(localMenuData.fusion?.mains || [])
+  ].filter(item => item.isAvailable !== false);
 
   // Pick a different special every day based on current date
   const dayOfYear = new Date().getDate();
-  const specialItem = allMains[dayOfYear % allMains.length];
+  const specialItem = allMains.length > 0 ? allMains[dayOfYear % allMains.length] : null;
 
   return (
     <section className="relative h-[90vh] flex items-center overflow-hidden bg-gray-900">
@@ -53,18 +79,20 @@ export default function RestaurantHero() {
       </div>
 
       {/* Floating Elements / Decorative */}
-      <div className="absolute bottom-12 right-12 hidden lg:block animate-bounce duration-[3000ms]">
-        <Link to="/menu" className="block transform hover:scale-105 transition-transform">
-          <div className="bg-white/10 backdrop-blur-md border border-white/20 p-6 rounded-2xl shadow-2xl">
-            <div className="text-indigo-400 font-bold text-sm mb-1 flex items-center gap-2">
-              <span className="w-2 h-2 bg-indigo-400 rounded-full animate-pulse"></span>
-              Today's Special
+      {specialItem && (
+        <div className="absolute bottom-12 right-12 hidden lg:block animate-bounce duration-[3000ms]">
+          <Link to="/menu" className="block transform hover:scale-105 transition-transform">
+            <div className="bg-white/10 backdrop-blur-md border border-white/20 p-6 rounded-2xl shadow-2xl">
+              <div className="text-indigo-400 font-bold text-sm mb-1 flex items-center gap-2">
+                <span className="w-2 h-2 bg-indigo-400 rounded-full animate-pulse"></span>
+                Today's Special
+              </div>
+              <div className="text-white font-bold text-lg">{specialItem.name}</div>
+              <div className="text-gray-400 text-sm">PKR {specialItem.price.toLocaleString()}</div>
             </div>
-            <div className="text-white font-bold text-lg">{specialItem.name}</div>
-            <div className="text-gray-400 text-sm">PKR {specialItem.price.toLocaleString()}</div>
-          </div>
-        </Link>
-      </div>
+          </Link>
+        </div>
+      )}
     </section>
   );
 }

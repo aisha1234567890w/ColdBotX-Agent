@@ -85,19 +85,43 @@ export default function Menu() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    fetchMenuOverrides();
+  }, []);
+
+  const fetchMenuOverrides = async () => {
     try {
-      const saved = localStorage.getItem('aifur_menu_override');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed && typeof parsed === 'object') {
-          setLocalMenuData(parsed);
-        }
+      const { data: overrides, error } = await supabase
+        .from('menu_overrides')
+        .select('*');
+
+      if (error) throw error;
+
+      if (overrides && overrides.length > 0) {
+        const mergedMenu = JSON.parse(JSON.stringify(menuData));
+        
+        overrides.forEach(ov => {
+          // Sync all categories
+          Object.keys(mergedMenu).forEach(cat => {
+            if (cat === 'deals') {
+              mergedMenu.deals = mergedMenu.deals.map(item => 
+                item.name === ov.dish_name ? { ...item, price: ov.price, isAvailable: ov.is_available } : item
+              );
+            } else {
+              Object.keys(mergedMenu[cat]).forEach(sub => {
+                mergedMenu[cat][sub] = mergedMenu[cat][sub].map(item => 
+                  item.name === ov.dish_name ? { ...item, price: ov.price, isAvailable: ov.is_available } : item
+                );
+              });
+            }
+          });
+        });
+        setLocalMenuData(mergedMenu);
       }
     } catch (err) {
-      console.error("Failed to load menu overrides:", err);
-      setError("Some of your local settings couldn't be loaded. Falling back to default menu.");
+      console.error("Failed to sync menu from server:", err);
+      setError("Unable to sync latest prices. Showing standard menu.");
     }
-  }, []);
+  };
 
   const resetMenu = () => {
     localStorage.removeItem('aifur_menu_override');
