@@ -129,7 +129,11 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 transition-colors duration-300">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 transition-colors duration-300 relative overflow-hidden">
+      
+      {/* Decorative background blobs for "Color Pop" */}
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-500/10 dark:bg-indigo-500/5 rounded-full blur-[120px] -mr-64 -mt-64 animate-pulse"></div>
+      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-purple-500/10 dark:bg-purple-500/5 rounded-full blur-[120px] -ml-64 -mb-64"></div>
       
       {/* Phone Number Modal */}
       <AnimatePresence>
@@ -193,12 +197,15 @@ export default function Dashboard() {
             <motion.div 
               initial={{ opacity: 0, x: -20 }} 
               animate={{ opacity: 1, x: 0 }}
-              className="space-y-2"
+              className="space-y-4"
             >
-              <h1 className="text-4xl md:text-5xl font-black tracking-tighter">
-                👋 Welcome to Aifur, <span className="text-indigo-600 dark:text-indigo-400">{user?.name?.split(' ')[0]}!</span>
+              <div className="inline-flex items-center gap-2 px-3 py-1 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-full text-[10px] font-black uppercase tracking-widest border border-indigo-500/20">
+                <Sparkles size={12} /> Live Experience Dashboard
+              </div>
+              <h1 className="text-5xl md:text-7xl font-black tracking-tighter leading-none">
+                Hello, <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500">{user?.name?.split(' ')[0]}!</span>
               </h1>
-              <p className="text-gray-500 font-medium">Let's get you started with a premium dining experience.</p>
+              <p className="text-gray-500 font-medium text-lg">Ready for another culinary journey through Sweden & Pakistan?</p>
             </motion.div>
             
             <div className="flex items-center gap-6">
@@ -235,37 +242,37 @@ export default function Dashboard() {
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="relative overflow-hidden group rounded-[2.5rem] bg-gradient-to-br from-indigo-600 to-purple-700 p-8 md:p-12 text-white shadow-2xl"
+              className="relative overflow-hidden group rounded-[3.5rem] bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 p-8 md:p-16 text-white shadow-[0_32px_64px_-16px_rgba(79,70,229,0.4)]"
             >
-              <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-8">
-                <div className="max-w-xl text-center md:text-left">
-                  <span className="inline-block px-4 py-1.5 bg-white/20 backdrop-blur-md rounded-full text-[10px] font-black uppercase tracking-[0.2em] mb-6">First Order Reward</span>
-                  <h2 className="text-4xl md:text-5xl font-black tracking-tight mb-4 leading-tight">
-                    {appliedOffer ? "🎉 Offer Applied Successfully!" : "🎉 Get 20% OFF your first culinary journey!"}
+              <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-12">
+                <div className="max-w-xl text-center md:text-left space-y-6">
+                  <span className="inline-block px-5 py-2 bg-white/20 backdrop-blur-xl rounded-full text-xs font-black uppercase tracking-[0.3em] border border-white/30">Royal Entry Pass</span>
+                  <h2 className="text-5xl md:text-7xl font-black tracking-tight leading-[0.9]">
+                    {appliedOffer ? "Your Offer is Locked & Ready! 🎁" : "20% OFF Your First Voyage! ⛵"}
                   </h2>
-                  <p className="text-indigo-100 text-lg font-medium mb-8">
-                    {appliedOffer ? "Your 20% discount will be applied at checkout." : "Use code WELCOME20 at checkout."}
+                  <p className="text-indigo-100 text-xl font-medium">
+                    {appliedOffer ? "Your welcome discount will automatically apply to your cart." : "A gift from Aifur to start your Nordic-Pakistani fusion journey."}
                   </p>
                   {!appliedOffer ? (
                     <button 
                       onClick={handleClaimOffer}
-                      className="px-10 py-4 bg-white text-indigo-600 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:scale-105 active:scale-95 transition-all shadow-xl"
+                      className="px-12 py-5 bg-white text-indigo-600 rounded-2xl font-black uppercase tracking-widest text-xs hover:scale-105 active:scale-95 transition-all shadow-2xl hover:shadow-white/20"
                     >
-                      Claim Your Offer
+                      Claim Your Invitation
                     </button>
                   ) : (
-                    <div className="flex items-center gap-2 text-emerald-300 font-black uppercase tracking-widest text-xs">
-                      <CheckCircle2 size={20} /> WELCOME20 ACTIVE
+                    <div className="inline-flex items-center gap-3 px-6 py-3 bg-emerald-500/20 backdrop-blur-md rounded-2xl border border-emerald-400/30 text-emerald-300 font-black uppercase tracking-widest text-sm shadow-inner">
+                      <CheckCircle2 size={24} /> WELCOME20 ACTIVE
                     </div>
                   )}
                 </div>
-                <div className="hidden lg:block relative">
-                   <div className="w-64 h-64 bg-white/10 rounded-full animate-pulse blur-3xl absolute -inset-4"></div>
-                   <Gift size={180} className={`relative transition-all duration-500 ${appliedOffer ? 'scale-110 text-emerald-300' : 'text-white/20'}`} />
+                <div className="hidden lg:block relative group">
+                   <div className="w-80 h-80 bg-white/10 rounded-full animate-pulse blur-3xl absolute -inset-8"></div>
+                   <Gift size={240} className={`relative transition-all duration-700 transform group-hover:rotate-12 ${appliedOffer ? 'scale-110 text-emerald-300 drop-shadow-[0_0_30px_rgba(16,185,129,0.5)]' : 'text-white/20'}`} />
                 </div>
               </div>
-              <div className="absolute -top-12 -right-12 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
-              <div className="absolute -bottom-12 -left-12 w-64 h-64 bg-indigo-400/20 rounded-full blur-3xl"></div>
+              <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-[100px] -mr-32 -mt-32"></div>
+              <div className="absolute bottom-0 left-0 w-96 h-96 bg-indigo-400/20 rounded-full blur-[100px] -ml-32 -mb-32"></div>
             </motion.div>
           ) : (
             <motion.div 
@@ -368,22 +375,22 @@ export default function Dashboard() {
         </AnimatePresence>
 
         {/* 3. Quick Actions */}
-        <section className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+        <section className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
           {[
-            { label: 'View Menu', icon: Utensils, to: '/menu', color: 'bg-indigo-500' },
-            { label: 'Reserve Table', icon: Calendar, to: '/reservations', color: 'bg-amber-500' },
-            { label: 'Our Story', icon: ChefHat, to: '/about', color: 'bg-purple-500' },
-            { label: 'Get Support', icon: HelpCircle, to: '/contact', color: 'bg-emerald-500' },
+            { label: 'Culinary Menu', icon: Utensils, to: '/menu', color: 'from-blue-500 to-indigo-600', shadow: 'shadow-blue-500/25' },
+            { label: 'Reserve Table', icon: Calendar, to: '/reservations', color: 'from-amber-400 to-orange-500', shadow: 'shadow-amber-500/25' },
+            { label: 'Chef Stories', icon: ChefHat, to: '/about', color: 'from-emerald-400 to-teal-600', shadow: 'shadow-emerald-500/25' },
+            { label: 'Help Desk', icon: HelpCircle, to: '/contact', color: 'from-purple-500 to-pink-600', shadow: 'shadow-purple-500/25' },
           ].map((action) => (
             <Link 
               key={action.label} 
               to={action.to}
-              className="bg-white dark:bg-gray-900 p-6 rounded-[2rem] border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all group flex flex-col items-center gap-4 text-center"
+              className="bg-white dark:bg-gray-900 p-8 rounded-[2.5rem] border border-gray-100 dark:border-white/5 shadow-sm hover:shadow-[0_20px_50px_rgba(0,0,0,0.1)] hover:-translate-y-2 transition-all group flex flex-col items-center gap-6 text-center"
             >
-              <div className={`p-4 rounded-2xl ${action.color} text-white shadow-lg shadow-black/5 group-hover:scale-110 transition-transform`}>
-                <action.icon size={24} />
+              <div className={`p-6 rounded-[2rem] bg-gradient-to-br ${action.color} text-white shadow-2xl ${action.shadow} group-hover:scale-110 transition-transform duration-500`}>
+                <action.icon size={32} />
               </div>
-              <span className="text-xs font-black uppercase tracking-widest text-gray-700 dark:text-gray-300">{action.label}</span>
+              <span className="text-xs font-black uppercase tracking-[0.2em] text-gray-700 dark:text-gray-300 group-hover:text-indigo-600 transition-colors">{action.label}</span>
             </Link>
           ))}
         </section>
