@@ -399,23 +399,61 @@ export default function Tables() {
           ))}
         </div>
       ) : (
-        <div className={`transition-all duration-700 ${
+        <div className={`transition-all duration-700 min-h-[600px] rounded-[3rem] relative overflow-hidden ${
           isFloorView 
-            ? 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-12 p-8 bg-gray-50/50 dark:bg-white/[0.02] rounded-[3rem] border border-dashed border-gray-200 dark:border-white/10' 
+            ? 'p-12 bg-[#0a0c10] border border-white/5 shadow-2xl' 
             : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 lg:grid-cols-5 gap-6'
         }`}>
-          {filteredTables.map((table, idx) => (
-            <motion.div 
-              layout key={table.id}
-              initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: idx * 0.05 }}
-              style={isFloorView ? { 
-                marginTop: table.position === 'window' ? '-20px' : table.position === 'corner' ? '40px' : '0' 
-              } : {}}
-            >
-              <TableCard table={table} theme={theme} onUpdateStatus={handleUpdateStatus} />
-            </motion.div>
-          ))}
+          {isFloorView && (
+            <div className="absolute inset-0 opacity-20" style={{ 
+              backgroundImage: 'radial-gradient(circle, #312e81 1px, transparent 1px)', 
+              backgroundSize: '30px 30px' 
+            }} />
+          )}
+
+          {isFloorView ? (
+            <div className="relative z-10 grid grid-cols-3 gap-8">
+              {/* Window Zone */}
+              <div className="col-span-1 border-r border-white/5 pr-8 space-y-6">
+                <div className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-500 mb-8 flex items-center gap-4">
+                  <div className="h-px flex-1 bg-indigo-500/20"></div> WINDOW ZONE
+                </div>
+                {filteredTables.filter(t => t.position === 'window').map((table, idx) => (
+                  <motion.div layout key={table.id} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: idx * 0.1 }}>
+                    <TableCard table={table} theme={theme} onUpdateStatus={handleUpdateStatus} />
+                  </motion.div>
+                ))}
+              </div>
+
+              {/* Center Zone */}
+              <div className="col-span-1 px-4 space-y-6">
+                <div className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500 mb-8 flex items-center gap-4">
+                   MAIN DINING <div className="h-px flex-1 bg-gray-500/20"></div>
+                </div>
+                {filteredTables.filter(t => t.position === 'center' || !['window', 'bar'].includes(t.position)).map((table, idx) => (
+                  <motion.div layout key={table.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.1 }}>
+                    <TableCard table={table} theme={theme} onUpdateStatus={handleUpdateStatus} />
+                  </motion.div>
+                ))}
+              </div>
+
+              {/* Bar/Social Zone */}
+              <div className="col-span-1 border-l border-white/5 pl-8 space-y-6">
+                <div className="text-[10px] font-black uppercase tracking-[0.3em] text-amber-500 mb-8 flex items-center gap-4 text-right">
+                   BAR & SOCIAL <div className="h-px flex-1 bg-amber-500/20"></div>
+                </div>
+                {filteredTables.filter(t => t.position === 'bar' || t.position === 'corner').map((table, idx) => (
+                  <motion.div layout key={table.id} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: idx * 0.1 }}>
+                    <TableCard table={table} theme={theme} onUpdateStatus={handleUpdateStatus} />
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            filteredTables.map(table => (
+              <TableCard key={table.id} table={table} theme={theme} onUpdateStatus={handleUpdateStatus} />
+            ))
+          )}
         </div>
       )}
     </div>
