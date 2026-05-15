@@ -58,6 +58,9 @@ export default function Settings() {
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-8 space-y-10">
+      <div className="bg-indigo-600 text-white p-4 rounded-2xl text-center font-black uppercase tracking-[0.5em] text-[10px]">
+        System Terminal v1.7 STABLE - Ultra-Refined
+      </div>
       {showToast && (
         <div className="fixed bottom-10 right-10 bg-indigo-600 text-white px-6 py-3 rounded-2xl shadow-2xl font-bold flex items-center gap-3 z-50">
           <CheckCircle2 size={18} /> System Synchronized
