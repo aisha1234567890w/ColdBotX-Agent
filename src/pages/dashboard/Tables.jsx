@@ -124,21 +124,22 @@ const TableCard = ({ table, theme, onUpdateStatus }) => {
                   <button onClick={() => handleStatusChange('Available')} className="w-full text-left px-3 py-2 text-xs font-bold hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl flex items-center gap-2 text-emerald-600 font-bold"><Check size={14} /> Available</button>
                   <button onClick={() => handleStatusChange('Occupied')} className="w-full text-left px-3 py-2 text-xs font-bold hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl flex items-center gap-2 text-indigo-600 font-bold"><Users size={14} /> Occupied</button>
                   <button onClick={() => handleStatusChange('Reserved')} className="w-full text-left px-3 py-2 text-xs font-bold hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl flex items-center gap-2 text-amber-600 font-bold"><Clock size={14} /> Reserved</button>
+                  <div className="h-px bg-gray-100 dark:bg-white/10 my-1" />
                   <button 
                     onClick={() => {
                       if (isOccupied || isReserved) {
-                        alert("Cannot delete a busy table! Please free it first.");
-                      } else if (confirm(`Are you sure you want to delete Table ${table.table_number}?`)) {
+                        alert("⚠️ Safety Block: This table is currently busy! Please free it before deleting.");
+                      } else if (confirm(`🛑 Permanent Action: Are you sure you want to delete Table ${table.table_number}? This cannot be undone.`)) {
                         onDelete(table.id);
                       }
                       setMenuOpen(false);
                     }}
-                    className="w-full text-left px-3 py-2 text-xs font-bold hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl flex items-center gap-2 text-red-600"
+                    className="w-full text-left px-3 py-2 text-xs font-black hover:bg-red-500/10 rounded-xl flex items-center gap-2 text-red-500 transition-colors"
                   >
-                    <X size={14} /> Delete Table
+                    <X size={14} className="opacity-70" /> Delete This Table
                   </button>
                   <div className="h-px bg-gray-100 dark:bg-white/10 my-1" />
-                  <button onClick={() => setMenuOpen(false)} className="w-full text-left px-3 py-2 text-xs font-bold hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl flex items-center gap-2 text-gray-500"><X size={14} /> Close Menu</button>
+                  <button onClick={() => setMenuOpen(false)} className="w-full text-left px-3 py-2 text-xs font-bold hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl flex items-center gap-2 text-gray-400 opacity-60">Close Menu</button>
                 </div>
               </motion.div>
             )}
