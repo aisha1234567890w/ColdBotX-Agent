@@ -64,7 +64,7 @@ export default function Overview() {
         return new Date(r.reservation_date).toDateString() === todayDateStr;
       });
 
-      const now = new Date();
+      const currentDateObj = new Date();
       const upcomingRes = reservations.filter(r => {
         if (!r.reservation_date) return false;
         const resDate = new Date(r.reservation_date);
@@ -74,9 +74,9 @@ export default function Overview() {
            let resHour = parseInt(resTime);
            if (resTime.toLowerCase().includes('pm') && resHour < 12) resHour += 12;
            if (resTime.toLowerCase().includes('am') && resHour === 12) resHour = 0;
-           return resHour > now.getHours();
+           return resHour > currentDateObj.getHours();
         }
-        return resDate > now;
+        return resDate > currentDateObj;
       });
 
       // Calculate Revenue Estimate (Basis: Avg PKR 4,500 per guest)
