@@ -55,16 +55,7 @@ const ReservationRow = ({ reservation, theme, onUpdateStatus }) => {
           </div>
         </div>
       </td>
-      <td className="py-5">
-        <div className={`flex items-center gap-2 px-2 py-1 rounded-lg border w-fit ${theme === 'dark' ? 'bg-white/5 border-white/5' : 'bg-gray-50 border-gray-200'}`}>
-          <div className="text-indigo-500">
-            {source.toLowerCase().includes('call') ? <Phone size={12} /> : 
-             source.toLowerCase().includes('whatsapp') ? <Smartphone size={12} /> : 
-             <MessageSquare size={12} />}
-          </div>
-          <span className="text-[10px] font-black uppercase tracking-wider text-gray-500">{source}</span>
-        </div>
-      </td>
+
       <td className="py-5">
         <div className={`text-sm font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{time}</div>
         <div className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">{date}</div>
@@ -275,7 +266,6 @@ export default function Reservations() {
                 <th className="py-4 pl-4 text-left text-[10px] font-black uppercase tracking-widest text-indigo-600 dark:text-indigo-400 flex items-center gap-2 cursor-pointer" onClick={toggleSort}>
                   Customer <ArrowUpDown size={12} />
                 </th>
-                <th className="py-4 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">Source</th>
                 <th className="py-4 text-left text-[10px] font-black uppercase tracking-widest text-gray-500 cursor-pointer" onClick={toggleSort}>
                   <div className="flex items-center gap-2">Date & Time <ArrowUpDown size={12} /></div>
                 </th>

@@ -150,7 +150,6 @@ export default function Customers() {
                       </div>
                       <div>
                         <div className="font-black text-gray-900 dark:text-white">{c.name}</div>
-                        <div className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest">{c.source} Booking</div>
                       </div>
                     </div>
                   </td>
