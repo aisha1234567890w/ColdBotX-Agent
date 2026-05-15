@@ -282,8 +282,12 @@ export default function Dashboard() {
                 </div>
                 {reservations[0] ? (
                   <div className="flex flex-col md:flex-row gap-8 items-center relative z-10">
-                    <div className="w-full md:w-48 h-32 rounded-2xl overflow-hidden shadow-lg">
-                      <img src="https://images.unsplash.com/photo-1550966841-3ecfcdac896a?auto=format&fit=crop&q=80&w=400" className="w-full h-full object-cover" alt="Table" />
+                    <div className="w-full md:w-48 h-32 rounded-2xl overflow-hidden shadow-lg bg-gray-100 dark:bg-white/5">
+                      <img 
+                        src="https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&q=80&w=600" 
+                        className="w-full h-full object-cover" 
+                        alt="Aifur Seating" 
+                      />
                     </div>
                     <div className="flex-1 space-y-2 text-center md:text-left">
                       <div className="text-3xl font-black text-indigo-600">
@@ -318,7 +322,12 @@ export default function Dashboard() {
                   <div className="text-4xl font-black">1,250 <span className="text-sm font-bold text-gray-500">Pts</span></div>
                 </div>
                 <p className="text-[10px] text-gray-500 font-medium px-4">You're 250 points away from a FREE signature appetizer!</p>
-                <button className="w-full py-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-xl font-black text-[10px] uppercase tracking-widest">Rewards Store</button>
+                <button 
+                  onClick={() => alert("🎁 Rewards Store is launching soon! Keep earning points to redeem for free appetizers and exclusive Nordic-Pakistani fusion dishes.")}
+                  className="w-full py-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-xl font-black text-[10px] uppercase tracking-widest active:scale-95 transition-transform"
+                >
+                  Rewards Store
+                </button>
               </div>
             </motion.div>
           )}
