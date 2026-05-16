@@ -150,7 +150,7 @@ export default function Settings() {
               </div>
               <h3 className="text-sm font-black uppercase tracking-widest text-gray-900 dark:text-white">Service Intensity Matrix</h3>
            </div>
-           <div className="grid grid-cols-3 gap-4 relative z-10">
+           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 relative z-10">
               {[
                 { mode: 'Normal', desc: 'Standard staff pacing' }, 
                 { mode: 'Busy', desc: 'Accelerated turnover' }, 

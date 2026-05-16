@@ -513,9 +513,9 @@ export default function Tables() {
           )}
 
           {isFloorView ? (
-            <div className="relative z-10 grid grid-cols-3 gap-8">
+            <div className="relative z-10 grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Window Zone */}
-              <div className="col-span-1 border-r border-white/5 pr-8 space-y-6">
+              <div className="col-span-1 lg:border-r border-gray-200 dark:border-white/5 lg:pr-8 space-y-6">
                 <div className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-500 mb-8 flex items-center gap-4">
                   <div className="h-px flex-1 bg-indigo-500/20"></div> WINDOW ZONE
                 </div>
@@ -527,7 +527,7 @@ export default function Tables() {
               </div>
 
               {/* Center Zone */}
-              <div className="col-span-1 px-4 space-y-6">
+              <div className="col-span-1 lg:px-4 space-y-6">
                 <div className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500 mb-8 flex items-center gap-4">
                    MAIN DINING <div className="h-px flex-1 bg-gray-500/20"></div>
                 </div>
@@ -539,7 +539,7 @@ export default function Tables() {
               </div>
 
               {/* Bar/Social Zone */}
-              <div className="col-span-1 border-l border-white/5 pl-8 space-y-6">
+              <div className="col-span-1 lg:border-l border-gray-200 dark:border-white/5 lg:pl-8 space-y-6">
                 <div className="text-[10px] font-black uppercase tracking-[0.3em] text-amber-500 mb-8 flex items-center gap-4 text-right">
                    BAR & SOCIAL <div className="h-px flex-1 bg-amber-500/20"></div>
                 </div>
