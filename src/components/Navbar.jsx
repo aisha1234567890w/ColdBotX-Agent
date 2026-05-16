@@ -53,8 +53,37 @@ export default function Navbar() {
     // Listen for auth state changes from Supabase
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
-        const updatedUser = JSON.parse(localStorage.getItem('user') || 'null');
+        let updatedUser = JSON.parse(localStorage.getItem('user') || 'null');
+        
+        // Fix race condition: If App.jsx hasn't written to localStorage yet, build the user directly from the session
+        if (!updatedUser) {
+          const meta = session.user.user_metadata || {};
+          const email = session.user.email;
+          const role = email === 'ayesha.altaf2002@gmail.com' || email === 'mahnooraltaf19@gmail.com' ? 'manager' : 'customer';
+          
+          updatedUser = {
+            id: session.user.id,
+            name: meta.name || meta.full_name || email.split('@')[0],
+            email: email,
+            avatar: meta.avatar_url,
+            role: role
+          };
+          // Make sure it's stored
+          localStorage.setItem('user', JSON.stringify(updatedUser));
+          localStorage.setItem('supabase_session', JSON.stringify(session));
+          localStorage.setItem('isLoggedIn', 'true');
+        }
+        
         setUser(updatedUser);
+
+        // Auto-redirect if they landed here via OAuth (token in URL hash)
+        if (event === 'SIGNED_IN' && window.location.hash.includes('access_token')) {
+           if (updatedUser.role === 'manager') {
+             navigate('/admin-ops', { replace: true });
+           } else {
+             navigate('/user-dashboard', { replace: true });
+           }
+        }
       } else {
         setUser(null);
       }
@@ -63,7 +92,7 @@ export default function Navbar() {
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [navigate]);
 
   // Hide global navbar on manager dashboard to prevent double-header issue
   if (location.pathname.startsWith('/admin-ops')) return null;
