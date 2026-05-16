@@ -9,19 +9,17 @@ export default function ManagerRoute({ children }) {
     const location = useLocation();
 
     useEffect(() => {
-        const checkAuth = async () => {
-            const { data: { session } } = await supabase.auth.getSession();
-            
-            if (session) {
-                const hasManagerRole = isManager(session.user.email);
-                setIsManagerUser(hasManagerRole);
-                setIsAuth(true);
-            } else {
-                setIsAuth(false);
-            }
-        };
+        // Synchronous check to prevent long loading times
+        const storedUser = JSON.parse(localStorage.getItem('user') || 'null');
+        const isLoggedIn = localStorage.getItem('isLoggedIn');
 
-        checkAuth();
+        if (storedUser && isLoggedIn === 'true') {
+            setIsAuth(true);
+            setIsManagerUser(storedUser.role === 'manager');
+        } else {
+            setIsAuth(false);
+            setIsManagerUser(false);
+        }
     }, []);
 
     if (isAuth === null) {

@@ -8,44 +8,22 @@ export default function ProtectedRoute({ children }) {
     useEffect(() => {
         let isMounted = true;
 
-        const checkAuth = async () => {
-            try {
-                const { data: { session }, error } = await supabase.auth.getSession();
-
-                if (!isMounted) return;
-
-                if (error) {
-                    console.warn("Session check error:", error.message);
-                    localStorage.removeItem('supabase_session');
-                    localStorage.removeItem('user');
-                    setIsAuth(false);
-                    return;
-                }
-
-                if (session) {
-                    localStorage.setItem('supabase_session', JSON.stringify(session));
-                    setIsAuth(true);
-                } else {
-                    localStorage.removeItem('supabase_session');
-                    setIsAuth(false);
-                }
-            } catch (err) {
-                console.error("Auth check failed:", err);
-                if (isMounted) setIsAuth(false);
-            }
-        };
-
-        checkAuth();
+        // Synchronous check to prevent infinite loading lockups
+        const storedUser = localStorage.getItem('user');
+        const isLoggedIn = localStorage.getItem('isLoggedIn');
+        
+        if (storedUser && isLoggedIn === 'true') {
+            setIsAuth(true);
+        } else {
+            setIsAuth(false);
+        }
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
             (event, session) => {
                 if (!isMounted) return;
                 if (event === 'SIGNED_IN' && session) {
-                    localStorage.setItem('supabase_session', JSON.stringify(session));
                     setIsAuth(true);
                 } else if (event === 'SIGNED_OUT') {
-                    localStorage.removeItem('supabase_session');
-                    localStorage.removeItem('user');
                     setIsAuth(false);
                 }
             }
