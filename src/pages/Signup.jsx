@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "../utils/supabaseClient";
+import { isManager } from "../utils/auth";
 
 export default function Signup() {
   const [name, setName] = useState("");
@@ -67,11 +68,41 @@ export default function Signup() {
     }
   };
 
+  // Automatically redirect if already logged in (handles OAuth return)
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        const email = session.user.email;
+        const role = isManager(email) ? 'manager' : 'customer';
+        
+        const meta = session.user.user_metadata || {};
+        const profile = {
+          id: session.user.id,
+          name: meta.name || meta.full_name || email.split('@')[0],
+          email: email,
+          avatar: meta.avatar_url,
+          role: role
+        };
+        localStorage.setItem("supabase_session", JSON.stringify(session));
+        localStorage.setItem("user", JSON.stringify(profile));
+        localStorage.setItem("isLoggedIn", "true");
+
+        if (role === 'manager') {
+          navigate("/admin-ops", { replace: true });
+        } else {
+          navigate("/user-dashboard", { replace: true });
+        }
+      }
+    };
+    checkUser();
+  }, [navigate]);
+
   const handleOAuthSignup = async (provider) => {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
-        options: { redirectTo: `${window.location.origin}/dashboard` }
+        options: { redirectTo: `${window.location.origin}/signup` }
       });
       if (error) throw error;
     } catch (err) {

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "../utils/supabaseClient";
 import { isManager } from "../utils/auth";
@@ -54,13 +54,43 @@ export default function Login() {
     }
   };
 
+  // Automatically redirect if already logged in (handles OAuth return)
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        const email = session.user.email;
+        const role = isManager(email) ? 'manager' : 'customer';
+        
+        // Ensure local storage is set for OAuth users
+        const meta = session.user.user_metadata || {};
+        const profile = {
+          id: session.user.id,
+          name: meta.name || meta.full_name || email.split('@')[0],
+          email: email,
+          avatar: meta.avatar_url,
+          role: role
+        };
+        localStorage.setItem("supabase_session", JSON.stringify(session));
+        localStorage.setItem("user", JSON.stringify(profile));
+        localStorage.setItem("isLoggedIn", "true");
+
+        if (role === 'manager') {
+          navigate("/admin-ops", { replace: true });
+        } else {
+          navigate("/user-dashboard", { replace: true });
+        }
+      }
+    };
+    checkUser();
+  }, [navigate]);
+
   const handleOAuthLogin = async (provider) => {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          // This should ideally redirect to a processing page or use getSession on the target page
-          redirectTo: `${window.location.origin}`
+          redirectTo: `${window.location.origin}/login`
         }
       });
       if (error) throw error;
