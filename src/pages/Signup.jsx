@@ -102,7 +102,7 @@ export default function Signup() {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
-        options: { redirectTo: `${window.location.origin}/signup` }
+        options: { redirectTo: `${window.location.origin}` }
       });
       if (error) throw error;
     } catch (err) {

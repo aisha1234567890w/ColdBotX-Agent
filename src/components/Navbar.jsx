@@ -76,8 +76,8 @@ export default function Navbar() {
         
         setUser(updatedUser);
 
-        // Auto-redirect if they landed here via OAuth (token in URL hash)
-        if (event === 'SIGNED_IN' && window.location.hash.includes('access_token')) {
+        // Auto-redirect if they just signed in
+        if (event === 'SIGNED_IN') {
            if (updatedUser.role === 'manager') {
              navigate('/admin-ops', { replace: true });
            } else {
