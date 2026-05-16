@@ -101,6 +101,7 @@ export default function Navbar() {
     localStorage.removeItem('user');
     localStorage.removeItem('supabase_session');
     localStorage.removeItem('isLoggedIn');
+    localStorage.removeItem('user_phone');
     setUser(null);
     await supabase.auth.signOut();
     navigate('/login');

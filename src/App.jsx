@@ -53,6 +53,7 @@ function App() {
           localStorage.removeItem('supabase_session');
           localStorage.removeItem('user');
           localStorage.removeItem('isLoggedIn');
+          localStorage.removeItem('user_phone');
         }
       }
     );
