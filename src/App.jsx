@@ -43,7 +43,14 @@ function App() {
           await new Promise(r => setTimeout(r, 800));
         }
         
-        const { data: { session } } = await supabase.auth.getSession();
+        // Safety timeout: don't hang forever if Supabase deadlocks
+        const sessionPromise = supabase.auth.getSession();
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error("Timeout")), 4000)
+        );
+
+        const { data: { session } } = await Promise.race([sessionPromise, timeoutPromise]);
+        
         if (session) {
           const meta = session.user.user_metadata || {};
           const profile = {
@@ -62,7 +69,7 @@ function App() {
           }
         }
       } catch (err) {
-        console.error("Session check failed:", err);
+        console.warn("Session check bypassed or failed:", err.message);
       } finally {
         setAppReady(true);
       }
