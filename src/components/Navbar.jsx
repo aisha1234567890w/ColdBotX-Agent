@@ -50,14 +50,15 @@ export default function Navbar() {
     const storedUser = JSON.parse(localStorage.getItem('user') || 'null');
     setUser(storedUser);
 
-    // Proactive Redirect: If we have a user and we are on the landing page with an OAuth hash
-    if ((storedUser || window.location.hash.includes('access_token')) && location.pathname === '/') {
+    // Proactive Redirect: ONLY if we just returned from OAuth (hash contains access_token)
+    if (window.location.hash.includes('access_token') && location.pathname === '/') {
        const timer = setTimeout(() => {
          const finalUser = JSON.parse(localStorage.getItem('user') || 'null');
          if (finalUser) {
            navigate(finalUser.role === 'manager' ? '/admin-ops' : '/user-dashboard', { replace: true });
          }
        }, 500);
+       return () => clearTimeout(timer);
     }
 
     // Listen for auth state changes from Supabase
