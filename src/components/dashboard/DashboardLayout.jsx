@@ -183,7 +183,7 @@ export default function DashboardLayout() {
         {/* Sidebar Footer */}
         <div className="p-6 border-t border-gray-50 dark:border-white/5 space-y-4">
            {!isCollapsed && (
-             <div className="bg-black text-white p-6 rounded-[2.5rem] mb-6 relative overflow-hidden group border border-white/10 shadow-2xl">
+             <div className={`p-6 rounded-[2.5rem] mb-6 relative overflow-hidden group border shadow-2xl transition-all ${theme === 'dark' ? 'bg-[#0f1115] border-white/10 text-white' : 'bg-white border-gray-100 text-gray-900'}`}>
                 <div className="relative z-10">
                   <div className="flex justify-between items-center mb-4">
                      <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Live Occupancy</span>

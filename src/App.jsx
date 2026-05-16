@@ -30,7 +30,11 @@ import { isManager } from "./utils/auth";
 import './dashboard.css';
 
 function App() {
+  const [maintenanceMode, setMaintenanceMode] = useState(false);
+  const [loadingConfig, setLoadingConfig] = useState(true);
+
   useEffect(() => {
+    // Auth Listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         if (event === 'SIGNED_IN' && session) {
@@ -53,8 +57,35 @@ function App() {
       }
     );
 
-    return () => subscription.unsubscribe();
+    // Config Fetch & Listener
+    const fetchConfig = async () => {
+      const { data } = await supabase.from('restaurant_config').select('value').eq('key', 'maintenance_mode').single();
+      if (data) setMaintenanceMode(data.value === 'true');
+      setLoadingConfig(false);
+    };
+    fetchConfig();
+
+    const channel = supabase.channel('app_config_changes')
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'restaurant_config' }, 
+        (payload) => {
+          if (payload.new.key === 'maintenance_mode') setMaintenanceMode(payload.new.value === 'true');
+        })
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+      supabase.removeChannel(channel);
+    };
   }, []);
+
+  const MaintenanceOverlay = () => (
+    <div className="fixed inset-0 bg-black z-[9999] flex flex-col items-center justify-center text-white text-center p-6">
+      <div className="w-20 h-20 border-4 border-white/20 border-t-white rounded-full animate-spin mb-8"></div>
+      <h1 className="text-5xl font-black uppercase tracking-tighter mb-4">System Offline</h1>
+      <p className="text-gray-400 font-bold max-w-md mx-auto text-lg">Aifur is currently undergoing scheduled maintenance. Please check back shortly.</p>
+      <button onClick={() => window.location.href = '/login'} className="mt-12 text-[10px] text-gray-600 font-black uppercase tracking-widest hover:text-white transition-colors">Staff Login</button>
+    </div>
+  );
 
   return (
     <AppProvider>
@@ -73,18 +104,18 @@ function App() {
           </Route>
 
           {/* Public Website & User Side */}
-          <Route path="/" element={<><Navbar /><Landing /><Footer /></>} />
-          <Route path="/menu" element={<><Navbar /><Menu /><Footer /></>} />
-          <Route path="/reservations" element={<><Navbar /><Reservations /><Footer /></>} />
-          <Route path="/about" element={<><Navbar /><About /><Footer /></>} />
-          <Route path="/contact" element={<><Navbar /><Contact /><Footer /></>} />
-          <Route path="/signup" element={<><Navbar /><Signup /><Footer /></>} />
-          <Route path="/login" element={<><Navbar /><Login /><Footer /></>} />
+          <Route path="/" element={maintenanceMode ? <MaintenanceOverlay /> : <><Navbar /><Landing /><Footer /></>} />
+          <Route path="/menu" element={maintenanceMode ? <MaintenanceOverlay /> : <><Navbar /><Menu /><Footer /></>} />
+          <Route path="/reservations" element={maintenanceMode ? <MaintenanceOverlay /> : <><Navbar /><Reservations /><Footer /></>} />
+          <Route path="/about" element={maintenanceMode ? <MaintenanceOverlay /> : <><Navbar /><About /><Footer /></>} />
+          <Route path="/contact" element={maintenanceMode ? <MaintenanceOverlay /> : <><Navbar /><Contact /><Footer /></>} />
+          <Route path="/signup" element={maintenanceMode ? <MaintenanceOverlay /> : <><Navbar /><Signup /><Footer /></>} />
           
           {/* User Dashboard (Customer Side) */}
-          <Route path="/profile" element={<ProtectedRoute><><Navbar /><Profile /><Footer /></></ProtectedRoute>} />
-          <Route path="/user-dashboard" element={<ProtectedRoute><><Navbar /><Dashboard /><Footer /></></ProtectedRoute>} />
+          <Route path="/profile" element={maintenanceMode ? <MaintenanceOverlay /> : <ProtectedRoute><><Navbar /><Profile /><Footer /></></ProtectedRoute>} />
+          <Route path="/user-dashboard" element={maintenanceMode ? <MaintenanceOverlay /> : <ProtectedRoute><><Navbar /><Dashboard /><Footer /></></ProtectedRoute>} />
 
+          <Route path="/login" element={<><Navbar /><Login /><Footer /></>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>
