@@ -36,6 +36,11 @@ function App() {
   useEffect(() => {
     // Initial Session Check
     const checkSession = async () => {
+      // Small delay to let Supabase process hash from URL
+      if (window.location.hash.includes('access_token')) {
+        await new Promise(r => setTimeout(r, 500));
+      }
+      
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
         const meta = session.user.user_metadata || {};
@@ -49,6 +54,11 @@ function App() {
         localStorage.setItem('user', JSON.stringify(profile));
         localStorage.setItem('supabase_session', JSON.stringify(session));
         localStorage.setItem('isLoggedIn', 'true');
+        
+        // Clean up hash from URL
+        if (window.location.hash) {
+          window.history.replaceState(null, null, window.location.pathname);
+        }
       }
     };
     checkSession();
