@@ -101,11 +101,34 @@ export default function Overview() {
 
       const { data: tablesData } = await supabase.from('restaurant_tables').select('*');
       const totalTables = tablesData ? tablesData.length : 20; 
-      const manualOccupied = tablesData ? tablesData.filter(t => 
-        t.status?.toLowerCase() !== 'available' && t.status?.toLowerCase() !== 'free' && t.status?.toLowerCase() !== ''
-      ).length : 0;
       
-      const actualOccupied = Math.max(manualOccupied, arrivingToday.length);
+      let manualOccupied = 0;
+      if (tablesData) {
+        tablesData.forEach(t => {
+           const matchingRes = reservations.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+             .find(r => {
+               const matchesId = r.table_id && Number(r.table_id) === Number(t.id);
+               const matchesNum1 = r.table_number && Number(r.table_number) === Number(t.table_number);
+               const matchesNum2 = r.tableNumber && Number(r.tableNumber) === Number(t.table_number);
+               const isActive = ['confirmed', 'occupied', 'pending'].includes((r.status || '').toLowerCase());
+               return (matchesId || matchesNum1 || matchesNum2) && isActive;
+             });
+
+           let inferredStatus = 'Available';
+           const s = (t.status || 'free').toLowerCase();
+           
+           if (s === 'occupied') inferredStatus = 'Occupied';
+           else if (s === 'booked') inferredStatus = 'Reserved';
+           else if (matchingRes && matchingRes.status?.toLowerCase() === 'occupied') inferredStatus = 'Occupied';
+           else if (matchingRes && matchingRes.status?.toLowerCase() === 'confirmed') inferredStatus = 'Reserved';
+           else inferredStatus = 'Available';
+
+           if (inferredStatus !== 'Available') manualOccupied++;
+        });
+      }
+      
+      const activeReservationsCount = reservations.filter(r => ['confirmed', 'occupied'].includes((r.status || '').toLowerCase())).length;
+      const actualOccupied = Math.max(manualOccupied, activeReservationsCount);
 
       // 2-Hour Occupancy Check & Auto-Free (Safe Mode)
       const overdueTables = tablesData ? tablesData.filter(t => {

@@ -253,21 +253,26 @@ export default function Tables() {
 
       if (tablesData) {
         const mappedData = tablesData.map(t => {
-           // Refined Priority Inference based on official SQL status
+           // Link only with the NEWEST active reservation
+           const matchingRes = [...(resData || [])]
+             .sort((a, b) => new Date(b.created_at) - new Date(a.created_at)) // Get the most recent one first
+             .find(r => {
+               const matchesId = r.table_id && Number(r.table_id) === Number(t.id);
+               const matchesNum1 = r.table_number && Number(r.table_number) === Number(t.table_number);
+               const matchesNum2 = r.tableNumber && Number(r.tableNumber) === Number(t.table_number);
+               const isActive = ['confirmed', 'occupied', 'pending'].includes((r.status || '').toLowerCase());
+               return (matchesId || matchesNum1 || matchesNum2) && isActive;
+             });
+
+           // Refined Priority Inference based on official SQL status and matching reservation
            let inferredStatus = 'Available';
            const s = (t.status || 'free').toLowerCase();
            
            if (s === 'occupied') inferredStatus = 'Occupied';
            else if (s === 'booked') inferredStatus = 'Reserved';
+           else if (matchingRes && matchingRes.status?.toLowerCase() === 'occupied') inferredStatus = 'Occupied';
+           else if (matchingRes && matchingRes.status?.toLowerCase() === 'confirmed') inferredStatus = 'Reserved';
            else inferredStatus = 'Available';
-
-           // Link only with the NEWEST active reservation
-           const matchingRes = [...(resData || [])]
-             .sort((a, b) => new Date(b.created_at) - new Date(a.created_at)) // Get the most recent one first
-             .find(r => 
-               (Number(r.table_id) === Number(t.id)) &&
-               (['confirmed', 'occupied', 'pending'].includes(r.status))
-             );
 
            return { 
              ...t, 
