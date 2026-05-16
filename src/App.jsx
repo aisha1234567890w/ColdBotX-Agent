@@ -33,7 +33,25 @@ function App() {
   const [maintenanceMode, setMaintenanceMode] = useState(false);
   const [loadingConfig, setLoadingConfig] = useState(true);
 
-  useEffect(() => {
+    // Initial Session Check
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        const meta = session.user.user_metadata || {};
+        const profile = {
+          id: session.user.id,
+          name: meta.name || meta.full_name || session.user.email.split('@')[0],
+          email: session.user.email,
+          avatar: meta.avatar_url,
+          role: isManager(session.user.email) ? 'manager' : 'customer'
+        };
+        localStorage.setItem('user', JSON.stringify(profile));
+        localStorage.setItem('supabase_session', JSON.stringify(session));
+        localStorage.setItem('isLoggedIn', 'true');
+      }
+    };
+    checkSession();
+
     // Auth Listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
@@ -49,6 +67,7 @@ function App() {
             role: isManager(session.user.email) ? 'manager' : 'customer'
           };
           localStorage.setItem('user', JSON.stringify(profile));
+          localStorage.setItem('isLoggedIn', 'true');
         } else if (event === 'SIGNED_OUT') {
           localStorage.removeItem('supabase_session');
           localStorage.removeItem('user');

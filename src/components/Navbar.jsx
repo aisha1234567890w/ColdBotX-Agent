@@ -45,10 +45,20 @@ export default function Navbar() {
     return () => { supabase.removeChannel(channel); };
   }, []);
 
-  // Initial load for user
+  // Initial load for user & Auth State Listener
   useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem('user') || 'null');
     setUser(storedUser);
+
+    // Proactive Redirect: If we have a user and we are on the landing page with an OAuth hash
+    if ((storedUser || window.location.hash.includes('access_token')) && location.pathname === '/') {
+       const timer = setTimeout(() => {
+         const finalUser = JSON.parse(localStorage.getItem('user') || 'null');
+         if (finalUser) {
+           navigate(finalUser.role === 'manager' ? '/admin-ops' : '/user-dashboard', { replace: true });
+         }
+       }, 500);
+    }
 
     // Listen for auth state changes from Supabase
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
@@ -59,7 +69,7 @@ export default function Navbar() {
         if (!updatedUser) {
           const meta = session.user.user_metadata || {};
           const email = session.user.email;
-          const role = email === 'ayesha.altaf2002@gmail.com' || email === 'mahnooraltaf19@gmail.com' ? 'manager' : 'customer';
+          const role = isManager(email) ? 'manager' : 'customer';
           
           updatedUser = {
             id: session.user.id,
@@ -68,7 +78,6 @@ export default function Navbar() {
             avatar: meta.avatar_url,
             role: role
           };
-          // Make sure it's stored
           localStorage.setItem('user', JSON.stringify(updatedUser));
           localStorage.setItem('supabase_session', JSON.stringify(session));
           localStorage.setItem('isLoggedIn', 'true');
@@ -92,7 +101,7 @@ export default function Navbar() {
     return () => {
       subscription.unsubscribe();
     };
-  }, [navigate]);
+  }, [location.pathname, navigate]);
 
   // Hide global navbar on manager dashboard to prevent double-header issue
   if (location.pathname.startsWith('/admin-ops')) return null;
