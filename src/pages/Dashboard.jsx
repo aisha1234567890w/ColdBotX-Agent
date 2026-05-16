@@ -43,27 +43,34 @@ export default function Dashboard() {
 
   const fetchData = async (userObj) => {
     try {
-      const phone = userObj.phone || localStorage.getItem('user_phone');
-      const cleanPhone = phone ? phone.replace(/[\s\-\(\)\+]/g, '') : null;
-      // Extract last 9 digits to be extremely safe with 0/92 prefixes
-      const shortPhone = cleanPhone && cleanPhone.length >= 9 ? cleanPhone.slice(-9) : cleanPhone;
+      const storedPhone = localStorage.getItem('user_phone');
+      const phone = userObj.phone || storedPhone;
+      
+      console.log("[Privacy Check] Raw Phone:", phone);
 
-      // If the user has NOT linked their phone, do not show any reservations.
-      // Name-matching is too loose and shows other people's reservations.
-      if (!shortPhone) {
+      // Clean and validate
+      const cleanPhone = phone ? String(phone).replace(/[\s\-\(\)\+]/g, '') : null;
+      
+      // Strict Validation: Must be a string, not 'null'/'undefined', and at least 7 digits
+      const isValidPhone = cleanPhone && 
+                           cleanPhone !== 'null' && 
+                           cleanPhone !== 'undefined' && 
+                           cleanPhone.length >= 7;
+
+      if (!isValidPhone) {
+        console.log("[Privacy Check] No valid phone found. Clearing reservations.");
         setReservations([]);
         setIsFirstTime(true);
         setLoading(false);
         return;
       }
 
+      // Extract last 9 digits for matching
+      const shortPhone = cleanPhone.slice(-9);
+      console.log("[Privacy Check] Searching for phone suffix:", shortPhone);
+
       let query = supabase.from('reservations_main').select('*');
-      
-      // Only search by phone number to ensure strict privacy and ownership
       const orFilter = `phone_number.ilike.%${shortPhone}%`;
-
-      console.log("Searching with filter:", orFilter);
-
       const { data, error } = await query.or(orFilter).order('id', { ascending: false });
       
       if (error) {

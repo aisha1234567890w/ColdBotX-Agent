@@ -40,6 +40,8 @@ function App() {
       try {
         // Small delay to let Supabase process hash from URL
         if (window.location.hash.includes('access_token')) {
+          // Privacy Scrub: Clear old phone data on new login
+          localStorage.removeItem('user_phone');
           await new Promise(r => setTimeout(r, 800));
         }
         
