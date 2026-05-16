@@ -35,55 +35,73 @@ function App() {
   const [appReady, setAppReady] = useState(false);
 
   useEffect(() => {
-    // Initial Session Check
-    const checkSession = async () => {
-      try {
-        // Small delay to let Supabase process hash from URL
-        if (window.location.hash.includes('access_token')) {
-          // Privacy Scrub: Clear old phone data on new login
-          localStorage.removeItem('user_phone');
-          await new Promise(r => setTimeout(r, 800));
-        }
-        
-        // Safety timeout: don't hang forever if Supabase deadlocks
-        const sessionPromise = supabase.auth.getSession();
-        const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error("Timeout")), 4000)
-        );
+    let mounted = true;
 
-        const { data: { session } } = await Promise.race([sessionPromise, timeoutPromise]);
-        
-        if (session) {
-          const meta = session.user.user_metadata || {};
-          const profile = {
-            id: session.user.id,
-            name: meta.name || meta.full_name || session.user.email.split('@')[0],
-            email: session.user.email,
-            avatar: meta.avatar_url,
-            role: isManager(session.user.email) ? 'manager' : 'customer'
-          };
-          localStorage.setItem('user', JSON.stringify(profile));
-          localStorage.setItem('supabase_session', JSON.stringify(session));
-          localStorage.setItem('isLoggedIn', 'true');
-          
-          if (window.location.hash) {
-            window.history.replaceState(null, null, window.location.pathname);
-          }
+    // GLOBAL INITIALIZATION GUARD
+    const initializeApp = async () => {
+      // 1. Set a global fail-safe timeout (5 seconds max loading)
+      const forceStart = setTimeout(() => {
+        if (mounted) {
+          console.warn("Global initialization timeout reached. Force starting app.");
+          setAppReady(true);
+          setLoadingConfig(false);
         }
+      }, 5000);
+
+      try {
+        // 2. Process OAuth Hash with priority
+        if (window.location.hash.includes('access_token')) {
+          localStorage.removeItem('user_phone'); // Privacy Scrub
+          await new Promise(r => setTimeout(r, 800)); // Let browser settle
+        }
+        
+        // 3. Get Session with timeout
+        const sessionPromise = supabase.auth.getSession();
+        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 3500));
+        
+        try {
+          const { data: { session } } = await Promise.race([sessionPromise, timeoutPromise]);
+          if (session && mounted) {
+            const meta = session.user.user_metadata || {};
+            const profile = {
+              id: session.user.id,
+              name: meta.name || meta.full_name || session.user.email.split('@')[0],
+              email: session.user.email,
+              avatar: meta.avatar_url,
+              role: isManager(session.user.email) ? 'manager' : 'customer'
+            };
+            localStorage.setItem('user', JSON.stringify(profile));
+            localStorage.setItem('supabase_session', JSON.stringify(session));
+            localStorage.setItem('isLoggedIn', 'true');
+            if (window.location.hash) window.history.replaceState(null, null, window.location.pathname);
+          }
+        } catch (e) { console.warn("Session check bypassed:", e.message); }
+
+        // 4. Fetch Config (Non-blocking)
+        supabase.from('restaurant_config').select('value').eq('key', 'maintenance_mode').maybeSingle()
+          .then(({ data }) => {
+            if (data && mounted) setMaintenanceMode(data.value === 'true');
+            if (mounted) setLoadingConfig(false);
+          })
+          .catch(() => { if (mounted) setLoadingConfig(false); });
+
       } catch (err) {
-        console.warn("Session check bypassed or failed:", err.message);
+        console.error("Initialization error:", err);
       } finally {
-        setAppReady(true);
+        if (mounted) {
+          clearTimeout(forceStart);
+          setAppReady(true);
+        }
       }
     };
-    checkSession();
+
+    initializeApp();
 
     // Auth Listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         if (event === 'SIGNED_IN' && session) {
           localStorage.setItem('supabase_session', JSON.stringify(session));
-          
           const meta = session.user.user_metadata || {};
           const profile = {
             id: session.user.id,
@@ -102,14 +120,6 @@ function App() {
         }
       }
     );
-
-    // Config Fetch & Listener
-    const fetchConfig = async () => {
-      const { data } = await supabase.from('restaurant_config').select('value').eq('key', 'maintenance_mode').maybeSingle();
-      if (data) setMaintenanceMode(data.value === 'true');
-      setLoadingConfig(false);
-    };
-    fetchConfig();
 
     const channel = supabase.channel('app_config_changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'restaurant_config' }, 
