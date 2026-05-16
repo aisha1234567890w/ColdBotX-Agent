@@ -48,14 +48,19 @@ export default function Dashboard() {
       // Extract last 9 digits to be extremely safe with 0/92 prefixes
       const shortPhone = cleanPhone && cleanPhone.length >= 9 ? cleanPhone.slice(-9) : cleanPhone;
 
+      // If the user has NOT linked their phone, do not show any reservations.
+      // Name-matching is too loose and shows other people's reservations.
+      if (!shortPhone) {
+        setReservations([]);
+        setIsFirstTime(true);
+        setLoading(false);
+        return;
+      }
+
       let query = supabase.from('reservations_main').select('*');
       
-      // Verified columns from your screenshot: customer_name, phone_number
-      let orFilter = `customer_name.ilike.%${userObj.name.split(' ')[0]}%`;
-      
-      if (shortPhone) {
-        orFilter += `,phone_number.ilike.%${shortPhone}%`;
-      }
+      // Only search by phone number to ensure strict privacy and ownership
+      const orFilter = `phone_number.ilike.%${shortPhone}%`;
 
       console.log("Searching with filter:", orFilter);
 
