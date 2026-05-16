@@ -11,25 +11,34 @@ export default function Navbar() {
   const [user, setUser] = useState(null);
 
   const [announcement, setAnnouncement] = useState('');
+  const [intensity, setIntensity] = useState('Normal');
 
   useEffect(() => {
-    const fetchAnnouncement = async () => {
+    const fetchConfig = async () => {
       const { data } = await supabase
         .from('restaurant_config')
-        .select('value')
-        .eq('key', 'site_announcement')
-        .single();
-      if (data) setAnnouncement(data.value);
+        .select('*')
+        .in('key', ['site_announcement', 'service_intensity']);
+      
+      if (data) {
+        data.forEach(item => {
+          if (item.key === 'site_announcement') setAnnouncement(item.value);
+          if (item.key === 'service_intensity') setIntensity(item.value);
+        });
+      }
     };
 
-    fetchAnnouncement();
+    fetchConfig();
 
     // Real-time subscription for changes
     const channel = supabase
-      .channel('config_changes')
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'restaurant_config' }, 
+      .channel('navbar_config_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'restaurant_config' }, 
         (payload) => {
-          if (payload.new.key === 'site_announcement') setAnnouncement(payload.new.value);
+          if (payload.new) {
+             if (payload.new.key === 'site_announcement') setAnnouncement(payload.new.value);
+             if (payload.new.key === 'service_intensity') setIntensity(payload.new.value);
+          }
         })
       .subscribe();
 
@@ -79,7 +88,7 @@ export default function Navbar() {
   return (
     <>
       {announcement && (
-        <div className="bg-indigo-600 text-white py-2 overflow-hidden relative border-b border-indigo-500/30">
+        <div className="bg-indigo-600 text-white py-2 overflow-hidden relative border-b border-indigo-500/30 z-50">
           <div className="whitespace-nowrap animate-marquee flex items-center gap-12">
             {[1, 2, 3, 4, 5].map((i) => (
               <span key={i} className="text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-3 px-4">
@@ -101,7 +110,15 @@ export default function Navbar() {
           `}</style>
         </div>
       )}
-      <header className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md shadow-sm sticky top-0 z-50 transition-colors duration-200 border-b border-gray-100 dark:border-gray-800">
+      {intensity !== 'Normal' && (
+        <div className={`text-white py-1.5 text-center text-[10px] font-black uppercase tracking-widest relative z-50 shadow-md ${intensity === 'Rush Hour' ? 'bg-red-600' : 'bg-amber-600'}`}>
+          <div className="flex items-center justify-center gap-2 animate-pulse">
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+            {intensity === 'Rush Hour' ? 'CRITICAL HIGH VOLUME: Rush Hour Protocol Active. Wait times may be extended.' : 'High Volume Alert: We are currently experiencing heavy traffic.'}
+          </div>
+        </div>
+      )}
+      <header className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md shadow-sm sticky top-0 z-40 transition-colors duration-200 border-b border-gray-100 dark:border-gray-800">
       <div className="max-w-7xl mx-auto px-4 md:px-6 py-3 md:py-4 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Link to="/" className="text-2xl font-black tracking-tighter text-gray-900 dark:text-white hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">

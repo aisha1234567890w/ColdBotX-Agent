@@ -59,16 +59,18 @@ function App() {
 
     // Config Fetch & Listener
     const fetchConfig = async () => {
-      const { data } = await supabase.from('restaurant_config').select('value').eq('key', 'maintenance_mode').single();
+      const { data } = await supabase.from('restaurant_config').select('value').eq('key', 'maintenance_mode').maybeSingle();
       if (data) setMaintenanceMode(data.value === 'true');
       setLoadingConfig(false);
     };
     fetchConfig();
 
     const channel = supabase.channel('app_config_changes')
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'restaurant_config' }, 
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'restaurant_config' }, 
         (payload) => {
-          if (payload.new.key === 'maintenance_mode') setMaintenanceMode(payload.new.value === 'true');
+          if (payload.new && payload.new.key === 'maintenance_mode') {
+             setMaintenanceMode(payload.new.value === 'true');
+          }
         })
       .subscribe();
 
