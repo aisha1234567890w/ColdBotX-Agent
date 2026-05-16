@@ -33,6 +33,7 @@ function App() {
   const [maintenanceMode, setMaintenanceMode] = useState(false);
   const [loadingConfig, setLoadingConfig] = useState(true);
 
+  useEffect(() => {
     // Initial Session Check
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
