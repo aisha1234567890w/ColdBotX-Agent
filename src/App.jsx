@@ -32,33 +32,39 @@ import './dashboard.css';
 function App() {
   const [maintenanceMode, setMaintenanceMode] = useState(false);
   const [loadingConfig, setLoadingConfig] = useState(true);
+  const [appReady, setAppReady] = useState(false);
 
   useEffect(() => {
     // Initial Session Check
     const checkSession = async () => {
-      // Small delay to let Supabase process hash from URL
-      if (window.location.hash.includes('access_token')) {
-        await new Promise(r => setTimeout(r, 500));
-      }
-      
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        const meta = session.user.user_metadata || {};
-        const profile = {
-          id: session.user.id,
-          name: meta.name || meta.full_name || session.user.email.split('@')[0],
-          email: session.user.email,
-          avatar: meta.avatar_url,
-          role: isManager(session.user.email) ? 'manager' : 'customer'
-        };
-        localStorage.setItem('user', JSON.stringify(profile));
-        localStorage.setItem('supabase_session', JSON.stringify(session));
-        localStorage.setItem('isLoggedIn', 'true');
-        
-        // Clean up hash from URL
-        if (window.location.hash) {
-          window.history.replaceState(null, null, window.location.pathname);
+      try {
+        // Small delay to let Supabase process hash from URL
+        if (window.location.hash.includes('access_token')) {
+          await new Promise(r => setTimeout(r, 800));
         }
+        
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          const meta = session.user.user_metadata || {};
+          const profile = {
+            id: session.user.id,
+            name: meta.name || meta.full_name || session.user.email.split('@')[0],
+            email: session.user.email,
+            avatar: meta.avatar_url,
+            role: isManager(session.user.email) ? 'manager' : 'customer'
+          };
+          localStorage.setItem('user', JSON.stringify(profile));
+          localStorage.setItem('supabase_session', JSON.stringify(session));
+          localStorage.setItem('isLoggedIn', 'true');
+          
+          if (window.location.hash) {
+            window.history.replaceState(null, null, window.location.pathname);
+          }
+        }
+      } catch (err) {
+        console.error("Session check failed:", err);
+      } finally {
+        setAppReady(true);
       }
     };
     checkSession();
@@ -119,6 +125,15 @@ function App() {
       <button onClick={() => window.location.href = '/login'} className="mt-12 text-[10px] text-gray-600 font-black uppercase tracking-widest hover:text-white transition-colors">Staff Login</button>
     </div>
   );
+
+  if (!appReady || loadingConfig) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-white dark:bg-gray-950">
+        <div className="w-16 h-16 border-4 border-indigo-600/20 border-t-indigo-600 rounded-full animate-spin mb-4"></div>
+        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 animate-pulse">Initializing Aifur...</p>
+      </div>
+    );
+  }
 
   return (
     <AppProvider>
