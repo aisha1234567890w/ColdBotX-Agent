@@ -51,6 +51,7 @@ export default function DashboardLayout() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showNotifications, setShowNotifications] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [occupancyRate, setOccupancyRate] = useState(0);
 
   const user = JSON.parse(localStorage.getItem('user') || '{"name": "Admin", "email": "admin@aifur.com"}');
 
@@ -67,7 +68,11 @@ export default function DashboardLayout() {
 
   useEffect(() => {
     fetchUnread();
-    const interval = setInterval(fetchUnread, 30000); // Check every 30s
+    fetchOccupancy();
+    const interval = setInterval(() => {
+      fetchUnread();
+      fetchOccupancy();
+    }, 30000); // Check every 30s
     return () => clearInterval(interval);
   }, []);
 
@@ -81,6 +86,43 @@ export default function DashboardLayout() {
     } catch (err) {
       console.error(err);
     }
+  };
+
+  const fetchOccupancy = async () => {
+    try {
+      const { data: tablesData } = await supabase.from('restaurant_tables').select('*');
+      const { data: resData } = await supabase.from('reservations_main').select('*').in('status', ['confirmed', 'occupied']);
+      
+      let manualOccupied = 0;
+      if (tablesData) {
+        tablesData.forEach(t => {
+           const matchingRes = resData?.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+             .find(r => {
+               const matchesId = r.table_id && Number(r.table_id) === Number(t.id);
+               const matchesNum1 = r.table_number && Number(r.table_number) === Number(t.table_number);
+               const matchesNum2 = r.tableNumber && Number(r.tableNumber) === Number(t.table_number);
+               return matchesId || matchesNum1 || matchesNum2;
+             });
+
+           let inferredStatus = 'Available';
+           const s = (t.status || 'free').toLowerCase();
+           
+           if (s === 'occupied') inferredStatus = 'Occupied';
+           else if (s === 'booked') inferredStatus = 'Reserved';
+           else if (matchingRes && matchingRes.status?.toLowerCase() === 'occupied') inferredStatus = 'Occupied';
+           else if (matchingRes && matchingRes.status?.toLowerCase() === 'confirmed') inferredStatus = 'Reserved';
+           else inferredStatus = 'Available';
+
+           if (inferredStatus !== 'Available') manualOccupied++;
+        });
+      }
+      
+      const totalTables = tablesData ? tablesData.length : 20; 
+      const activeResCount = resData ? resData.length : 0;
+      const actualOccupied = Math.max(manualOccupied, activeResCount);
+      const rate = totalTables > 0 ? Math.min((actualOccupied / totalTables) * 100, 100) : 0;
+      setOccupancyRate(rate);
+    } catch (err) { console.error(err); }
   };
 
   const handleLogout = async () => {
@@ -144,21 +186,21 @@ export default function DashboardLayout() {
              <div className="bg-black text-white p-6 rounded-[2.5rem] mb-6 relative overflow-hidden group border border-white/10 shadow-2xl">
                 <div className="relative z-10">
                   <div className="flex justify-between items-center mb-4">
-                     <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">System Load</span>
+                     <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Live Occupancy</span>
                      <div className="flex items-center gap-1">
                         <div className="w-1 h-1 bg-emerald-500 rounded-full animate-ping"></div>
                         <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Live</span>
                      </div>
                   </div>
-                  <div className="text-3xl font-black italic mb-1 tracking-tighter">68.4%</div>
+                  <div className="text-3xl font-black italic mb-1 tracking-tighter">{Math.round(occupancyRate)}%</div>
                   <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden mb-4">
-                     <div className="h-full bg-indigo-500 w-[68%]" />
+                     <div className={`h-full transition-all duration-1000 ${occupancyRate > 80 ? 'bg-red-500' : occupancyRate > 50 ? 'bg-amber-500' : 'bg-emerald-500'}`} style={{ width: `${Math.round(occupancyRate)}%` }} />
                   </div>
                   <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest leading-relaxed">
-                    Peak hour protection active. Turnover speed +15%.
+                    {occupancyRate > 80 ? 'CRITICAL CAPACITY. NO WALK-INS.' : occupancyRate > 50 ? 'STEADY FLOW. OPTIMAL STAFFING.' : 'LOW VOLUME. HIGH TURNOVER POTENTIAL.'}
                   </p>
                 </div>
-                <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-indigo-600/10 blur-[60px] rounded-full"></div>
+                <div className={`absolute -right-10 -bottom-10 w-40 h-40 blur-[60px] rounded-full transition-all ${occupancyRate > 80 ? 'bg-red-600/20' : occupancyRate > 50 ? 'bg-amber-600/20' : 'bg-emerald-600/20'}`}></div>
              </div>
            )}
            <button 
